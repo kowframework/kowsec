@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---         Copyright (C) 2007-2008, Marcelo C. de Freitas (OgRo)            --
+--        Copyright (C) 2007-2008, Ydea Desenv. de Softwares Ltda           --
 --                                                                          --
 --                                                                          --
 -- APQ is free software;  you can  redistribute it  and/or modify it under  --
@@ -36,8 +36,22 @@
 --                                                                           --
 -------------------------------------------------------------------------------
 
-
+with Ada.Finalization;
 
 package Aw_Sec is
-	pragma Pure;
+
+	type User is abstract new Ada.Finalization.Controlled with private;
+
+
+
+
+	function Is_Anonymous( U: in User ) return Boolean;
+
+
+private
+	type User is abstract new Ada.Finalization.Controlled with record;
+		Is_Anonymous: Boolean := True;
+	end record;
+	procedure Adjust( U : in out User );
+
 end Aw_Sec;
