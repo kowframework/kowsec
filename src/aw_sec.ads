@@ -128,17 +128,17 @@ package Aw_Sec is
 	---------------------------
 
 
-	type Accountant (	Service: Wide_String;
-				Root: Accountant_Access ) is new Ada.Finalization.Controlled with private;
+	type Accountant is new Ada.Finalization.Controlled with private;
 	-- The Accountant should be overwritten by anyone willing to extend the
 	-- Accounting Management schema of Aw_Sec.
 	--
 	-- There is a basic implementation avaliable in this package that outputs
 	-- the messages to stdout and stderr.
-	
+
+
 	type Accountant_Access is access all Accountant'Class;
 	
-	type Action is limited new Ada.Finalization.Controlled with private;
+	type Action is new Ada.Finalization.Limited_Controlled with private;
 	-- An action is any small and localized task that can be performed by the system.
 	-- The action controlls:
 	-- 	* when the task has been started
@@ -200,7 +200,7 @@ package Aw_Sec is
 
 	function Do_Login(	Manager:  in Authentication_Manager;
 				Username: in Wide_String;
-				Password: in Wide_string ) return User'Class is abstract;
+				Password: in Wide_string ) return User is abstract;
 	-- Login the user, returning a object representing it.
 	-- This object might be a direct instance of User or a subclas.
 	-- It's this way so the authentication method might have
@@ -220,6 +220,8 @@ package Aw_Sec is
 	-- Even though this isn't an abstract method, one can overwrite it
 	-- in order to log hits from anonymuos users when using determined Manager.
 
+
+	function Get_Groups( User_Object: in User ) return Authorization_Groups;
 
 	----------------------------------------
 	-- User Management - accounting aware --
@@ -320,31 +322,61 @@ package Aw_Sec is
 	---------------------------
 
 
-
-	procedure Log_Action(	Current_Accountant 	: in Accountant;
-				Current_Action		: in Action'Class );
-				
-				
-
 	function New_Action(	Root_Accountant : in Accountant'Class;
 				User_Object	: in User'Class ) return Action;
-	-- used to create a new action which's root is Root_Accountant
-	
+	-- Used to create a new action which's root is Root_Accountant
+	-- Should be used as a constructor.
+	-- 
+	-- Even thouth it's preffered to use this method to create your
+	-- actions, it's also possible to count on the Initialize method
+	-- to setup the automatic settings
+
 	procedure Set_Exit_Status(	Current_Action	=> Action;
 					Status		=> Exit_Status;
 					Message		=> Wide_String );
 	-- Set the exit status and a message describing what hapenned.
 	-- Raise STATUS_CONFLICT when the status has been already defined
 
-	-- TODO: 
-	-- . declarar métodos interessantes para as ações e accountants
-	-- . implementar parte privada do pacote:
-	-- 	* tipos
-	-- 	* métodos Initialize e Finalize para ambos Accountant e Action
+
+	procedure Finalize_Action(	Current_Countant	: in Accountant;
+					Current_Action		: in Action'Class );
+	-- Called by the action when it's going to be deallocated.
+	--
+	-- This method should be overwriten when extending the Aw_Sec accountin
+	-- schema.
+
+	procedure New_Accountant(	Service			: in Wide_String,
+					Root_Accountant		: in Accountant'Class := Root_Acc );
+	-- Accountant constructor.
+	--
+	-- This method should be overwriten when extending the Aw_Sec accountin
+	-- schema.
+	
+	procedure Finalize_Accountant(	Current_Accountant	: in Accountant;
+					Child_Accountant	: in Accountant'Class );
+	-- Called by the child accountant when it's going to be deallocated.
+	--
+	-- This method should be overwriten when extending the Aw_Sec accountin
+	-- schema.
+
 private
-	type User is abstract new Ada.Finalization.Controlled with record;
-		Is_Anonymous: Boolean := True;
+
+
+	type User is tagged record
+		Username : access Wide_String;
+		Groups	 : access Authorization_Groups;
 	end record;
+
+	-- TODO: from here and package body!
+	type Authentication_Manager is abstract bew Ada.Finalization.Controlled with record
+	end record;
+
+	type Accountant is new Ada.Finalization.Controlled with record
+	end record;
+
+	type Action is new Ada.Finalization.Limited_Controlled with record
+	end record;
+	
 	procedure Adjust( U : in out User );
 
 end Aw_Sec;
