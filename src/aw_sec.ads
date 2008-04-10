@@ -46,14 +46,10 @@ package Aw_Sec is
 	-- TYPE AND CONSTANT DECLARATIONS --
 	------------------------------------
 
-	---------------------
-	-- User Management --
-	---------------------
 
-	type User is tagged private;
-	-- A user can be extended, even though it's not how Aw_Sec should be 
-	-- extended
-	-- Instead, try extending the Authentication_Manager type.
+	-----------------------
+	-- Groups Management --
+	-----------------------
 	
 	type Authorization_Group is tagged private;
 	-- Represents an authorization group for this user.
@@ -62,15 +58,62 @@ package Aw_Sec is
 	--
 	-- That's the reason why we call it Authorization_Group and not only Group.
 
+
+	function Identity( Group: in Authorization_Group ) return String;
+	-- return a string identifying the current group;
+	-- this can be the group name, for instance.
+
+
+
 	type Authorization_Group_Access is access all Authorization_Group'Class;
 
 	type Authorization_Groups is Array(<>) of Authorization_Group_Access;
 	-- an array containing access types for authorization groups.
 
+
+
+	---------------------
+	-- User Management --
+	---------------------
+
+	type User is tagged private;
+	-- A user can be extended, even though it's not how Aw_Sec should be 
+	-- extended
+	-- Instead, try extending the Authentication_Manager type.
+
+	function Is_Anonymous(	User_Object: in User ) return Boolean;
+	-- Return true if this user isn't logged in.
+	-- 
+	-- Even though this isn't an abstract method, one can overwrite it
+	-- in order to log hits from anonymuos users when using determined Manager.
+
+
+
+	function Identity( User_Object: in User ) return String;
+	-- Return a string identifying the current user. Usually it's the username
+	-- but one could implement other methods, such as a numeric id for this user
+
+
+	function Full_Name(	User_Object	: in User;
+				Locale		: Aw_Lib.Locales.Locale
+					:= Aw_Lib.Locales.Default_Locale
+		) return String;
+	-- return the full name for this user, respecting the locale
+
+
+	function Clear_Data( User_Object: in out User );
+	-- clear all the data implemented in the extending type
+	-- of the current user 
+
+	procedure Do_Logout( User_Object: in out User'Class );
+	-- Not only make sure the user is logged out but also
+	-- Make sure Is_Anonymous returns true for now on for this user.
+	-- 
+	-- Even though it could sound strange that the login is handled by a
+	-- manager and the logout is managed by the logout.
+
 	
-	
-	
-	type Authentication_Manager is abstract bew Ada.Finalization.Controlled with private;
+	type Authentication_Manager is abstract new Ada.Finalization.Controlled with private;
 	-- This is where the magic happens!
 	--
 	-- The Authentication_Manager type is the type that should be extended
@@ -78,6 +121,26 @@ package Aw_Sec is
 	--
 	-- It's a controlled type only for the pleasure of the type implementor.
 
+
+	function Do_Login(	Manager:  in Authentication_Manager;
+				Username: in String;
+				Password: in String ) return User'Class is abstract;
+	-- Login the user, returning a object representing it.
+	-- This object might be a direct instance of User or a subclas.
+	-- It's this way so the authentication method might have
+	-- a user with extended properties.
+
+
+	function Get_Groups(	Manager:	in Authentication_Manager;
+				User_Object:	in User'Class ) return Authorization_Groups;
+	-- Return all the groups for this user
+	-- It's implemented in the manager for 2 reasons:
+	-- 	1. this way we can store the users and the groups in
+	-- 	  different managers.
+	-- 	2. the information on how to obtain the groups information
+	-- 	  doesn't belong to the user itself.
+
+	function Get_Groups( User_object: in User'Class ) return Authorization_Groups;
 
 	INVALID_CREDENTIALS: Exception;
 	-- should be raised when login fails.
@@ -99,12 +162,9 @@ package Aw_Sec is
 	-- A name representing the criteria
 	-- It's used to identify the criteria in use.
 	
-	type Criteria_Descriptor is new Wide_String( Integer range <> );
-	-- the criteria descriptor is a Wide_String representing that the
-	-- criteria is.
-	-- It's a Wide_String and not a String because one could use
-	-- username in a descriptor pattern and the username is
-	-- Wide_String.
+	type Criteria_Descriptor is new String( Integer range <> );
+	-- the criteria descriptor is a String representing the
+	-- criteria rules.
 
 	type Criteria_Factory is access function ( Descriptor: in Criteria_Descriptor ) return Criteria'Class;
 	-- When the package containing the criteria is loaded, it should register itself with the main
@@ -138,10 +198,12 @@ package Aw_Sec is
 
 	type Accountant_Access is access all Accountant'Class;
 	
-	type Action is new Ada.Finalization.Limited_Controlled with private;
+	type Base_Action is abstract new Ada.Finalization.Limited_Controlled with private;
+
+	type Action is new Base_Action with private;
 	-- An action is any small and localized task that can be performed by the system.
 	-- The action controlls:
-	-- 	* when the task has been started
+	-- 	* when the task (not as in paralel computing!) has been started
 	-- 	* which user, if any, is responsible for triggering this action
 	--	* when the task has been compleeted
 	--	* the exit status and message of the task.
@@ -189,39 +251,10 @@ package Aw_Sec is
 	
 
 
-	-------------------------
-	-- METHODS DECLARATION --
-	-------------------------
+	-----------------------------------
+	-- CLASSWIDE METHODS DECLARATION --
+	-----------------------------------
 
-
-	--------------------------------------------
-	-- User Management - not accounting aware --
-	--------------------------------------------
-
-	function Do_Login(	Manager:  in Authentication_Manager;
-				Username: in Wide_String;
-				Password: in Wide_string ) return User is abstract;
-	-- Login the user, returning a object representing it.
-	-- This object might be a direct instance of User or a subclas.
-	-- It's this way so the authentication method might have
-	-- a user with extended properties.
-
-
-	procedure Do_Logout(	Manager:	in Authentication_Manager;
-				User_Object:	in out User ) is abstract;
-	-- not only make sure the user is logged out but also
-	-- make sure Is_Anonymous returns true for now on for this user.
-
-
-	function Is_Anonymous(	Manager:	in Authentication_Manager;
-				User_Object:	in User ) return Boolean;
-	-- Return true if this user isn't logged in.
-	-- 
-	-- Even though this isn't an abstract method, one can overwrite it
-	-- in order to log hits from anonymuos users when using determined Manager.
-
-
-	function Get_Groups( User_Object: in User ) return Authorization_Groups;
 
 	----------------------------------------
 	-- User Management - accounting aware --
@@ -229,8 +262,8 @@ package Aw_Sec is
 	
 
 	function Do_Login(	Manager:	 in Authentication_Manager'Class;
-				Username:	 in Wide_String;
-				Password:	 in Wide_String;
+				Username:	 in String;
+				Password:	 in String;
 				Root_Accountant: in Accountant'Class ) return User'Class;
 	-- This function logs any error returned by Do_Login method
 	-- As it's a class wide function, it dynamic dispatching is enabled
@@ -331,9 +364,13 @@ package Aw_Sec is
 	-- actions, it's also possible to count on the Initialize method
 	-- to setup the automatic settings
 
+
+	function Make_Action(	Root_Accountant	: in Accountant'Class;
+				User_Object	: in User'Class ) return Action;
+
 	procedure Set_Exit_Status(	Current_Action	=> Action;
 					Status		=> Exit_Status;
-					Message		=> Wide_String );
+					Message		=> String );
 	-- Set the exit status and a message describing what hapenned.
 	-- Raise STATUS_CONFLICT when the status has been already defined
 
@@ -345,7 +382,7 @@ package Aw_Sec is
 	-- This method should be overwriten when extending the Aw_Sec accountin
 	-- schema.
 
-	procedure New_Accountant(	Service			: in Wide_String,
+	procedure New_Accountant(	Service			: in String,
 					Root_Accountant		: in Accountant'Class := Root_Acc );
 	-- Accountant constructor.
 	--
@@ -362,9 +399,32 @@ package Aw_Sec is
 private
 
 
+	protected type Groups_Cache_Type is 
+
+	private
+		Groups		: access Authorization_Groups;
+		Timeout		: Duration := 600.0;		-- the duration of this cache in secconds
+		Need_Update	: Boolean := True;		-- should update the cache in the next Get_Groups call?
+		Last_Access	: Time;				-- when was the last access to this information.
+	end record;
+
+	function Should_Update( Cache: in Groups_Cache_Type ) return Boolean;
+	-- se Need_Update = true, define need_update := false e retorna true
+	-- se agora - last_access >= timeout, retorna true
+	-- return false
+	
+	procedure Update(	Cache: in out Groups_Cache_Type;
+				Managers: Authorization_Managers );
+	-- update the current cache
+
+
+
 	type User is tagged record
-		Username : access Wide_String;
-		Groups	 : access Authorization_Groups;
+		Username	: access String;
+
+		Groups_Cache	: access Authorization_Groups;
+		Managers	: access Authorization_Manager_Vectors.Vector;
+		Groups_Cache_Update:
 	end record;
 
 	-- TODO: from here and package body!
@@ -375,8 +435,15 @@ private
 	end record;
 
 	type Action is new Ada.Finalization.Limited_Controlled with record
+		Initialized: Boolean := False;
+		-- flag used internally to indicate when the method has been initialized.
 	end record;
+	procedure Initialize(A: in out Action);
+	-- overrides the initialization so it'll raise an exception
+	-- anytime the user tries to initialize an object without
+	-- using a constructor.
 	
-	procedure Adjust( U : in out User );
+	procedure Finalize( A: in out Action );
+	-- used to 
 
 end Aw_Sec;
