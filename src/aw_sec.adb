@@ -12,6 +12,13 @@ package body Aw_Sec is
 		end if;
 	end Check_Anonymous_Access;
 
+
+	procedure Set_Groups_Timeout( User_Object: in out User; New_Timeout: in Duration ) is
+	        -- set the timeout of the groups cache for this user
+	begin
+		User_Object.Groups.Set_timeout( New_Timeout );
+	end Set_Groups_Timeout;
+
 	procedure Update_Groups( User_Object: in out User ) is
 		-- Tells the user that his groups should be updated in the
 		-- next request to Get_Groups.
@@ -88,5 +95,116 @@ package body Aw_Sec is
 		-- TODO: implement something to clear this cache in order to
 		-- recycle the memory
 	end Do_Logout;
+
+
+
+
+
+	-- PRIVATE --
+
+	protected body Groups_Cache_Type is 
+		function Should_Update return Boolean is
+		begin
+			if
+				Authorization_Groups = NULL	OR
+				Need_Update = true		OR
+				(
+					Timeout /= 0.0 AND THEN 
+					Last_Update < (Now - Timeout)
+				)
+			then
+				return true;
+		 	else 
+		 		return_code := false;
+		 	end if;
+		
+		end Should_Update;
+		
+		procedure Update( User_Object: in User'Class; Managers: in Authorization_Managers ) is
+			-- update the groups and then set:
+			-- 	need_update := false
+			-- 	last_update := now
+
+			Empty: Authorization_Groups(1 .. 0);
+			-- it's used when there is nothing to be returned from Groups.
+			
+			procedure Free is new Unchecked_Deallocation(
+				Object	=> Authorization_Groups
+				);
+
+
+			function Iterate( i: in Integer ) return Authorization_Groups is
+				My_Groups := Get_Groups( Managers(i).all, User_Object );
+				Next: Integer := I + 1;
+			begin
+				if Next <= Managers'Last then
+					declare
+						Next_Groups: Authorization_Groups := Iterate( Next );
+					begin
+						if Next_Groups'Length > 0 then
+							if My_Groups'Length > 0 then
+								return My_Groups & Next_Groups;
+							else
+								return Next_Groups;
+							end if;
+						end if;
+					end;
+				end if;
+
+				return My_Groups;
+				-- If it hasn't fetched anything from the next groups
+				-- return the current groups list.
+			end Iterate;
+		begin
+
+			Check_Anonymous_Access( User_Object, "Updating Groups" );
+
+			Free( Groups );
+
+			-- notice we don't check if the user is anonymous
+			-- it's due the check if
+
+			if Managers'Length = 0 then
+				return; -- there is nothing to be feched if manager is null
+			end if;
+
+
+			-- now we try to fetch the groups information for
+			-- the current user:
+			declare
+				My_Groups : Authorization_Groups := Iterate ( Managers'First );
+			begin
+				if My_Groups'Length /= 0 then
+					Groups := new Authorization_Groups( 1 .. My_Groups'Length );
+					Groups.all := My_Groups;
+				end if;
+			end;
+
+			-- if the update has been a success, then..
+			Need_Update := False;
+			Last_Update := Now;
+		end Update;
+
+		function Get_Groups return Authorization_Groups is
+			-- checks if the groups should be update
+			-- 	if true, do the update
+			-- 	if false, don't update.
+			-- return the current groups list
+			Empty: Authorization_Groups( 1 .. 0 );
+		begin
+		end Get_Groups;
+
+		procedure Set_Update is
+			-- tell this cache it should be updated in the next call
+			-- of Get_Groups.
+		begin
+			Need_Update := True;
+		end Set_Update;
+		
+		procedure Set_Timeout( New_Timeout: in Duration ) is
+		begin
+			Timeout := New_Timeout;
+		end Set_Timeout;
+	end Groups_Cache_Type;
 
 end Aw_Sec;

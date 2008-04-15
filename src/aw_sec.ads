@@ -94,6 +94,8 @@ package Aw_Sec is
 	--
 	-- This should be handler somewhere else.
 
+	procedure Set_Groups_Timeout( User_Object: in out User; New_Timeout: in Duration );
+	-- set the timeout of the groups cache for this user
 	
 	procedure Update_Groups( User_Object: in out User );
 	-- Tells the user that his groups should be updated in the
@@ -443,7 +445,7 @@ private
 		-- 	return return_code;
 		
 		
-		procedure Update( Managers: in Authorization_Managers );
+		procedure Update( User_Object: in User'Class; Managers: in Authorization_Managers );
 		-- update the groups and then set:
 		-- 	need_update := false
 		-- 	last_update := now
@@ -457,6 +459,9 @@ private
 		procedure Set_Update;
 		-- tell this cache it should be updated in the next call
 		-- of Get_Groups.
+		
+
+		procedure Set_Timeout( New_Timeout: Duration );
 	private
 		Groups		: access Authorization_Groups;
 		Timeout		: Duration := 600.0;		-- the duration of this cache in secconds
@@ -465,10 +470,10 @@ private
 	end Groups_Cache_Type;
 
 
-	Anonymous_Username : Unbounded_String := To_Unbounded_String( "anonymous" );
+	Anonymous_Username : String := "anonymous";
 
 	type User is tagged record
-		Username	: Unbounded_String := Anonymous_Username;
+		Username	: Unbounded_String := To_Unbounded_String( Anonymous_Username );
 		-- as default, in Aw_Sec, anonymous user has this username
 		First_Name	: Unbounded_String;
 		Last_Name	: Unbounded_String;
