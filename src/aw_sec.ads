@@ -37,7 +37,6 @@
 -------------------------------------------------------------------------------
 
 -- TODO:
--- 	. authorization: finish the design
 -- 	. accounting
 --
 -- Notice:
@@ -213,13 +212,42 @@ package Aw_Sec is
 	-- criteria registry (available in this package here) so it can be referenced later on by
 	-- it's name.
 	
+	package Criteria_Maps is new 
+		Ada.Containers.Hashed_Maps(
+				Key_Type	=> Unbounded_String,
+				Element_Type	=> Criteria_Factory );
+	
+	protected type Criteria_Manager is
+		--  we created a protected type here so our code is task-safe.
+		procedure Register( Str: in String; Factory: in Criteria_Factory );
+		-- Register a criteria based on it's name.
+		-- We do not check if the factory is null as it has been checked before
+		-- in the public register method.
+		-- If there is another criteria with the same name, raises Duplicated_Criteria
+	
+		procedure Unload( Name: in Criteria_name );
+		-- remove this criteria from the registry.
+		-- if there is no such criteria, raises INVALID_CRITERIA
+	
+		procedure Empty_Criteria_Registry;
+		-- used to unload all the criterias from the registry.
 
-	procedure Register( Name: in String; Factory: in Criteria_Factory );
-	-- register a criteria based on it's name.
 
-	function Create_Criteria( Name, Pattern: in String ) return Criteria'Class;
-	-- create a new criteria object from an already registered criteria type
-	-- based on it's name and the given pattern.
+		function Create_Criteria( Name, Pattern: in String ) return Criteria'Class;
+		-- create a new criteria object from an already registered criteria type
+		-- based on it's name and the given pattern.
+		-- if there is no such criteria, raises INVALID_CRITERIA
+
+	private
+		Map: Criteria_Maps.Map;
+	end Criteria_Manager;
+
+	Criterias: Criteria_Manager;
+	-- It's a public object.
+	-- The Criteria implementor should call
+	-- 	Criteria_Registry.Register( "name", factory'access );
+	-- in the static part of his package.
+
 
 	INVALID_CRITERIA_DESCRIPTOR: Exception;
 	-- should be raised when the Criteria_Descriptor used can't be parsed.
@@ -344,19 +372,6 @@ package Aw_Sec is
 	-- This will only work if the criteria has been registered by
 	-- the following method:
 	
-	procedure Register(	Name:	 in Criteria_Name;
-				Factory: in Criteria_Factory );
-	-- This procedure should be called by the package that implements
-	-- a criteria in load time (the static part of the body).
-	-- If the implementor fails to do so, the criteria won't be avaliable
-	-- later on by it's name.
-
-	procedure Unload( Name: in Criteria_name );
-	-- remove this criteria from the registry.
-	
-
-	procedure Empty_Criteria_Registry;
-	-- used to unload all the criterias from the registry.
 	
 
 	procedure Require(	User_Object:	in out User'Class;
@@ -389,7 +404,6 @@ package Aw_Sec is
 	-- logs any error that might occur using the root_accountant
 
 
-	-- TODO: adotar agora esse estilo de identação ou não?
 	procedure Require(	User_Object	: in out User'Class;
 				Name		: in Criteria_Name;
 				Descriptor	: in Criteria_Descriptor;
@@ -529,13 +543,15 @@ private
 
 	procedure Match(	Criteria_Object	: in Criteria;
 				User_Object	: in out User'Class;
-				Results		: out Boolean );
+				Results		: out Boolean ) is abstract;
 	-- Match the user permissions against the given criteria
 	-- some criterias might require the user to be loged in
 	-- (as when it's required to get user's groups).
 	--
 	-- User_Object is an "in out" so it can have it's groups
 	-- updated automatically by Aw_Sec when required.
+
+
 
 
 

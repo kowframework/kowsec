@@ -102,6 +102,57 @@ package body Aw_Sec is
 	end Do_Logout;
 
 
+	protected body Criteria_Manager is
+		use Criteria_Maps;
+		--  we created a protected type here so our code is task-safe.
+		procedure Register( Name: in String; Factory: in Criteria_Factory ) is
+			-- We do not check if the factory is null as it has been checked before
+			-- in the public register method.
+			-- Register the factory in this registry.
+		begin
+			if Contains( Map, Name ) then
+				raise DUPICATED_CRITERIA with "Name: " & Name;
+			end if;
+
+			Insert( Map, Name, Factory );
+
+		end Register;
+
+		procedure Unload( Name: in Criteria_name ) is
+			-- remove this criteria from the registry.
+		begin
+			if Contains( Map, Name ) then
+				delete( Map, Name );
+			end if;
+
+			raise INVALID_CRITERIA with "Can't unload " & Name;
+		end Unload;
+
+
+		procedure Empty_Criteria_Registry is
+			-- used to unload all the criterias from the registry.
+
+		begin
+			while not Is_Empty( Map )
+			loop
+				Delete_First( Map );
+			end loop;
+		end Emtpy_Criteria_Registry;
+
+		function Create_Criteria( Name, Pattern: in String ) return Criteria'Class is
+			-- create a new criteria object from an already registered criteria type
+			-- based on it's name and the given pattern.
+			Factory: Criteria_Factory;
+		begin
+			if not Contains( Map, Name ) then
+				raise INVALID_CRITERIA with "Can't create " & Name;
+			end if;
+
+			Factory :=  Element( Name );
+
+			return Factory.all( Pattern );
+		end Create_Criteria;
+	end Criteria_Manager;
 
 
 
@@ -211,5 +262,9 @@ package body Aw_Sec is
 			Timeout := New_Timeout;
 		end Set_Timeout;
 	end Groups_Cache_Type;
+
+
+
+
 
 end Aw_Sec;
