@@ -50,7 +50,7 @@ package body Aw_Sec is
 	end Full_Name;
 
 	
-	function Get_Groups( User_object: in User'Class ) return Authorization_Groups is
+	procedure Get_Groups( User_object: in User'Class; Groups: in out Authorization_Groups ) is
 	-- Get the groups for this user.
 	-- There are two things to notice here:
 	-- 	1. This method is task safe. It means it will never return something
@@ -62,7 +62,12 @@ package body Aw_Sec is
 
 	begin
 		Check_Anonymous_Access( User_Object, "Get_Groups" );
-		return User_Object.Groups_Cache.Get_Groups;
+
+		-- Notice:
+		-- According Ada2005 RM the Vector needs finalization.
+		-- For this reason we don't deallocate the memory here.
+
+		Groups := User_Object.Groups_Cache.Get_Groups;
 	end Get_Groups;
 
 	function Is_Anonymous(	User_Object: in User ) return Boolean is
@@ -157,7 +162,7 @@ package body Aw_Sec is
 			end Iterate;
 		begin
 
-			Check_Anonymous_Access( User_Object, "Updating Groups" );
+			Check_Anonymous_Access( User_Object, "Groups_Cache_Type.Update" );
 
 			Free( Groups );
 

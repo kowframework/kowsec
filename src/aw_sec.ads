@@ -36,15 +36,17 @@
 --                                                                           --
 -------------------------------------------------------------------------------
 
-
 -- TODO:
--- 	. authorization
+-- 	. authorization: finish the design
 -- 	. accounting
 --
 -- Notice:
 -- 	I decided to finish the user and authentication schema before continuing
 -- 	the rest of Aw_Sec design as it's a critical area.
 -- 		OgRo.
+
+
+with Ada.Containers.Vectors;
 with Ada.Finalization;
 with Ada.Strings.Unbounded;	use Ada.Strings.Unbounded;
 
@@ -73,8 +75,13 @@ package Aw_Sec is
 	-- from different managers for the same user (see the rest of the file)
 
 
-	type Authorization_Groups is Array(<>) of Authorization_Group;
-	-- an array containing authorization groups.
+	package Authorization_Group_Vectors is new Ada.Containers.Vectors(
+			Index_Type	=> Natural;
+			Element_Type	=> Authorization_Group );
+
+	type Authorization_Groups is new Authorization_Group_Vectors.Vectors;
+	-- this will make all the vector's methods avaliable here
+	-- in Aw_Sec package.
 
 
 	-- there is no special method for the Authorization_Group type.
@@ -114,7 +121,7 @@ package Aw_Sec is
 	-- return the full name for this user, respecting the locale's conventions
 
 	
-	function Get_Groups( User_object: in User'Class ) return Authorization_Groups;
+	procedure Get_Groups( User_object: in out User'Class; Groups: in out Authorization_Groups);
 	-- Get the groups for this user.
 	-- There are two things to notice here:
 	-- 	1. This method is task safe. It means it will never return something
@@ -173,9 +180,6 @@ package Aw_Sec is
 
 
 
-	-- TODO: FROM HERE!
-	
-	
 	------------------------------
 	-- Authorization Management --
 	------------------------------
@@ -185,19 +189,37 @@ package Aw_Sec is
 	-- authorization schemas.
 	-- This is the type that should be implemented by whoever wants to
 	-- extend the authorization type avaliable.
+
+
+	function Create_Criteria( Pattern: in String ) return Criteria is abstract;
+	-- create a criteria to be matched based on the given pattern.
+
+	function Get_Type( Criteria_Object: in Criteria ) return String is abstract;
+	-- return a String representing the criteria
+	-- it's the same string that will be used by the methods:
+	-- 	Register( Name, Factory )
+	-- 	Create_Criteria( Name, Patern ) return Criteria'Class;
 	
-	type Criteria_Name is new String( Integer range <> );
-	-- A name representing the criteria
-	-- It's used to identify the criteria in use.
-	
-	type Criteria_Descriptor is new String( Integer range <> );
-	-- the criteria descriptor is a String representing the
-	-- criteria rules.
+	function Describe( Criteria_Object: in Criteria ) return String is abstract;
+	-- return a string describing the current criteria
+
+
+	------------------------------------------------
+	-- Plugin Loading in Authorization Management --
+	------------------------------------------------
 
 	type Criteria_Factory is access function ( Descriptor: in Criteria_Descriptor ) return Criteria'Class;
 	-- When the package containing the criteria is loaded, it should register itself with the main
 	-- criteria registry (available in this package here) so it can be referenced later on by
 	-- it's name.
+	
+
+	procedure Register( Name: in String; Factory: in Criteria_Factory );
+	-- register a criteria based on it's name.
+
+	function Create_Criteria( Name, Pattern: in String ) return Criteria'Class;
+	-- create a new criteria object from an already registered criteria type
+	-- based on it's name and the given pattern.
 
 	INVALID_CRITERIA_DESCRIPTOR: Exception;
 	-- should be raised when the Criteria_Descriptor used can't be parsed.
@@ -211,6 +233,8 @@ package Aw_Sec is
 	ACCESS_DENIED: Exception;
 	-- I think the name is clear enough...
 
+
+	-- TODO: from here
 	
 	---------------------------
 	-- Accounting Management --
@@ -432,7 +456,7 @@ private
 		function Should_Update return Boolean;
 		-- Determines if the this cache should be update.
 		-- The criteria for this is:
-		-- 	if Authorization_Groups = NULL then
+		-- 	if Empty(Authorization_Groups) then
 		-- 		return_code := true;
 		-- 	else if Need_Update = True then 
 		-- 		return_code := true;
@@ -463,7 +487,7 @@ private
 
 		procedure Set_Timeout( New_Timeout: Duration );
 	private
-		Groups		: access Authorization_Groups;
+		Groups		: Authorization_Groups;
 		Timeout		: Duration := 600.0;		-- the duration of this cache in secconds
 		Need_Update	: Boolean := True;		-- should update the cache in the next Get_Groups call?
 		Last_Update	: Time;				-- when was the last access to this information.
@@ -482,9 +506,7 @@ private
 		Managers	: Authorization_Manager_Vectors.Vector;
 	end record;
 
-	-- TODO: from here and package body!
-	type Authentication_Manager is abstract new Ada.Finalization.Controlled with record
-	end record;
+	type Authentication_Manager is abstract new Ada.Finalization.Controlled with null record;
 
 	function Get_Groups(	Manager:	in Authentication_Manager;
 				User_Object:	in User'Class )
@@ -503,7 +525,27 @@ private
 
 
 
+	type Criteria is abstract tagged null record;
+
+	procedure Match(	Criteria_Object	: in Criteria;
+				User_Object	: in out User'Class;
+				Results		: out Boolean );
+	-- Match the user permissions against the given criteria
+	-- some criterias might require the user to be loged in
+	-- (as when it's required to get user's groups).
+	--
+	-- User_Object is an "in out" so it can have it's groups
+	-- updated automatically by Aw_Sec when required.
+
+
+
+
+	-- TODO: FROM HERE AGAIN
+
+
 	type Accountant is new Ada.Finalization.Controlled with record
+		Creation_Time	: Time := Now;
+		Calls_Count
 	end record;
 
 	type Action is new Ada.Finalization.Limited_Controlled with record
