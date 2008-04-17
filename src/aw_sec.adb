@@ -102,6 +102,18 @@ package body Aw_Sec is
 	end Do_Logout;
 
 
+
+	procedure Require(	User_Object	: in out User'Class;
+				Name		: in Criteria_Name;
+				Pattern		: in Criteria_Descriptor) is
+		My_Criteria: Criteria_Manager.Create_Criteria( Name, Pattern );
+	begin
+		Require( User_Object, My_Criteria );
+	end Require;
+
+
+
+
 	protected body Criteria_Manager is
 		use Criteria_Maps;
 		--  we created a protected type here so our code is task-safe.

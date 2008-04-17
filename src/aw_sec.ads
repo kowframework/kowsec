@@ -37,7 +37,7 @@
 -------------------------------------------------------------------------------
 
 -- TODO:
--- 	. accounting
+-- 	. accounting :: the body!
 --
 -- Notice:
 -- 	I decided to finish the user and authentication schema before continuing
@@ -99,6 +99,8 @@ package Aw_Sec is
 	-- of methods for changing user's properties.
 	--
 	-- This should be handler somewhere else.
+
+	type User_Access is access all User'Class;
 
 	procedure Set_Groups_Timeout( User_Object: in out User; New_Timeout: in Duration );
 	-- set the timeout of the groups cache for this user
@@ -203,11 +205,24 @@ package Aw_Sec is
 	-- return a string describing the current criteria
 
 
+
+	procedure Require(	User_Object:	 in out User'Class;
+				Criteria:	 in Criteria'Class );
+	-- matches the user against some criteria.
+	-- raise ACCESS_DENIED if the user fails this criteria.
+
+
+	procedure Require(	User_Object	: in out User'Class;
+				Name		: in Criteria_Name;
+				Pattern		: in Criteria_Descriptor);
+	-- Create and matches against a criteria using the criteria registry
+	
+
 	------------------------------------------------
 	-- Plugin Loading in Authorization Management --
 	------------------------------------------------
 
-	type Criteria_Factory is access function ( Descriptor: in Criteria_Descriptor ) return Criteria'Class;
+	type Criteria_Factory is access function ( Descriptor: in String ) return Criteria'Class;
 	-- When the package containing the criteria is loaded, it should register itself with the main
 	-- criteria registry (available in this package here) so it can be referenced later on by
 	-- it's name.
@@ -249,8 +264,8 @@ package Aw_Sec is
 	-- in the static part of his package.
 
 
-	INVALID_CRITERIA_DESCRIPTOR: Exception;
-	-- should be raised when the Criteria_Descriptor used can't be parsed.
+	INVALID_CRITERIA_PATTERN: Exception;
+	-- should be raised when the pattern used in the criteria can't be parsed.
 
 	INVALID_CRITERIA: Exception;
 	-- raised when trying to create or unload an unknown criteria.
@@ -262,14 +277,20 @@ package Aw_Sec is
 	-- I think the name is clear enough...
 
 
-	-- TODO: from here
 	
 	---------------------------
 	-- Accounting Management --
 	---------------------------
 
 
-	type Accountant is new Ada.Finalization.Controlled with private;
+	--
+	-- the accountant type
+	--
+	
+
+	type Path_Array is Array( Natural range<> ) of Unbounded_String;
+	
+	type Accountant is new Ada.Finalization.Limited_Controlled with private;
 	-- The Accountant should be overwritten by anyone willing to extend the
 	-- Accounting Management schema of Aw_Sec.
 	--
@@ -278,30 +299,47 @@ package Aw_Sec is
 
 
 	type Accountant_Access is access all Accountant'Class;
+	-- All references to accountants are made using this type.
+
+	function New_Accountant(	Service	: in String;
+					Root	: in access all Accountant'Class
+					) return Accountant;
+	-- This is the constructor for accountants.
+	-- It's far preferable to use constructors instead of simply instantiate the type.
+
+
+	function Service( Accountant_Object: in Accountant ) return Unbounded_String;
+	-- Gets the current service name
+	-- The service name is a string representing the accountant.
 	
-	type Base_Action is abstract new Ada.Finalization.Limited_Controlled with private;
+	function Service( Accountant_Object: in Accountant ) return String;
+	-- same as the Service() return unbounded_string
 
-	type Action is new Base_Action with private;
-	-- An action is any small and localized task that can be performed by the system.
-	-- The action controlls:
-	-- 	* when the task (not as in paralel computing!) has been started
-	-- 	* which user, if any, is responsible for triggering this action
-	--	* when the task has been compleeted
-	--	* the exit status and message of the task.
-	--
-	-- This information is then delegated for logging by the Action's root accountant.
-	-- This accountant then decides where and how to send it.
-	--
-	-- The accountant can then delegate the logging for it's root accountant and so on...
-	-- till it reaches the root accountant of all accountants.
-	--
-	-- You must specify what's the root accountant for every action, even when you
-	-- already have your own root accountant.
-	--
-	-- Now, for the accountant, if you don't specify any root it understands you meant
-	-- to use the Root_Acc instance avaliable in the next line:
-	Root_Acc: constant Accountant( Service => "ROOT", Root => Null );
+	procedure Flush( Accountant_Object: in out Accountant );
+	-- Flushes the current acountant.
 
+
+	procedure Delegate(	To_Accountant	: in out Accountant;
+				Child		: in Action );
+	-- Called to log a child action
+	
+	procedure Delegate(	To_Accountant	: in out Accountant;
+				Relative_Path	: in Path_Array;
+				Child		: in Action );
+	-- delegates the action to from the child accountant to the to_accountant.
+	-- Relative_path is the relative path from the to_accountant to it's child.
+	-- For instance:
+	-- 	Acc1->Acc2->Action1
+	-- If Acc2 delegates Action1 to Acc2, it'll call:
+	-- 	Delegate(	To_Accountant	=> Acc1,
+	-- 			Relative_Path	=> ( Service( Acc2 ) ),
+	-- 			Child		=> Action1 );
+
+
+
+	--
+	-- the base_action type
+	--
 
 	type Exit_Status is (
 		EXIT_SUCCESS,	-- no error at all in the exit status	
@@ -330,6 +368,74 @@ package Aw_Sec is
 
 
 	
+	type Base_Action is abstract new Ada.Finalization.Limited_Controlled with private;
+	-- When creating your own action type, please extend this type otherwise your
+	-- code won't run as expected (as the finalization is responsible for logging the
+	-- action)
+	--
+	-- See type action for more information.
+
+	function Make_Action(	Name		: in String;
+				Root_Accountant	: in Accountant_Access;
+				User_Object	: in User_Access ) return Base_Action;
+	-- This method should be used by the constructor and never be overrided.
+	-- It will initialize the common attributes to all action types.
+	--
+	-- The action implementor should provide a New_Action method as a constructor using
+	-- this Make_Action here.
+	
+	procedure Set_Exit_Status(	Action_Object	=> in out Base_Action;
+					Status		=> in Exit_Status;
+					Message		=> in String ) is abstract;
+	-- Set the exit status and a message describing what hapenned.
+	-- Raise STATUS_CONFLICT when the status has been already defined 
+	-- or EXIT_NULL is passed as parameter
+	-- If the status is EXIT_FATAL, then FATAL_ERROR exception is raised.
+	-- As the action is Limited_Controlled, when deallocated it will log the error.
+
+	--
+	-- the action type
+	--
+
+
+
+
+	type Action is new Base_Action with private;
+	-- An action is any small and localized task that can be performed by the system.
+	-- The action controlls:
+	-- 	* when the task (not as in paralel computing!) has been started
+	-- 	* which user, if any, is responsible for triggering this action
+	--	* when the task has been compleeted
+	--	* the exit status and message of the task.
+	--
+	-- This information is then delegated for logging by the Action's root accountant.
+	-- This accountant then decides where and how to send it.
+	--
+	-- The accountant can then delegate the logging for it's root accountant and so on...
+	-- till it reaches the root accountant of all accountants.
+	--
+	-- You must specify what's the root accountant for every action, even when you
+	-- already have your own root accountant.
+	--
+	-- Now, for the accountant, if you don't specify any root it understands you meant
+	-- to use the Aw_Sec.Root_Acc instance.
+
+	
+	function New_Action(	Name		: in String;
+				Root_Accountant : in Accountant'Class;
+				User_Object	: in User_Access ) return Action;
+	-- Used to create a new action which's root is Root_Accountant
+	-- Should be used as a constructor.
+	--
+	-- It's mandatory to use constructors in order to initialize your actions.
+
+	
+	
+	Root_Acc: constant Accountant := ( 
+			Service	=> To_Unbounded_String( "/" ),
+			Root	=> Null );
+
+
 
 
 	-----------------------------------
@@ -350,46 +456,12 @@ package Aw_Sec is
 	-- As it's a class wide function, it dynamic dispatching is enabled
 	-- for both Authentication_Manager and Accountant types
 	
-	procedure Do_Logout(	Manager:	 in Authentication_Manager'Class;
-				User_Object:	 in User'Class;
+	procedure Do_Logout(	User_Object:	 in User'Class;
 				Root_Accountant: in Accountant'Class );
 	-- This function logs any error returned by Do_Logout method
 	-- As it's a class wide function, it dynamic dispatching is enabled
 	-- for both Authentication_Manager and Accountant types
 	
-
-
-	-----------------------------------------------------
-	-- Authorization Management - not accounting aware --
-	-----------------------------------------------------
-	
-	function Create_Criteria( Descriptor: in Criteria_Descriptor ) return Criteria is abstract;
-	-- Function that should be implemented by the authorization method in use.
-	
-	function Create_Criteria(	Name:		in Criteria_Name;
-					Descriptor:	in Criteria_Descriptor ) return Criteria'Class;
-	-- This function tries to create a criteria by it's name.
-	-- This will only work if the criteria has been registered by
-	-- the following method:
-	
-	
-
-	procedure Require(	User_Object:	in out User'Class;
-				Criteria:	in Criteria ) is abstract;
-	-- matches the user against some criteria.
-	-- raises ACCESS_DENIED if the user fails this criteria.
-	
-
-	procedure Require(	User_Object:	in out User'Class;
-				Name:		in Criteria_Name;
-				Descriptor:	in Criteria_Descriptor);
-	-- matches the user against some criteria that's created at run time.
-	-- raises 
-	-- 	ACCESS_DENIED if the user fails this criteria.
-	-- 	INVALID_CRITERIA if trying to create a criteria that isn't registered
-	-- 	INVALID_CRITERIA_DESCRIPTOR if the descriptor is invalid for this criteria
-
-
 
 	-------------------------------------------------
 	-- Authorization Management - accounting aware --
@@ -417,51 +489,6 @@ package Aw_Sec is
 
 
 
-	---------------------------
-	-- Accounting Management --
-	---------------------------
-
-
-	function New_Action(	Root_Accountant : in Accountant'Class;
-				User_Object	: in User'Class ) return Action;
-	-- Used to create a new action which's root is Root_Accountant
-	-- Should be used as a constructor.
-	-- 
-	-- Even thouth it's preffered to use this method to create your
-	-- actions, it's also possible to count on the Initialize method
-	-- to setup the automatic settings
-
-
-	function Make_Action(	Root_Accountant	: in Accountant'Class;
-				User_Object	: in User'Class ) return Action;
-
-	procedure Set_Exit_Status(	Current_Action	=> Action;
-					Status		=> Exit_Status;
-					Message		=> String );
-	-- Set the exit status and a message describing what hapenned.
-	-- Raise STATUS_CONFLICT when the status has been already defined
-
-
-	procedure Finalize_Action(	Current_Countant	: in Accountant;
-					Current_Action		: in Action'Class );
-	-- Called by the action when it's going to be deallocated.
-	--
-	-- This method should be overwriten when extending the Aw_Sec accountin
-	-- schema.
-
-	procedure New_Accountant(	Service			: in String,
-					Root_Accountant		: in Accountant'Class := Root_Acc );
-	-- Accountant constructor.
-	--
-	-- This method should be overwriten when extending the Aw_Sec accountin
-	-- schema.
-	
-	procedure Finalize_Accountant(	Current_Accountant	: in Accountant;
-					Child_Accountant	: in Accountant'Class );
-	-- Called by the child accountant when it's going to be deallocated.
-	--
-	-- This method should be overwriten when extending the Aw_Sec accountin
-	-- schema.
 
 private
 
@@ -541,39 +568,25 @@ private
 
 	type Criteria is abstract tagged null record;
 
-	procedure Match(	Criteria_Object	: in Criteria;
-				User_Object	: in out User'Class;
-				Results		: out Boolean ) is abstract;
-	-- Match the user permissions against the given criteria
-	-- some criterias might require the user to be loged in
-	-- (as when it's required to get user's groups).
-	--
-	-- User_Object is an "in out" so it can have it's groups
-	-- updated automatically by Aw_Sec when required.
-
-
-
-
-
-
-	-- TODO: FROM HERE AGAIN
-
 
 	type Accountant is new Ada.Finalization.Controlled with record
 		Creation_Time	: Time := Now;
-		Calls_Count
+		Service		: Unbounded_String;
+		Root		: Accountant_Access := Root_Acc;
 	end record;
 
-	type Action is new Ada.Finalization.Limited_Controlled with record
-		Initialized: Boolean := False;
-		-- flag used internally to indicate when the method has been initialized.
+	type Base_Action is new Ada.Finalization.Limited_Controlled with record
+		Creation_Time	: Time := Now;
+		User_Object	: User_Access;
+		Status		: Exit_Status := EXIT_NULL;
+		Root_Accountant	: Accountant_Access := Root_Acc;
 	end record;
-	procedure Initialize(A: in out Action);
-	-- overrides the initialization so it'll raise an exception
-	-- anytime the user tries to initialize an object without
-	-- using a constructor.
-	
+
+
+	type Action is new Base_Action with null record;
+
+	overriding
 	procedure Finalize( A: in out Action );
-	-- used to 
+	-- used to flush the action.
 
 end Aw_Sec;
