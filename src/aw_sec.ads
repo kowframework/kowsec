@@ -540,6 +540,11 @@ private
 		First_Name	: Unbounded_String;
 		Last_Name	: Unbounded_String;
 		-- this one is optional, depending on the Authorization_Manager
+
+
+		-- The following properties should be ignored by the Authorization_Manager implementor.
+		--
+		-- All of them are managed by Aw_Sec main package
 		Groups_Cache	: Groups_Cache_Type;
 		Managers	: Authorization_Manager_Vectors.Vector;
 	end record;
@@ -549,7 +554,8 @@ private
 	function Get_Groups(	Manager:	in Authentication_Manager;
 				User_Object:	in User'Class )
 				return Authorization_Groups is abstract;
-	-- Return all the groups for this user
+	-- Return all the groups for this user in _this_ manager.
+	-- This function is called by the Groups_Cache_Type's method Update.
 	-- It's implemented in the manager for 2 reasons:
 	-- 	1. this way we can store the users and the groups in
 	-- 	  different managers.
