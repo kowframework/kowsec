@@ -35,7 +35,7 @@
 
 
 
-package Aw_Sec.Authentication is
+package body Aw_Sec.Authentication is
 
 
 	function New_Authentication_Manager( Conn_Access: Connection_Access )
@@ -56,7 +56,7 @@ package Aw_Sec.Authentication is
 		User_Table := To_Unbounded_String( User_Table_Name );	
 	end Set_User_Table;
 
-	function Get_User_Table_Name return String is
+	function Get_User_Table return String is
 	begin
 		return To_String( User_Table );
 	end Get_User_Table;
@@ -66,12 +66,12 @@ package Aw_Sec.Authentication is
 	procedure Set_User_Id_Field( User_Id_Field_Name : in String ) is
 	begin
 		User_Id_Field := User_Id_Field_Name;
-	end Set_User_Table_Name;
+	end Set_User_Id_Field;
 
 	function Get_User_Id_Field return String is
 	begin
 		return To_String( User_Id_Field);
-	end Set_User_Table_Name;
+	end Get_User_Id_Field;
 
 
 	-- Username Field Name
@@ -90,43 +90,43 @@ package Aw_Sec.Authentication is
 	procedure Set_Password_Field( Pwd : in String ) is
 	begin
 		Password := Pwd;	
-	end Set_User_Table_Name;
+	end Set_Password_Field;
 
 	function Get_Password_Field return String is
 	begin
 		return To_String ( Password );
-	end Get_Groups_Table_Name;
+	end Get_Password_Field;
 
 
 	-- First_Name Field Name
 	procedure Set_First_Name_Field( Name : in String ) is
 	begin
 		First_Name := Name;
-	end Set_User_Table_Name;
+	end Set_First_Name_Field;
 
 	function Get_First_Name_Field return String is
 	begin
 		return To_String( First_Name );
-	end Get_Groups_Table_Name;
+	end Get_First_Name_Field;
 
 
 	-- Last_Name Field Name
 	procedure Set_Last_Name_Field( Name : in String ) is
 	begin
 		Last_Name := Name;
-	end Set_User_Table_Name;
+	end Set_Last_Name_Field;
 
 	function Get_Last_Name_Field return String is
 	begin
 		return To_String( Last_Name );
-	end Get_Groups_Table_Name;
+	end Get_Last_Name_Field;
 
 
 	-- Groups Table Name
 	procedure Set_Groups_Table( Groups_Table_Name : in String ) is
 	begin
 		Groups_Table := Groups_Table_Name;
-	end Set_User_Table;
+	end Set_Groups_Table;
 
 	function Get_Groups_Table return String is
 	begin
@@ -138,7 +138,7 @@ package Aw_Sec.Authentication is
 	procedure Set_Groups_Username_Field( Name : in String ) is
 	begin
 		Groups_Username := Name;
-	end Set_Groups_User;
+	end Set_Groups_Username_Field;
 
 	function Get_Groups_Username_Field return String is
 	begin
@@ -180,7 +180,7 @@ package Aw_Sec.Authentication is
 		Query := New_Query( Connection );
 
  		Prepare( Query,  "SELECT * from " & Get_Users_Table &
-			" where " Get_Username_Field & "=");
+			" where " &  Get_Username_Field & "=");
 		Append_Quoted( Query, Connection, Username);
  	
 		Execute( Query, Connection );
@@ -217,7 +217,7 @@ package Aw_Sec.Authentication is
 		Query := New_Query( Connection );
 
  		Prepare( Query,  "SELECT * from " & Get_Groups_Table &
-			" where " Get_Groups_Username_Field & "=");
+			" where " &  Get_Groups_Username_Field & "=");
 		Append_Quoted( Query, Connection, User_Object.Username);
  	
 		Execute( Query, Connection );
@@ -247,14 +247,14 @@ package Aw_Sec.Authentication is
 	function Get_Connection( Auth_Manager: in Authentication_Manager )
 		return Root_Connection_Type'Class is
 	begin
-		
-		if Auth_Manager.Connection /= NULL
+		if Auth_Manager.Connection /= null then 
 			return Auth_Manger.connection.all;
-		else if Auth_Manager.Connection_Driver /= null
+		else if Auth_Manager.Connection_Driver /= null then
 			return Get_Connection( Auth_Manager.Connection_Driver );
-		else
+		else 
 			raise NOT_CONNECTED;
 		end if;
+
 	end Get_Connection;
 
 end Aw_Sec.Authentication;
