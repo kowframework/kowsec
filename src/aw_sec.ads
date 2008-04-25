@@ -72,10 +72,10 @@ package Aw_Sec is
 
 
 	package Authorization_Group_Vectors is new Ada.Containers.Vectors(
-			Index_Type	=> Natural;
+			Index_Type	=> Natural,
 			Element_Type	=> Authorization_Group );
 
-	type Authorization_Groups is new Authorization_Group_Vectors.Vectors;
+	type Authorization_Groups is new Authorization_Group_Vectors.Vector;
 	-- this will make all the vector's methods avaliable here
 	-- in Aw_Sec package.
 
@@ -119,7 +119,8 @@ package Aw_Sec is
 	-- return the full name for this user, respecting the locale's conventions
 
 	
-	procedure Get_Groups( User_object: in out User'Class; Groups: in out Authorization_Groups);
+	procedure Get_Groups( User_object: in out User'Class;
+		Groups: in out Authorization_Groups);
 	-- Get the groups for this user.
 	-- There are two things to notice here:
 	-- 	1. This method is task safe. It means it will never return something
@@ -299,8 +300,7 @@ package Aw_Sec is
 	-- All references to accountants are made using this type.
 
 	function New_Accountant(	Service	: in String;
-					Root	: in access all Accountant'Class
-					) return Accountant;
+					Root	: access all Accountant'Class	) return Accountant;
 	-- This is the constructor for accountants.
 	-- It's far preferable to use constructors instead of simply instantiate the type.
 
@@ -381,9 +381,9 @@ package Aw_Sec is
 	-- The action implementor should provide a New_Action method as a constructor using
 	-- this Make_Action here.
 	
-	procedure Set_Exit_Status(	Action_Object	=> in out Base_Action;
-					Status		=> in Exit_Status;
-					Message		=> in String ) is abstract;
+	procedure Set_Exit_Status(	Action_Object	: in out Base_Action;
+					Status		: in Exit_Status;
+					Message		: in String ) is abstract;
 	-- Set the exit status and a message describing what hapenned.
 	-- Raise STATUS_CONFLICT when the status has been already defined 
 	-- or EXIT_NULL is passed as parameter
@@ -466,7 +466,7 @@ package Aw_Sec is
 
 
 	procedure Require(	User_Object:	 in out User'Class;
-				Criteria:	 in Criteria'Class 
+				Criteria:	 in Criteria'Class; 
 				Root_Accountant: in out Accountant'Class);
 	-- matches the user against some criteria.
 	-- raise ACCESS_DENIED if the user fails this criteria.

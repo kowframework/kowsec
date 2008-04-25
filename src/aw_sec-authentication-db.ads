@@ -9,10 +9,10 @@
 --        Copyright (C) 2007-2008, Ydea Desenv. de Softwares Ltda           --
 --                                                                          --
 --                                                                          --
--- AwSec is free software; you can redistribute it  and/or modify it under  --
+-- AwSec; free software; you can redistribute it  and/or modify it under  --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
 -- ware  Foundation;  either version 2,  or (at your option) any later ver- --
--- sion. AwSec is distributed in the hope that it will be useful, but WITH- --
+-- sion. AwSec; distributed in the hope that it will be useful, but WITH- --
 -- OUT ANY WARRANTY;  without even the  implied warranty of MERCHANTABILITY --
 -- or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License --
 -- for  more details.  You should have  received  a copy of the GNU General --
@@ -30,11 +30,9 @@
 ------------------------------------------------------------------------------
 
 -------------------------------------------------------------------------------
--- This is the Aw_Sec.Authentication.DB package                              --
+-- This; the Aw_Sec.Authentication.DB package                              --
 -------------------------------------------------------------------------------
 
-
-with Aw_Sec; 
 
 with APQ;	use APQ;
 
@@ -49,6 +47,44 @@ package Aw_Sec.Authentication.DB is
 		return Authentication_Manager;
 
 
+	-- User Table Name
+	procedure Set_User_Table( User_Table_Name : in String );
+	function Get_User_Table_Name return String;
+
+	-- Id Field of the Users Tables 
+	procedure Set_User_Id_Field( User_Id_Field_Name : in String );
+	function Get_User_Id_Field return String;
+
+	-- Username Field Name
+	procedure Set_Username_Field( Username_Field_Name : in String );
+	function Get_Username_Field return String;
+
+	-- Password Field Name
+	procedure Set_Password_Field( Pwd : in String );
+	function Get_Password_Field return String;
+
+	-- First_Name Field Name
+	procedure Set_First_Name_Field( Name : in String );
+	function Get_First_Name_Field return String;
+
+	-- Last_Name Field Name
+	procedure Set_Last_Name_Field( Name : in String );
+	function Get_Last_Name_Field return String;
+
+	-- Groups Table Name
+	procedure Set_Groups_Table( Groups_Table_Name : in String );
+	function Get_Groups_Table return String;
+	
+	-- User_Id Field of the Groups Tables 
+	procedure Set_Groups_Username_Field( Name : in String );
+	function Get_Groups_Username_Field return String;
+
+	-- Group_Name Field Name
+	procedure Set_Group_Name_Field( Name : in String );
+	function Get_Group_Name_Field return String;
+
+	
+	
 	function Do_Login(	Manager:  in Authentication_Manager;
 	                  	Username: in String;
 	                  	Password: in String ) return User'Class;
@@ -68,8 +104,6 @@ package Aw_Sec.Authentication.DB is
 	--      2. the information on how to obtain the groups information
 	--         doesn't belong to the user itself.
 	 
-	function Get_Groups( User_object: in User'Class )
-		return Authorization_Groups;
 
 	
 	INVALID_CREDENTIALS: Exception;
@@ -87,8 +121,21 @@ private
 
 	type Authentication_Manager is new Aw_Sec.Authentication_Manager with
 	record
-		Connection: Connection_access;
-		Connection_Driver : APQ.Connection_Driver;
+		Connection		: Connection_access;
+		Connection_Driver	: APQ.Connection_Driver;
+		
+		-- Configuration File Properties
+		User_Table		: Unbounded_String;
+		User_Id_Field 		: Unbounded_String;
+		Username_Field 		: Unbounded_String;
+		Password_Field 		: Unbounded_String;
+		First_Name_Field 	: Unbounded_String;
+		Last_Name_Field		: Unbounded_String;
+		
+		Groups_Table	 	: Unbounded_String;
+		Groups_Username_Field 	: Unbounded_String;
+		Group_Name_Field 	: Unbounded_String;
+	
 	end record;
 
 end Aw_Sec.Authentication.DB;

@@ -33,7 +33,7 @@
 -- This is the Aw_Sec.Authentication package.                                --
 -------------------------------------------------------------------------------
 
-with Aw_Sec; 
+
 
 package Aw_Sec.Authentication is
 
@@ -49,21 +49,149 @@ package Aw_Sec.Authentication is
 	end New_Authentication_Manager;
 
 
+
+	-- User Table Name
+	procedure Set_User_Table( User_Table_Name : in String ) is
+	begin
+		User_Table := To_Unbounded_String( User_Table_Name );	
+	end Set_User_Table;
+
+	function Get_User_Table_Name return String is
+	begin
+		return To_String( User_Table );
+	end Get_User_Table;
+
+
+	-- Id Field of the Users Tables 
+	procedure Set_User_Id_Field( User_Id_Field_Name : in String ) is
+	begin
+		User_Id_Field := User_Id_Field_Name;
+	end Set_User_Table_Name;
+
+	function Get_User_Id_Field return String is
+	begin
+		return To_String( User_Id_Field);
+	end Set_User_Table_Name;
+
+
+	-- Username Field Name
+	procedure Set_Username_Field( Name : in String ) is
+	begin
+		Username := Name;
+	end Set_Username_Field;
+
+	function Get_Username_Field return String is
+	begin
+		return To_String( Username );
+	end Get_Username_Field;
+
+
+	-- Password Field Name
+	procedure Set_Password_Field( Pwd : in String ) is
+	begin
+		Password := Pwd;	
+	end Set_User_Table_Name;
+
+	function Get_Password_Field return String is
+	begin
+		return To_String ( Password );
+	end Get_Groups_Table_Name;
+
+
+	-- First_Name Field Name
+	procedure Set_First_Name_Field( Name : in String ) is
+	begin
+		First_Name := Name;
+	end Set_User_Table_Name;
+
+	function Get_First_Name_Field return String is
+	begin
+		return To_String( First_Name );
+	end Get_Groups_Table_Name;
+
+
+	-- Last_Name Field Name
+	procedure Set_Last_Name_Field( Name : in String ) is
+	begin
+		Last_Name := Name;
+	end Set_User_Table_Name;
+
+	function Get_Last_Name_Field return String is
+	begin
+		return To_String( Last_Name );
+	end Get_Groups_Table_Name;
+
+
+	-- Groups Table Name
+	procedure Set_Groups_Table( Groups_Table_Name : in String ) is
+	begin
+		Groups_Table := Groups_Table_Name;
+	end Set_User_Table;
+
+	function Get_Groups_Table return String is
+	begin
+		return To_String( Groups_Table );
+	end Get_Groups_Table;
+	
+	
+	-- Username Field of the Groups Tables 
+	procedure Set_Groups_Username_Field( Name : in String ) is
+	begin
+		Groups_Username := Name;
+	end Set_Groups_User;
+
+	function Get_Groups_Username_Field return String is
+	begin
+		return To_String( Groups_Username );
+	end Get_Groups_Username_Field;
+
+	-- Group_Name Field Name
+	procedure Set_Group_Name_Field( Name : in String ) is
+	begin
+		Group_Name_Field := Name;		
+	end Set_Group_Name_Field;
+
+	function Get_Group_Name_Field return String is
+	begin
+		return To_String( Group_Name_Field ); 
+	end Get_Group_Name_Field;
+	
+
+	-- helper function to get the Query's Value at Column Column_Name
+	function Value(	Query : in  Root_Query_Type; 
+			Column_Name : in String ) return String is
+	begin
+		return Value( Query, Column_Index( Query, Column_Name) );
+	end Value;
+	
+
+	-- verify if exists the Username with corresponding Password
+	-- at the Users Table.
 	function Do_Login(	Manager:  in Authentication_Manager;
 	                  	Username: in String;
 	                  	Password: in String ) return User'Class is
+		
+		Query: Root_Query_Type'Class;
 		Required_User : User;
 		Connection : Root_Connection_Type;
 	
 	begin
 		Connection := Get_Connection(Manager);
-		
-		Set_User_Password(Connection, Username, Password);
-		Connect(Connection);
+		Query := New_Query( Connection );
 
-		if Username = Connection.User_Name and then
-			Password = Connection.User_Password then
-			Required_User.Username.all := Username;
+ 		Prepare( Query,  "SELECT * from " & Get_Users_Table &
+			" where " Get_Username_Field & "=");
+		Append_Quoted( Query, Connection, Username);
+ 	
+		Execute( Query, Connection );
+
+		if Username = Value(Query, Get_Username_Field) and then
+			Password = Value(Query, Get_Password_Field) then
+			
+			Required_User.Username.all := Value(Query, Get_Username_Field);
+			Required_User.First_Name.all := Value(Query, Get_First_Name_Field);
+			Required_User.Last_Name.all := Value(Query, Get_Last_Name_Field);
+			
 			return Required_User;
 		else 
 			raise INVALID_CREDENTIALS;
@@ -71,23 +199,55 @@ package Aw_Sec.Authentication is
 		
 	end Do_Login;
 
-
+	
 	function Get_Groups(    Manager:	in Authentication_Manager;
 	                        User_Object:	in User'Class )
 		return Authorization_Groups is
-	end Get_Groups;
-	
-	function Get_Groups( User_object: in User'Class )
-		return Authorization_Groups is
-	
-	end Get_Groups;
 
 
+        	function To_Authorization_Group is
+         		new Ada.Unchecked_Conversion (Source => Unbounded_String,
+                	Target => Authorization_Group);
+
+		Query: Root_Query_Type'Class;
+		Connection : Root_Connection_Type;
+		Groups : Authorization_Groups;
+	begin	
+		Connection := Get_Connection(Manager);
+		Query := New_Query( Connection );
+
+ 		Prepare( Query,  "SELECT * from " & Get_Groups_Table &
+			" where " Get_Groups_Username_Field & "=");
+		Append_Quoted( Query, Connection, User_Object.Username);
+ 	
+		Execute( Query, Connection );
+
+		if Value(Query, Get_Group_Name_Field) /= Null_Unbounded_String then
+			loop
+				begin
+					Fetch(Query); 
+				exception
+					when No_Tuple => exit;
+				end;
+	
+				Append( Groups,
+					To_Authorization_Group(	To_Unbounded_String(
+						Value( Query, Get_Group_Name ) ) ) ) ;
+			end loop;
+
+		end if;
+
+		return Groups;
+
+	end Get_Groups;
+	
+	
 -- private
 	
 	function Get_Connection( Auth_Manager: in Authentication_Manager )
 		return Root_Connection_Type'Class is
 	begin
+		
 		if Auth_Manager.Connection /= NULL
 			return Auth_Manger.connection.all;
 		else if Auth_Manager.Connection_Driver /= null
