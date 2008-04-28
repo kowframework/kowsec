@@ -30,12 +30,12 @@
 ------------------------------------------------------------------------------
 
 -------------------------------------------------------------------------------
--- This is the Aw_Sec.Authentication package.                                --
+-- This is the Aw_Sec.Authentication.DB package.                                --
 -------------------------------------------------------------------------------
 
 
 
-package body Aw_Sec.Authentication is
+package body Aw_Sec.Authentication.DB is
 
 
 	function New_Authentication_Manager( Conn_Access: Connection_Access )
@@ -51,109 +51,118 @@ package body Aw_Sec.Authentication is
 
 
 	-- User Table Name
-	procedure Set_User_Table( User_Table_Name : in String ) is
+	procedure Set_User_Table(	Manager:  in Authentication_Manager;
+					User_Table_Name : in String 		) is
 	begin
-		User_Table := To_Unbounded_String( User_Table_Name );	
+		Manager.User_Table := To_Unbounded_String( User_Table_Name );	
 	end Set_User_Table;
 
-	function Get_User_Table return String is
+	function Get_User_Table ( Manager:  in Authentication_Manager ) return String is
 	begin
-		return To_String( User_Table );
+		return To_String( Manager.User_Table );
 	end Get_User_Table;
 
 
 	-- Id Field of the Users Tables 
-	procedure Set_User_Id_Field( User_Id_Field_Name : in String ) is
+	procedure Set_User_Id_Field( 	Manager:  in Authentication_Manager;
+					User_Id_Field_Name : in String ) is
 	begin
-		User_Id_Field := User_Id_Field_Name;
+		Manager.User_Id_Field := User_Id_Field_Name;
 	end Set_User_Id_Field;
 
-	function Get_User_Id_Field return String is
+	function Get_User_Id_Field( Manager:  in Authentication_Manager )  return String is
 	begin
-		return To_String( User_Id_Field);
+		return To_String( Manager.User_Id_Field);
 	end Get_User_Id_Field;
 
 
 	-- Username Field Name
-	procedure Set_Username_Field( Name : in String ) is
+	procedure Set_Username_Field( 	Manager:  in Authentication_Manager;
+					Name : in String ) is
 	begin
-		Username := Name;
+		Manager.Username := Name;
 	end Set_Username_Field;
 
-	function Get_Username_Field return String is
+	function Get_Username_Field( Manager:  in Authentication_Manager )  return String is
 	begin
-		return To_String( Username );
+		return To_String( Manager.Username );
 	end Get_Username_Field;
 
 
 	-- Password Field Name
-	procedure Set_Password_Field( Pwd : in String ) is
+	procedure Set_Password_Field( 	Manager:  in Authentication_Manager;
+					Pwd : in String ) is
 	begin
-		Password := Pwd;	
+		Manager.Password := Pwd;	
 	end Set_Password_Field;
 
-	function Get_Password_Field return String is
+	function Get_Password_Field( Manager:  in Authentication_Manager )  return String is
 	begin
-		return To_String ( Password );
+		return To_String ( Manager.Password );
 	end Get_Password_Field;
 
 
 	-- First_Name Field Name
-	procedure Set_First_Name_Field( Name : in String ) is
+	procedure Set_First_Name_Field( 	Manager:  in Authentication_Manager;
+						Name : in String ) is
 	begin
-		First_Name := Name;
+		Manager.First_Name := Name;
 	end Set_First_Name_Field;
 
-	function Get_First_Name_Field return String is
+	function Get_First_Name_Field( Manager:  in Authentication_Manager )  return String is
 	begin
-		return To_String( First_Name );
+		return To_String( Manager.First_Name );
 	end Get_First_Name_Field;
 
 
 	-- Last_Name Field Name
-	procedure Set_Last_Name_Field( Name : in String ) is
+	procedure Set_Last_Name_Field( 	Manager:  in Authentication_Manager;
+					Name : in String ) is
 	begin
-		Last_Name := Name;
+		Manager.Last_Name := Name;
 	end Set_Last_Name_Field;
 
-	function Get_Last_Name_Field return String is
+	function Get_Last_Name_Field( Manager:  in Authentication_Manager )  return String is
 	begin
-		return To_String( Last_Name );
+		return To_String( Manager.Last_Name );
 	end Get_Last_Name_Field;
 
 
 	-- Groups Table Name
-	procedure Set_Groups_Table( Groups_Table_Name : in String ) is
+	procedure Set_Groups_Table( 	Manager:  in Authentication_Manager;
+					Groups_Table_Name : in String ) is
 	begin
-		Groups_Table := Groups_Table_Name;
+		Manager.Groups_Table := Groups_Table_Name;
 	end Set_Groups_Table;
 
-	function Get_Groups_Table return String is
+	function Get_Groups_Table( Manager:  in Authentication_Manager )  return String is
 	begin
-		return To_String( Groups_Table );
+		return To_String( Manager.Groups_Table );
 	end Get_Groups_Table;
 	
 	
 	-- Username Field of the Groups Tables 
-	procedure Set_Groups_Username_Field( Name : in String ) is
-	begin
-		Groups_Username := Name;
+	procedure Set_Groups_Username_Field( 	Manager:  in Authentication_Manager;
+						Name : in String ) is
+	begin	
+		Manager.Groups_Username := Name;
 	end Set_Groups_Username_Field;
 
-	function Get_Groups_Username_Field return String is
+	function Get_Groups_Username_Field( Manager:  in Authentication_Manager )  return String is
 	begin
-		return To_String( Groups_Username );
+		return To_String( Manager.Groups_Username );
 	end Get_Groups_Username_Field;
 
 	-- Group_Name Field Name
-	procedure Set_Group_Name_Field( Name : in String ) is
+	procedure Set_Group_Name_Field( 	Manager:  in Authentication_Manager;
+						Name : in String ) is
 	begin
-		Group_Name_Field := Name;		
+		Manager.Group_Name_Field := Name;		
 	end Set_Group_Name_Field;
 
-	function Get_Group_Name_Field return String is
+	function Get_Group_Name_Field( Manager:  in Authentication_Manager )  return String is
 	begin
-		return To_String( Group_Name_Field ); 
+		return To_String( Manager.Group_Name_Field ); 
 	end Get_Group_Name_Field;
 	
 
@@ -257,5 +266,5 @@ package body Aw_Sec.Authentication is
 
 	end Get_Connection;
 
-end Aw_Sec.Authentication;
+end Aw_Sec.Authentication.DB;
 
