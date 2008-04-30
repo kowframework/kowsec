@@ -45,15 +45,19 @@
 with Ada.Containers.Vectors;
 with Ada.Finalization;
 with Ada.Strings.Unbounded;	use Ada.Strings.Unbounded;
+with Aw_Lib.Locales;
+with Ada.Containers.Hashed_Maps;
+with Ada.Strings.Unbounded.Hash;
+
 
 package Aw_Sec is
-
-
 
 	------------------------------------
 	-- TYPE AND CONSTANT DECLARATIONS --
 	------------------------------------
 
+	subtype Criteria_Name is Unbounded_String;
+	subtype Criteria_Descriptor is Unbounded_String;
 
 	-----------------------
 	-- Groups Management --
@@ -204,8 +208,8 @@ package Aw_Sec is
 
 
 
-	procedure Require(	User_Object:	 in out User'Class;
-				Criteria:	 in Criteria'Class );
+	procedure Require(	User_Object	:	 in out User'Class;
+				Criteria_Object	:	 in Criteria'Class );
 	-- matches the user against some criteria.
 	-- raise ACCESS_DENIED if the user fails this criteria.
 
@@ -228,8 +232,10 @@ package Aw_Sec is
 	package Criteria_Maps is new 
 		Ada.Containers.Hashed_Maps(
 				Key_Type	=> Unbounded_String,
-				Element_Type	=> Criteria_Factory );
-	
+				Element_Type	=> Criteria_Factory, 
+				Hash 		=> Ada.Strings.Unbounded.Hash,
+      				Equivalent_Keys => "="	);
+
 	protected type Criteria_Manager is
 		--  we created a protected type here so our code is task-safe.
 		procedure Register( Str: in String; Factory: in Criteria_Factory );
@@ -253,6 +259,7 @@ package Aw_Sec is
 
 	private
 		Map: Criteria_Maps.Map;
+
 	end Criteria_Manager;
 
 	Criterias: Criteria_Manager;
