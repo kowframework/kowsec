@@ -34,6 +34,11 @@
 -------------------------------------------------------------------------------
 
 -- TODO:
+-- 	. Authorization Manager Registry: it has been changed from Array to vector.
+-- 	  Also, there is now a static variable that handles the registered managers.
+-- 	  First we should update the code to use vectors and the global registry.
+-- 	  Then we should make implement the registry's methods.
+--
 -- 	. accounting :: the body!
 --
 -- Notice:
@@ -160,6 +165,8 @@ package Aw_Sec is
 	-- It's a controlled type only for the pleasure of the type implementor.
 
 
+	type Authentication_Manager_Access is access all Authentication_Manager'Class;
+
 	function Do_Login(	Manager:  in Authentication_Manager;
 				Username: in String;
 				Password: in String ) return User'Class is abstract;
@@ -168,6 +175,21 @@ package Aw_Sec is
 	-- It's this way so the authentication method might have
 	-- a user with extended properties.
 
+	package Authentication_Manager_Vectors is new Ada.Containers.Vectors(
+			Index_Type	=> Natural,
+			Element_Type	=> Authentication_Manager_Access );
+
+
+	Manager_Registry: Authentication_manager.Vectors.Vectors;
+	-- a registry of the current managers.
+
+	procedure Register_Manager( Manager: in out Authentication_Manager_Access );
+	-- Register a manager so it's usable by Aw_Sec.
+	
+
+	function Do_Login(	Username: in String;
+				Password: in String ) return User'Class;
+	-- tries to login the user using the registered managers.
 
 
 	----------------------------------------
@@ -514,7 +536,7 @@ private
 		-- 	return return_code;
 		
 		
-		procedure Update( User_Object: in User'Class; Managers: in Authorization_Managers );
+		procedure Update( User_Object: in User'Class; Managers: in Authorization_Manager_Vectors.Vector );
 		-- update the groups and then set:
 		-- 	need_update := false
 		-- 	last_update := now
@@ -549,12 +571,10 @@ private
 		-- this one is optional, depending on the Authorization_Manager
 
 
-		-- The following properties should be ignored by the Authorization_Manager implementor.
-		--
-		-- All of them are managed by Aw_Sec main package
 		Groups_Cache	: Groups_Cache_Type;
-		Managers	: Authorization_Manager_Vectors.Vector;
+		-- A cache of groups, managed by Aw_Sec.
 	end record;
+
 
 	type Authentication_Manager is abstract new Ada.Finalization.Controlled with null record;
 

@@ -222,7 +222,7 @@ package body Aw_Sec is
 		
 		end Should_Update;
 		
-		procedure Update( User_Object: in User'Class; Managers: in Authorization_Managers ) is
+		procedure Update( User_Object: in User'Class; Managers: in Authorization_Manager_Vectors.Vector ) is
 			-- update the groups and then set:
 			-- 	need_update := false
 			-- 	last_update := now
