@@ -178,6 +178,28 @@ package Aw_Sec is
 	-- It's this way so the authentication method might have
 	-- a user with extended properties.
 
+
+
+	function Get_Groups(	Manager:	in Authentication_Manager;
+				User_Object:	in User'Class )
+				return Authorization_Groups is abstract;
+	-- Return all the groups for this user in _this_ manager.
+	-- This function is called by the Groups_Cache_Type's method Update.
+	-- It's implemented in the manager for 2 reasons:
+	-- 	1. this way we can store the users and the groups in
+	-- 	  different managers.
+	-- 	2. the information on how to obtain the groups information
+	-- 	  doesn't belong to the user itself.
+	-- When implementor of this method should assume:
+	-- 	1. the user is valid and so is the results of Identity( User_Object );
+	-- 	2. it's meant to work with any authentication manager vs user combination.
+	-- This is a private method so the user won't call it directly.
+	-- Instead, it's called by the Get_Groups (User'Class) method implemented here.
+
+
+
+
+
 	package Authentication_Manager_Vectors is new Ada.Containers.Vectors(
 			Index_Type	=> Natural,
 			Element_Type	=> Authentication_Manager_Access );
@@ -212,7 +234,7 @@ package Aw_Sec is
 	-- Authorization Management --
 	------------------------------
 	
-	type Criteria is abstract tagged private;
+	type Criteria is abstract tagged null record;
 	-- The criteria type should be implemented by different
 	-- authorization schemas.
 	-- This is the type that should be implemented by whoever wants to
@@ -382,7 +404,7 @@ package Aw_Sec is
 	function New_Action(	Name		: in String;
 				Root_Accountant	: in Accountant_Access;
 				User_Object	: in User_Access ) 
-		return Base_Action is abstract;
+		return Base_Action'Class is abstract;
 	-- This method should be used by the constructor and never be overrided.
 	-- It will initialize the common attributes to all action types.
 	--
@@ -432,14 +454,12 @@ package Aw_Sec is
 	-- It's mandatory to use constructors in order to initialize your actions.
 
 	
-	
-	Root_Acc: constant Accountant;
-	-- TODO: implement at the static part of the body (ie, after a begin)
-	--  Root_Acc.Root := Null;
-	-- It shouldn't be a constant variable then......
-	--:= ( 
-	--		Service	=> To_Unbounded_String( "/" ),
-	--		Root	=> Null );
+
+	Root_Acc: Accountant_Access;
+	-- The root acc is initialized by the static code part of the body.
+	-- It's not a constant because of the network topology proposed by AdaWorks.
+	-- See Aw_Dist.Accountant for more details.
+
 
 
 	---------------------------
@@ -513,7 +533,7 @@ package Aw_Sec is
 
 
 	procedure Require(	User_Object:	 in out User'Class;
-				Criteria:	 in Criteria'Class; 
+				Criteria_Object: in Criteria'Class; 
 				Root_Accountant: in out Accountant'Class);
 	-- matches the user against some criteria.
 	-- raise ACCESS_DENIED if the user fails this criteria.
@@ -553,7 +573,7 @@ private
 		
 		
 		procedure Update( User_Object: in User'Class;
-			Managers: in Authorization_Manager_Vectors.Vector );
+			Managers: in Authentication_Manager_Vectors.Vector );
 		-- update the groups and then set:
 		-- 	need_update := false
 		-- 	last_update := now
@@ -598,27 +618,10 @@ private
 
 	type Authentication_Manager is abstract new Ada.Finalization.Controlled with null record;
 
-	function Get_Groups(	Manager:	in Authentication_Manager;
-				User_Object:	in User'Class )
-				return Authorization_Groups is abstract;
-	-- Return all the groups for this user in _this_ manager.
-	-- This function is called by the Groups_Cache_Type's method Update.
-	-- It's implemented in the manager for 2 reasons:
-	-- 	1. this way we can store the users and the groups in
-	-- 	  different managers.
-	-- 	2. the information on how to obtain the groups information
-	-- 	  doesn't belong to the user itself.
-	-- When implementor of this method should assume:
-	-- 	1. the user is valid and so is the results of Identity( User_Object );
-	-- 	2. it's meant to work with any authentication manager vs user combination.
-	-- This is a private method so the user won't call it directly.
-	-- Instead, it's called by the Get_Groups (User'Class) method implemented here.
 
 
-	type Criteria is abstract tagged null record;
 
-
-	type Accountant is new Ada.Finalization.Controlled with record
+	type Accountant is new Ada.Finalization.Limited_Controlled with record
 		Creation_Time	: Time := Ada.Calendar.Clock;
 		Service		: Unbounded_String := To_Unbounded_String("/");
 		Root		: Accountant_Access := Root_Acc;
