@@ -158,7 +158,8 @@ package Aw_Sec is
 	-- AUTHENTICATION MANAGEMENT --
 	-------------------------------
 
-	type Authentication_Manager is abstract new Ada.Finalization.Controlled with private;
+	type Authentication_Manager is abstract new 
+		Ada.Finalization.Controlled with private;
 	-- This is where the magic happens!
 	--
 	-- The Authentication_Manager type is the type that should be extended
@@ -248,10 +249,12 @@ package Aw_Sec is
 	-- Plugin Loading in Authorization Management --
 	------------------------------------------------
 
-	type Criteria_Factory is access function ( Descriptor: in String ) return Criteria'Class;
-	-- When the package containing the criteria is loaded, it should register itself with the main
-	-- criteria registry (available in this package here) so it can be referenced later on by
-	-- it's name.
+	type Criteria_Factory is access function ( Descriptor: in String )
+		return Criteria'Class;
+	-- When the package containing the criteria is loaded,
+	-- it should register itself with the main
+	-- criteria registry (available in this package here)
+	-- so it can be referenced later on by it's name.
 	
 	package Criteria_Maps is new 
 		Ada.Containers.Hashed_Maps(
@@ -266,7 +269,8 @@ package Aw_Sec is
 		-- Register a criteria based on it's name.
 		-- We do not check if the factory is null as it has been checked before
 		-- in the public register method.
-		-- If there is another criteria with the same name, raises Duplicated_Criteria
+		-- If there is another criteria with the same name,
+		-- raises Duplicated_Criteria
 	
 		procedure Unload( Name: in Criteria_name );
 		-- remove this criteria from the registry.
@@ -276,7 +280,8 @@ package Aw_Sec is
 		-- used to unload all the criterias from the registry.
 
 
-		function Create_Criteria( Name, Pattern: in String ) return Criteria'Class;
+		function Create_Criteria( Name, Pattern: in String )
+			return Criteria'Class;
 		-- create a new criteria object from an already registered criteria type
 		-- based on it's name and the given pattern.
 		-- if there is no such criteria, raises INVALID_CRITERIA
@@ -328,8 +333,9 @@ package Aw_Sec is
 		);
 
 	STATUS_CONFLICT: Exception;
-	-- Raised when one try to change the exit status while it has already been defined
-	-- this is so in order to force the developer to use Actions to represent only
+	-- Raised when one try to change the exit status while it
+	-- has already been defined this is so in order to force the 
+	-- developer to use Actions to represent only
 	-- small pieces of the code...
 	--
 	-- Usualy, if you need to set more than one exit status you can split your
@@ -566,9 +572,12 @@ private
 		procedure Set_Timeout( New_Timeout: Duration );
 	private
 		Groups		: Authorization_Groups;
-		Timeout		: Duration := 600.0;		-- the duration of this cache in secconds
-		Need_Update	: Boolean := True;		-- should update the cache in the next Get_Groups call?
-		Last_Update	: Time;				-- when was the last access to this information.
+		Timeout		: Duration := 600.0;
+		-- the duration of this cache in secconds
+		Need_Update	: Boolean := True;
+		-- should update the cache in the next Get_Groups call?
+		Last_Update	: Time;	
+		-- when was the last access to this information.
 	end Groups_Cache_Type;
 
 
@@ -604,7 +613,6 @@ private
 	-- 	2. it's meant to work with any authentication manager vs user combination.
 	-- This is a private method so the user won't call it directly.
 	-- Instead, it's called by the Get_Groups (User'Class) method implemented here.
-
 
 
 	type Criteria is abstract tagged null record;
