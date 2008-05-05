@@ -47,6 +47,7 @@
 -- 		OgRo.
 
 
+with Ada.Calendar;		use Ada.Calendar;
 with Ada.Containers.Vectors;
 with Ada.Finalization;
 with Ada.Strings.Unbounded;	use Ada.Strings.Unbounded;
@@ -80,11 +81,11 @@ package Aw_Sec is
 	-- from different managers for the same user (see the rest of the file)
 
 
-	package Authorization_Group_Vectors is new Ada.Containers.Vectors(
+	package Authorization_Group_Vectors is new Ada.Containers.Vectors (
 			Index_Type	=> Natural,
 			Element_Type	=> Authorization_Group );
 
-	type Authorization_Groups is new Authorization_Group_Vectors.Vector;
+	subtype Authorization_Groups is Aw_Sec.Authorization_Group_Vectors.Vector;
 	-- this will make all the vector's methods avaliable here
 	-- in Aw_Sec package.
 
@@ -95,7 +96,7 @@ package Aw_Sec is
 	-- User Management --
 	---------------------
 
-	type User is tagged private;
+	type User is tagged limited private;
 	-- A user can be extended, even though it's not how Aw_Sec should be 
 	-- extended
 	--
@@ -108,7 +109,8 @@ package Aw_Sec is
 
 	type User_Access is access all User'Class;
 
-	procedure Set_Groups_Timeout( User_Object: in out User; New_Timeout: in Duration );
+	procedure Set_Groups_Timeout( User_Object: in out User;
+		New_Timeout: in Duration );
 	-- set the timeout of the groups cache for this user
 	
 	procedure Update_Groups( User_Object: in out User );
@@ -180,7 +182,7 @@ package Aw_Sec is
 			Element_Type	=> Authentication_Manager_Access );
 
 
-	Manager_Registry: Authentication_manager.Vectors.Vectors;
+	Manager_Registry: Authentication_Manager_Vectors.Vector;
 	-- a registry of the current managers.
 
 	procedure Register_Manager( Manager: in out Authentication_Manager_Access );
@@ -304,68 +306,9 @@ package Aw_Sec is
 	-- I think the name is clear enough...
 
 
-	
-	---------------------------
-	-- Accounting Management --
-	---------------------------
-
-
-	--
-	-- the accountant type
-	--
-	
-
-	type Path_Array is Array( Natural range<> ) of Unbounded_String;
-	
-	type Accountant is new Ada.Finalization.Limited_Controlled with private;
-	-- The Accountant should be overwritten by anyone willing to extend the
-	-- Accounting Management schema of Aw_Sec.
-	--
-	-- There is a basic implementation avaliable in this package that outputs
-	-- the messages to stdout and stderr.
-
-
-	type Accountant_Access is access all Accountant'Class;
-	-- All references to accountants are made using this type.
-
-	function New_Accountant(	Service	: in String;
-					Root	: access all Accountant'Class	) return Accountant;
-	-- This is the constructor for accountants.
-	-- It's far preferable to use constructors instead of simply instantiate the type.
-
-
-	function Service( Accountant_Object: in Accountant ) return Unbounded_String;
-	-- Gets the current service name
-	-- The service name is a string representing the accountant.
-	
-	function Service( Accountant_Object: in Accountant ) return String;
-	-- same as the Service() return unbounded_string
-
-	procedure Flush( Accountant_Object: in out Accountant );
-	-- Flushes the current acountant.
-
-
-	procedure Delegate(	To_Accountant	: in out Accountant;
-				Child		: in Action );
-	-- Called to log a child action
-	
-	procedure Delegate(	To_Accountant	: in out Accountant;
-				Relative_Path	: in Path_Array;
-				Child		: in Action );
-	-- delegates the action to from the child accountant to the to_accountant.
-	-- Relative_path is the relative path from the to_accountant to it's child.
-	-- For instance:
-	-- 	Acc1->Acc2->Action1
-	-- If Acc2 delegates Action1 to Acc2, it'll call:
-	-- 	Delegate(	To_Accountant	=> Acc1,
-	-- 			Relative_Path	=> ( Service( Acc2 ) ),
-	-- 			Child		=> Action1 );
-
-
-
-	--
-	-- the base_action type
-	--
+	-----------------
+	-- EXIT STATUS --  
+	-----------------
 
 	type Exit_Status is (
 		EXIT_SUCCESS,	-- no error at all in the exit status	
@@ -377,7 +320,7 @@ package Aw_Sec is
 
 
 	for Exit_Status use (
-		EXIT_SUCESS	=> 2#000#, -- just to pretend I'm a smart guy. :D
+		EXIT_SUCCESS	=> 2#000#, -- just to pretend I'm a smart guy. :D
 		EXIT_WARNING	=> 2#001#,
 		EXIT_ERROR	=> 2#010#,
 		EXIT_FATAL	=> 2#011#,
@@ -393,7 +336,35 @@ package Aw_Sec is
 	-- action in two other tasks.
 
 
+
+	----------------------
+	-- ACCOUNTANT TYPES --
+	----------------------
+
+	type Path_Array is Array( Natural range<> ) of Unbounded_String;
 	
+	--
+	-- the accountant type
+	--
+	type Accountant is new Ada.Finalization.Limited_Controlled with private;
+	-- The Accountant should be overwritten by anyone willing to extend the
+	-- Accounting Management schema of Aw_Sec.
+	--
+	-- There is a basic implementation avaliable in this package that outputs
+	-- the messages to stdout and stderr.
+
+
+	type Accountant_Access is access all Accountant'Class;
+	-- All references to accountants are made using this type.
+	
+	
+	-------------
+	-- ACTIONS --
+	-------------
+	
+	--
+	-- the base_action type
+	--
 	type Base_Action is abstract new Ada.Finalization.Limited_Controlled with private;
 	-- When creating your own action type, please extend this type otherwise your
 	-- code won't run as expected (as the finalization is responsible for logging the
@@ -401,18 +372,20 @@ package Aw_Sec is
 	--
 	-- See type action for more information.
 
-	function Make_Action(	Name		: in String;
+
+	function New_Action(	Name		: in String;
 				Root_Accountant	: in Accountant_Access;
-				User_Object	: in User_Access ) return Base_Action;
+				User_Object	: in User_Access ) 
+		return Base_Action is abstract;
 	-- This method should be used by the constructor and never be overrided.
 	-- It will initialize the common attributes to all action types.
 	--
-	-- The action implementor should provide a New_Action method as a constructor using
-	-- this Make_Action here.
+	-- The action implementor should provide a New_Action method 
+	-- as a constructor using this Make_Action here.
 	
 	procedure Set_Exit_Status(	Action_Object	: in out Base_Action;
 					Status		: in Exit_Status;
-					Message		: in String ) is abstract;
+					Message		: in String );
 	-- Set the exit status and a message describing what hapenned.
 	-- Raise STATUS_CONFLICT when the status has been already defined 
 	-- or EXIT_NULL is passed as parameter
@@ -422,22 +395,19 @@ package Aw_Sec is
 	--
 	-- the action type
 	--
-
-
-
-
 	type Action is new Base_Action with private;
 	-- An action is any small and localized task that can be performed by the system.
 	-- The action controlls:
 	-- 	* when the task (not as in paralel computing!) has been started
 	-- 	* which user, if any, is responsible for triggering this action
-	--	* when the task has been compleeted
+	--	* when the task has been completed
 	--	* the exit status and message of the task.
 	--
 	-- This information is then delegated for logging by the Action's root accountant.
 	-- This accountant then decides where and how to send it.
 	--
-	-- The accountant can then delegate the logging for it's root accountant and so on...
+	-- The accountant can then delegate the logging 
+	-- for it's root accountant and so on...
 	-- till it reaches the root accountant of all accountants.
 	--
 	-- You must specify what's the root accountant for every action, even when you
@@ -448,7 +418,7 @@ package Aw_Sec is
 
 	
 	function New_Action(	Name		: in String;
-				Root_Accountant : in Accountant'Class;
+				Root_Accountant : in Accountant_Access;
 				User_Object	: in User_Access ) return Action;
 	-- Used to create a new action which's root is Root_Accountant
 	-- Should be used as a constructor.
@@ -457,23 +427,65 @@ package Aw_Sec is
 
 	
 	
-	Root_Acc: constant Accountant := ( 
-			Service	=> To_Unbounded_String( "/" ),
-			Root	=> Null );
+	Root_Acc: constant Accountant;
+	-- TODO: implement at the static part of the body (ie, after a begin)
+	--  Root_Acc.Root := Null;
+	-- It shouldn't be a constant variable then......
+	--:= ( 
+	--		Service	=> To_Unbounded_String( "/" ),
+	--		Root	=> Null );
+
+
+	---------------------------
+	-- Accounting Management --
+	---------------------------
+
+	function New_Accountant(	Service	: in String;
+					Root	: Accountant_Access	)
+		return Accountant;
+	-- This is the constructor for accountants.
+	-- It's far preferable to use constructors instead
+	-- of simply instantiate the type.
+
+
+	function Service( Accountant_Object: in Accountant ) return Unbounded_String;
+	-- Gets the current service name
+	-- The service name is a string representing the accountant.
+	
+	function Service( Accountant_Object: in Accountant ) return String;
+	-- same as the Service() return unbounded_string
+
+	procedure Flush( Accountant_Object: in out Accountant );
+	-- Flushes the current acountant.
+
+
+	procedure Delegate(	To_Accountant	: in out Accountant;
+				Child		: in Action'Class );
+	-- Called to log a child action
+	
+	procedure Delegate(	To_Accountant	: in out Accountant;
+				Relative_Path	: in Path_Array;
+				Child		: in Action'Class );
+	-- delegates the action to from the child accountant to the to_accountant.
+	-- Relative_path is the relative path from the to_accountant to it's child.
+	-- For instance:
+	-- 	Acc1->Acc2->Action1
+	-- If Acc2 delegates Action1 to Acc2, it'll call:
+	-- 	Delegate(	To_Accountant	=> Acc1,
+	-- 			Relative_Path	=> ( Service( Acc2 ) ),
+	-- 			Child		=> Action1 );
 
 
 
+	
 
 	-----------------------------------
 	-- CLASSWIDE METHODS DECLARATION --
 	-----------------------------------
 
-
 	----------------------------------------
 	-- User Management - accounting aware --
 	----------------------------------------
-	
-
 	function Do_Login(	Manager:	 in Authentication_Manager'Class;
 				Username:	 in String;
 				Password:	 in String;
@@ -515,9 +527,7 @@ package Aw_Sec is
 
 
 
-
 private
-
 
 	protected type Groups_Cache_Type is 
 		function Should_Update return Boolean;
@@ -536,7 +546,8 @@ private
 		-- 	return return_code;
 		
 		
-		procedure Update( User_Object: in User'Class; Managers: in Authorization_Manager_Vectors.Vector );
+		procedure Update( User_Object: in User'Class;
+			Managers: in Authorization_Manager_Vectors.Vector );
 		-- update the groups and then set:
 		-- 	need_update := false
 		-- 	last_update := now
@@ -563,7 +574,7 @@ private
 
 	Anonymous_Username : String := "anonymous";
 
-	type User is tagged record
+	type User is tagged limited record
 		Username	: Unbounded_String := To_Unbounded_String( Anonymous_Username );
 		-- as default, in Aw_Sec, anonymous user has this username
 		First_Name	: Unbounded_String;
@@ -600,13 +611,13 @@ private
 
 
 	type Accountant is new Ada.Finalization.Controlled with record
-		Creation_Time	: Time := Now;
-		Service		: Unbounded_String;
+		Creation_Time	: Time := Ada.Calendar.Clock;
+		Service		: Unbounded_String := To_Unbounded_String("/");
 		Root		: Accountant_Access := Root_Acc;
 	end record;
 
 	type Base_Action is new Ada.Finalization.Limited_Controlled with record
-		Creation_Time	: Time := Now;
+		Creation_Time	: Time := Ada.Calendar.Clock;
 		User_Object	: User_Access;
 		Status		: Exit_Status := EXIT_NULL;
 		Root_Accountant	: Accountant_Access := Root_Acc;
