@@ -258,7 +258,7 @@ package body Aw_Sec.Authentication.DB is
 	begin
 		if Auth_Manager.Connection /= null then 
 			return Auth_Manger.connection.all;
-		else if Auth_Manager.Connection_Driver /= null then
+		elsif Auth_Manager.Connection_Driver /= null then
 			return Get_Connection( Auth_Manager.Connection_Driver );
 		else 
 			raise NOT_CONNECTED;

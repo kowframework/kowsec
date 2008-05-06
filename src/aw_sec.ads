@@ -205,7 +205,7 @@ package Aw_Sec is
 			Element_Type	=> Authentication_Manager_Access );
 
 
-	Manager_Registry: Authentication_Manager_Vectors.Vector;
+	Managers_Registry: Authentication_Manager_Vectors.Vector;
 	-- a registry of the current managers.
 
 	procedure Register_Manager( Manager: in out Authentication_Manager_Access );

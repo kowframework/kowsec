@@ -33,9 +33,17 @@
 -- This is the base package for AwSec.                                      --
 ------------------------------------------------------------------------------
 
+use Criteria_Maps;
 package body Aw_Sec is
 
+
+
+	-- AUXILIAR PROCEDURES AND FUNCTIONS --
 	procedure Check_Anonymous_Access( User_Object: in User; Where: in String ) is
+		-- This procedure is called by all the procedures and functions that
+		-- require the user is logged in.
+		--
+		-- If the user is anonymous raise an exception with a clear message.
 	begin
 		if Is_Anonymous( User_Object ) then
 			raise ANONYMOUS_ACCESS
@@ -46,6 +54,9 @@ package body Aw_Sec is
 		end if;
 	end Check_Anonymous_Access;
 
+
+
+	-- SPEC IMPLEMENTATION --
 
 	procedure Set_Groups_Timeout( User_Object: in out User; New_Timeout: in Duration ) is
 	        -- set the timeout of the groups cache for this user
@@ -121,7 +132,7 @@ package body Aw_Sec is
 	procedure Do_Logout( User_Object: in out User ) is
 	-- Not only make sure the user is logged out but also
 	-- Make sure Is_Anonymous returns true for now on for this user.
-		Null_String := To_Unbounded_String( "" );
+		Null_String : Unbounded_String := To_Unbounded_String( "" );
 	begin
 		User.Username := Anonymous_Username;
 		User.First_Name := Null_Unbounded_String;
@@ -137,6 +148,38 @@ package body Aw_Sec is
 
 
 
+
+
+	procedure Register_Manager( Manager: in out Authentication_Manager_Access ) is
+		-- Register a manager so it's usable by Aw_Sec.
+	begin
+		Authentication_Manager_Vectors.Append( Managers_Registry, Manager );
+	end Register_Manager;
+
+
+	function Do_Login(	Username: in String;
+				Password: in String ) return User'Class is
+		--  tries to login the user using the registered managers.
+		
+		use Authentication_Manager_Vectors;
+
+		C: Cursor := First( Managers_Registry );
+	begin
+		while Has_Element( C )
+		loop
+			begin
+				return Do_Login(	Value( C ),
+							Username,
+							Password);
+			exception
+				when INVALID_CREDENTIALS => null;
+			end;
+		end loop;
+
+		raise INVALID_CREDENTIALS;
+	end Do_Login;
+
+
 	procedure Require(	User_Object	: in out User'Class;
 				Name		: in Criteria_Name;
 				Pattern		: in Criteria_Descriptor) is
@@ -149,7 +192,6 @@ package body Aw_Sec is
 
 
 	protected body Criteria_Manager is
-		use Criteria_Maps;
 		--  we created a protected type here so our code is task-safe.
 		procedure Register( Name: in String; Factory: in Criteria_Factory ) is
 			-- We do not check if the factory is null as it has been checked before
@@ -183,7 +225,7 @@ package body Aw_Sec is
 			loop
 				Delete_First( Map );
 			end loop;
-		end Emtpy_Criteria_Registry;
+		end Empty_Criteria_Registry;
 
 		function Create_Criteria( Name, Pattern: in String ) return Criteria'Class is
 			-- create a new criteria object from an already registered criteria type
@@ -236,7 +278,7 @@ package body Aw_Sec is
 
 
 			function Iterate( i: in Integer ) return Authorization_Groups is
-				My_Groups := Get_Groups( Managers(i).all, User_Object );
+				My_Groups := Authorization_Groups := Get_Groups( Managers(i).all, User_Object );
 				Next: Integer := I + 1;
 			begin
 				if Next <= Managers'Last then
