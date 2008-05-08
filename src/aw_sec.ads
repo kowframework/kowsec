@@ -572,13 +572,12 @@ private
 		-- 	return return_code;
 		
 		
-		procedure Update( User_Object: in User'Class;
-			Managers: in Authentication_Manager_Vectors.Vector );
+		procedure Update( User_Object: in User'Class);
 		-- update the groups and then set:
 		-- 	need_update := false
 		-- 	last_update := now
 
-		function Get_Groups return Authorization_Groups;
+		function Get_Groups( User_Object: in User'Class ) return Authorization_Groups;
 		-- checks if the groups should be update
 		-- 	if true, do the update
 		-- 	if false, don't update.

@@ -33,13 +33,13 @@
 -- This is the base package for AwSec.                                      --
 ------------------------------------------------------------------------------
 
-use Criteria_Maps;
 package body Aw_Sec is
 
+	use Criteria_Maps;
 
 
 	-- AUXILIAR PROCEDURES AND FUNCTIONS --
-	procedure Check_Anonymous_Access( User_Object: in User; Where: in String ) is
+	procedure Check_Anonymous_Access( User_Object: in User'Class; Where: in String ) is
 		-- This procedure is called by all the procedures and functions that
 		-- require the user is logged in.
 		--
@@ -61,7 +61,7 @@ package body Aw_Sec is
 	procedure Set_Groups_Timeout( User_Object: in out User; New_Timeout: in Duration ) is
 	        -- set the timeout of the groups cache for this user
 	begin
-		User_Object.Groups.Set_timeout( New_Timeout );
+		User_Object.Groups_Cache.Set_timeout( New_Timeout );
 	end Set_Groups_Timeout;
 
 	procedure Update_Groups( User_Object: in out User ) is
@@ -87,15 +87,15 @@ package body Aw_Sec is
 		-- return the full name for this user, respecting the locale's conventions
 	begin
 		Check_Anonymous_Access( User_Object, "Full_Name" );
-		return Aw_Lib.Locales.Format_Full_Name(
-			Locale		=> Locale,
-			First_Name	=> To_String( First_Name ),
-			Last_Name	=> To_String( Last_Name )
+		return Aw_Lib.Locales.Get_Formated_Full_Name(
+			L		=> Locale,
+			First_Name	=> To_String( User_Object.First_Name ),
+			Last_Name	=> To_String( User_Object.Last_Name )
 			);
 	end Full_Name;
 
 	
-	procedure Get_Groups( User_object: in User'Class; Groups: in out Authorization_Groups ) is
+	procedure Get_Groups( User_object: in out User'Class; Groups: in out Authorization_Groups ) is
 	-- Get the groups for this user.
 	-- There are two things to notice here:
 	-- 	1. This method is task safe. It means it will never return something
@@ -112,7 +112,7 @@ package body Aw_Sec is
 		-- According Ada2005 RM the Vector needs finalization.
 		-- For this reason we don't deallocate the memory here.
 
-		Groups := User_Object.Groups_Cache.Get_Groups;
+		Groups := User_Object.Groups_Cache.Get_Groups( User_Object );
 	end Get_Groups;
 
 	function Is_Anonymous(	User_Object: in User ) return Boolean is
@@ -134,9 +134,9 @@ package body Aw_Sec is
 	-- Make sure Is_Anonymous returns true for now on for this user.
 		Null_String : Unbounded_String := To_Unbounded_String( "" );
 	begin
-		User.Username := Anonymous_Username;
-		User.First_Name := Null_Unbounded_String;
-		User.Last_Name := Null_Unbounded_String;
+		User_Object.Username := To_Unbounded_String( Anonymous_Username );
+		User_Object.First_Name := Null_Unbounded_String;
+		User_Object.Last_Name := Null_Unbounded_String;
 
 		-- there is no need to clear the user's cache
 		-- as Get_Groups always checks if it's an anonymous user or not.
@@ -163,12 +163,12 @@ package body Aw_Sec is
 		
 		use Authentication_Manager_Vectors;
 
-		C: Cursor := First( Managers_Registry );
+		C: Authentication_Manager_Vectors.Cursor := First( Managers_Registry );
 	begin
 		while Has_Element( C )
 		loop
 			begin
-				return Do_Login(	Value( C ),
+				return Do_Login(	Element( C ).all,
 							Username,
 							Password);
 			exception
@@ -183,7 +183,7 @@ package body Aw_Sec is
 	procedure Require(	User_Object	: in out User'Class;
 				Name		: in Criteria_Name;
 				Pattern		: in Criteria_Descriptor) is
-		My_Criteria: Criteria_Manager.Create_Criteria( Name, Pattern );
+		My_Criteria: Criteria'Class := Criteria_Manager.Create_Criteria( Name, Pattern );
 	begin
 		Require( User_Object, My_Criteria );
 	end Require;
@@ -277,8 +277,8 @@ package body Aw_Sec is
 				);
 
 
-			function Iterate( i: in Integer ) return Authorization_Groups is
-				My_Groups := Authorization_Groups := Get_Groups( Managers(i).all, User_Object );
+			function Iterate( C: in Cursor ) return Authorization_Groups is
+				My_Groups: Authorization_Groups := Get_Groups( Element( C ), User_Object );
 				Next: Integer := I + 1;
 			begin
 				if Next <= Managers'Last then
@@ -305,9 +305,6 @@ package body Aw_Sec is
 
 			Free( Groups );
 
-			-- notice we don't check if the user is anonymous
-			-- it's due the check if
-
 			if Managers'Length = 0 then
 				return; -- there is nothing to be feched if manager is null
 			end if;
@@ -316,7 +313,7 @@ package body Aw_Sec is
 			-- now we try to fetch the groups information for
 			-- the current user:
 			declare
-				My_Groups : Authorization_Groups := Iterate ( Managers'First );
+				My_Groups : Authorization_Groups := Iterate ( First( Managers ) );
 			begin
 				if My_Groups'Length /= 0 then
 					Groups := new Authorization_Groups( 1 .. My_Groups'Length );
@@ -329,13 +326,18 @@ package body Aw_Sec is
 			Last_Update := Now;
 		end Update;
 
-		function Get_Groups return Authorization_Groups is
+		function Get_Groups( User_Object: in User'Class ) return Authorization_Groups is
 			-- checks if the groups should be update
 			-- 	if true, do the update
 			-- 	if false, don't update.
 			-- return the current groups list
 			Empty: Authorization_Groups( 1 .. 0 );
 		begin
+			if Should_Update then
+				Updade( User_Object );
+			end if;
+
+			return Groups;
 		end Get_Groups;
 
 		procedure Set_Update is
