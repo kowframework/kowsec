@@ -256,7 +256,7 @@ package Aw_Sec is
 
 
 	procedure Require(	User_Object	:	 in out User'Class;
-				Criteria_Object	:	 in Criteria'Class );
+				Criteria_Object	:	 in Criteria'Class ) is abstract;
 	-- matches the user against some criteria.
 	-- raise ACCESS_DENIED if the user fails this criteria.
 
@@ -519,7 +519,7 @@ package Aw_Sec is
 	-- As it's a class wide function, it dynamic dispatching is enabled
 	-- for both Authentication_Manager and Accountant types
 	
-	procedure Do_Logout(	User_Object:	 in User'Class;
+	procedure Do_Logout(	User_Object:	 in out User'Class;
 				Root_Accountant: in Accountant'Class );
 	-- This function logs any error returned by Do_Logout method
 	-- As it's a class wide function, it dynamic dispatching is enabled
@@ -629,6 +629,7 @@ private
 		Creation_Time	: Time := Ada.Calendar.Clock;
 		User_Object	: User_Access;
 		Status		: Exit_Status := EXIT_NULL;
+		Message		: Unbounded_String;
 		Root_Accountant	: Accountant_Access := Root_Acc;
 	end record;
 

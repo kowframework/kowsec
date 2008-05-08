@@ -33,6 +33,8 @@
 -- This is the base package for AwSec.                                      --
 ------------------------------------------------------------------------------
 
+with Ada.Exceptions;	use Ada.Exceptions;
+
 package body Aw_Sec is
 
 	use Criteria_Maps;
@@ -244,6 +246,316 @@ package body Aw_Sec is
 
 
 
+	-------------
+	-- ACTIONS --
+	-------------
+
+	procedure Set_Exit_Status(	Action_Object	: in out Base_Action;
+					Status		: in Exit_Status;
+					Message		: in String ) is
+		-- Set the exit status and a message describing what hapenned.
+		-- Raise STATUS_CONFLICT when the status has been already defined 
+		-- or EXIT_NULL is passed as parameter
+		-- If the status is EXIT_FATAL, then FATAL_ERROR exception is raised.
+		-- As the action is Limited_Controlled, when deallocated it will log the error.
+
+	begin
+
+		if Action_Object.Status /= EXIT_NULL then
+			raise STATUS_CONFLICT with 
+				"Exit status already defined as " & 
+				Exit_Status'Image( Action_Object.Status );
+		elsif Status = EXIT_NULL then
+			raise STATUS_CONFLICT with
+				"Can't define exit status to null in runtime";
+		end if;
+
+		-- if we got to here, all we've got to do is set the status and the message
+		Action_Object.Status := Status;
+		Action_Object.Message := To_Unbounded_String( Message );
+	end Set_Exit_Status;
+
+	
+	-- the basic action implementation provided:
+	
+
+	function New_Action(	Name		: in String;
+				Root_Accountant	: in Accountant_Access;
+				User_Object	: in User_Access ) return Action is
+	begin
+		return (
+			Creation_Time	=> Ada.Calendar.Clock,
+			User_Object	=> User_Object,
+			Status		=> EXIT_NULL,
+			Root_Accountant => Root_Accountant );
+
+	end New_Action;
+
+
+
+	---------------------------
+	-- Accounting Management --
+	---------------------------
+
+	function New_Accountant(	Service	: in String;
+					Root	: Accountant_Access )
+		return Accountant is
+		-- This is the constructor for accountants.
+		-- It's far preferable to use constructors instead
+		-- of simply instantiate the type.
+	begin
+		return (
+			Ada.Finalization.Limited_Controlled with 
+				Creation_Time	=> Ada.Calendar.Clock,
+				Service		=> To_Unbounded_String( Service ),
+				Root		=> Root );
+
+	end New_Accountant;
+
+
+	function Service( Accountant_Object: in Accountant ) return Unbounded_String is
+		-- Gets the current service name
+		-- The service name is a string representing the accountant.
+		Pragma Inline( Service );
+	begin
+		return Accountant_Object.Service;
+	end Service;
+	
+	function Service( Accountant_Object: in Accountant ) return String is
+		-- same as the Service() return unbounded_string
+		Pragma Inline( Service );
+	begin
+		return To_String( Service( Accountant_Object ) );
+	end Service;
+
+
+	procedure Flush( Accountant_Object: in out Accountant ) is
+		-- Flushes the current acountant.
+	begin
+		null;
+		-- there is no need to flush the default implementation of accountant
+		-- as it logs in realtime to stdout and errout.
+	end Flush;
+
+
+
+
+		procedure Log( Status, Path, Message: in String; Output: in File_Type ) is
+			Pragma Inline( Log );
+			use Ada.Text_IO;
+		begin
+			Put( File_Type, "[" & Status & " @ " & Path & "] " & Message );
+		end Log;
+
+
+		procedure Log( Child : Action'Class; Path: in String; Output: in File_Type ) is
+			Pragma Inline( Log );
+		begin
+			Log(	Status	=> Exit_Status'Image( Child.Status ),
+				Message	=> To_String( Child.Message ),
+				Path	=> Path,
+				Output	=> Output );
+		end Log;
+
+
+		procedure Log( Child: in Action'Class; Path: in String ) is
+		begin
+			if Child.Status = EXIT_SUCCESS OR Child.Status = EXIT_NULL then
+				Log( Child => Child, Path => Path, Output => Standard_Output );
+			else
+				Log( Child => Child, Path => Path, Output => Standard_Error );
+			end if;
+		end Log;
+
+
+	procedure Delegate(	To_Accountant	: in out Accountant;
+				Child		: in Action'Class ) is
+		-- Called to log a child action
+
+	begin
+		if To_Accountant.Root = NULL then
+			Log(	Child	=> Child, 
+				Path	=> Service( To_Accountant ));
+		else
+			Delegate(	To_Accountant	=> To_Accountant.Root,
+					Relative_Path	=> ( Service( To_Accountant ) ),
+					Child		=> Child );
+		end if;
+	end Delegate;
+	
+	procedure Delegate(	To_Accountant	: in out Accountant;
+				Relative_Path	: in Path_Array;
+				Child		: in Action'Class ) is
+		-- delegates the action to from the child accountant to the to_accountant.
+		-- Relative_path is the relative path from the to_accountant to it's child.
+		-- For instance:
+		-- 	Acc1->Acc2->Action1
+		-- If Acc2 delegates Action1 to Acc2, it'll call:
+		-- 	Delegate(	To_Accountant	=> Acc1,
+		-- 			Relative_Path	=> ( Service( Acc2 ) ),
+		-- 			Child		=> Action1 );
+
+		function Build_Path( Arr: in Path_Array ) return String is
+		begin
+			if Arr'Length = 0 then
+				return "";
+			else
+				return	Arr(Arr'First)	&
+					"/"		&
+					Build_Path( Arr(Arr'First + 1 .. Arr'Last ) );
+			end if;
+		end Build_Path;
+	begin
+		if To_Accountant.Root = NULL then
+			Log(	Child	=> Child,
+				Path	=> Build_Path( Relative_Path ) );
+		else
+			Delegate(	To_Accountant	=> To_Accountant.Root.all,
+					Relative_Path	=> ( Service( To_Accountant ) ) & Path_Array,
+					Child		=> Child );
+		end if;
+	end Delegate;
+
+
+	
+
+	-----------------------------------
+	-- CLASSWIDE METHODS DECLARATION --
+	-----------------------------------
+
+	----------------------------------------
+	-- User Management - accounting aware --
+	----------------------------------------
+	function Do_Login(	Manager:	 in Authentication_Manager'Class;
+				Username:	 in String;
+				Password:	 in String;
+				Root_Accountant: in Accountant'Class ) return User'Class is
+		-- This function logs any error returned by Do_Login method
+		-- As it's a class wide function, it dynamic dispatching is enabled
+		-- for both Authentication_Manager and Accountant types
+
+		My_Action: Base_Action'Class := New_Action(
+			Name		=> "Do_Login",
+			Root_Accountant	=> Root_Accountant'Access,
+			User_Object	=> Null );
+	begin
+		return Do_Login( Manager, Username, Password );
+	exception
+		when E: INVALID_CREDENTIALS =>
+			Set_Exit_Status(
+				My_Action,
+				Exit_Error,
+				"INVALID_CREDENTIALS :: " & Exception_Message( E )
+				);
+			Reraise_Occurrence( E );
+		when E: Others =>
+			Set_Exit_Status(
+				My_action,
+				Exit_Warning,
+				Exception_Name( E ) & " :: " & Exception_Message( E )
+				);
+			Reraise_Occurrence( E );
+	end Do_Login;
+	
+	procedure Do_Logout(	User_Object:	 in out User'Class;
+				Root_Accountant: in Accountant'Class ) is
+		-- This function logs any error returned by Do_Logout method
+		-- As it's a class wide function, it dynamic dispatching is enabled
+		-- for both Authentication_Manager and Accountant types
+		My_Action: Base_Action'Class := New_Action(
+				Name		=> "Do_Logout",
+				Root_Accountant	=> Root_Accountant'Access,
+				User_Object	=> User_Object'Access );
+	begin
+		Do_Logout( User_Object );
+	exception
+		when E: Others =>
+			Set_Exit_Status(
+				My_action,
+				Exit_Warning,
+				Exception_Name( E ) & " :: " & Exception_Message( E )
+				);
+			Reraise_Occurrence( E );
+
+	end Do_Logout;
+
+	-------------------------------------------------
+	-- Authorization Management - accounting aware --
+	-------------------------------------------------
+
+
+	procedure Require(	User_Object:	 in out User'Class;
+				Criteria_Object: in Criteria'Class; 
+				Root_Accountant: in out Accountant'Class) is
+		-- matches the user against some criteria.
+		-- raise ACCESS_DENIED if the user fails this criteria.
+		-- logs any error that might occur using the root_accountant
+		My_Action: Base_Action'Class := New_Action(
+				Name		=> "Require",
+				Root_Accountant	=> Root_Accountant'Access,
+				User_Object	=> User_Object'Access );
+	begin
+		Require(	User_Object	=> User_Object,
+				Criteria_Object	=> Criteria_Object );
+	exception
+		when E: Others =>
+			Set_Exit_Status(
+				My_action,
+				Exit_Warning,
+				Exception_Name( E ) & " :: " & Exception_Message( E )
+				);
+			Reraise_Occurrence( E );
+
+	end Require;
+
+	procedure Require(	User_Object	: in out User'Class;
+				Name		: in Criteria_Name;
+				Descriptor	: in Criteria_Descriptor;
+				Root_Accountant	: in out Accountant'Class) is
+		-- matches the user against some criteria that's created at run time.
+		-- raises 
+		-- 	ACCESS_DENIED if the user fails this criteria.
+		-- 	INVALID_CRITERIA if trying to create a criteria that isn't registered
+		-- 	INVALID_CRITERIA_DESCRIPTOR if the descriptor is invalid for this criteria
+		-- logs any erro that might occur using the root_accountant
+		My_Action: Base_Action'Class := New_Action(
+				Name		=> "Require",
+				Root_Accountant	=> Root_Accountant'Access,
+				User_Object	=> User_Object'Access );
+	begin
+		Require(	User_Object	=> User_Object,
+				Name		=> Name,
+				Descriptor	=> Descriptor );
+	exception
+		when E: INVALID_CRITERIA => 
+			Set_Exit_Status(
+				My_action,
+				Exit_Error,
+				Exception_Name( E ) & " :: " & Exception_Message( E )
+				);
+			Reraise_Occurrence( E );
+
+		when E: INVALID_CRITERIA_DESCRIPTOR =>
+			Set_Exit_Status(
+				My_action,
+				Exit_Error,
+				Exception_Name( E ) & " :: " & Exception_Message( E )
+				);
+			Reraise_Occurrence( E );
+
+		when E: Others =>
+			Set_Exit_Status(
+				My_action,
+				Exit_Warning,
+				Exception_Name( E ) & " :: " & Exception_Message( E )
+				);
+			Reraise_Occurrence( E );
+	end Require;
+
+
+
+
+	
 	-- PRIVATE --
 
 	protected body Groups_Cache_Type is 
@@ -354,7 +666,11 @@ package body Aw_Sec is
 	end Groups_Cache_Type;
 
 
-
-
+	overriding
+	procedure Finalize( A: in out Action ) is
+		-- used to flush the action.
+	begin
+		Delegate( A, A.Root_Accountant.all );
+	end Finalize;
 
 end Aw_Sec;
