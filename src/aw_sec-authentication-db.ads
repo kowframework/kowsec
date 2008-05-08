@@ -48,47 +48,47 @@ package Aw_Sec.Authentication.DB is
 
 
 	-- User Table Name
-	procedure Set_User_Table(	Manager:  in Authentication_Manager;
-					User_Table_Name : in String );
-	function Get_User_Table_Name ( Manager:  in Authentication_Manager ) return String;
+	procedure Set_Users_Table(	Manager:  in out Authentication_Manager;
+					Users_Table_Name : in String );
+	function Get_Users_Table ( Manager:  in Authentication_Manager ) return String;
 
 	-- Id Field of the Users Tables 
-	procedure Set_User_Id_Field(	Manager:  in Authentication_Manager;
+	procedure Set_User_Id_Field(	Manager:  in out Authentication_Manager;
 					User_Id_Field_Name : in String );
 	function Get_User_Id_Field ( Manager:  in Authentication_Manager ) return String;
 
 	-- Username Field Name
-	procedure Set_Username_Field(	Manager:  in Authentication_Manager;
-					Username_Field_Name : in String );
+	procedure Set_Username_Field(	Manager:  in out Authentication_Manager;
+					Name : in String );
 	function Get_Username_Field ( Manager:  in Authentication_Manager ) return String;
 
 	-- Password Field Name
-	procedure Set_Password_Field(	Manager:  in Authentication_Manager;
+	procedure Set_Password_Field(	Manager:  in out Authentication_Manager;
 					Pwd : in String );
 	function Get_Password_Field ( Manager:  in Authentication_Manager ) return String;
 
 	-- First_Name Field Name
-	procedure Set_First_Name_Field( Manager:  in Authentication_Manager;
+	procedure Set_First_Name_Field( Manager:  in out Authentication_Manager;
 					Name : in String );
 	function Get_First_Name_Field  ( Manager:  in Authentication_Manager ) return String;
 
 	-- Last_Name Field Name
-	procedure Set_Last_Name_Field(	Manager:  in Authentication_Manager;
+	procedure Set_Last_Name_Field(	Manager:  in out Authentication_Manager;
 					Name : in String );
 	function Get_Last_Name_Field  (	Manager:  in Authentication_Manager ) return String;
 
 	-- Groups Table Name
-	procedure Set_Groups_Table(	Manager:  in Authentication_Manager;
+	procedure Set_Groups_Table(	Manager:  in out Authentication_Manager;
 					Groups_Table_Name : in String );
 	function Get_Groups_Table  ( Manager:  in Authentication_Manager ) return String;
 	
 	-- User_Id Field of the Groups Tables 
-	procedure Set_Groups_Username_Field(	Manager:  in Authentication_Manager;
+	procedure Set_Groups_Username_Field(	Manager:  in out Authentication_Manager;
 						Name : in String );
 	function Get_Groups_Username_Field ( Manager:  in Authentication_Manager ) return String;
 
 	-- Group_Name Field Name
-	procedure Set_Group_Name_Field(	Manager:  in Authentication_Manager;
+	procedure Set_Group_Name_Field(	Manager:  in out Authentication_Manager;
 					Name : in String );
 	function Get_Group_Name_Field (	Manager:  in Authentication_Manager ) return String;
 
@@ -126,15 +126,15 @@ package Aw_Sec.Authentication.DB is
 private
 
 	function Get_Connection( Auth_Manager: in Authentication_Manager )
-		return Root_Connection_Type'Class;
+		return Connection_Access;
 
 	type Authentication_Manager is new Aw_Sec.Authentication_Manager with
 	record
 		Connection		: Connection_access;
-		Connection_Driver	: APQ.Connection_Driver;
+	--	Connection_Driver	: APQ.Connection_Driver;
 		
 		-- Configuration File Properties
-		User_Table		: Unbounded_String;
+		Users_Table		: Unbounded_String;
 		User_Id_Field 		: Unbounded_String;
 		Username_Field 		: Unbounded_String;
 		Password_Field 		: Unbounded_String;

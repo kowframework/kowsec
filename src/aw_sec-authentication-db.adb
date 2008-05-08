@@ -33,7 +33,8 @@
 -- This is the Aw_Sec.Authentication.DB package.                                --
 -------------------------------------------------------------------------------
 
-
+with Ada.Unchecked_Conversion;
+with Ada.Strings.Unbounded;	 use Ada.Strings.Unbounded;
 
 package body Aw_Sec.Authentication.DB is
 
@@ -49,25 +50,24 @@ package body Aw_Sec.Authentication.DB is
 	end New_Authentication_Manager;
 
 
-
 	-- User Table Name
-	procedure Set_User_Table(	Manager:  in Authentication_Manager;
-					User_Table_Name : in String 		) is
+	procedure Set_Users_Table(	Manager:  in out Authentication_Manager;
+					Users_Table_Name : in String	) is
 	begin
-		Manager.User_Table := To_Unbounded_String( User_Table_Name );	
-	end Set_User_Table;
+		Manager.Users_Table := To_Unbounded_String( Users_Table_Name );	
+	end Set_Users_Table;
 
-	function Get_User_Table ( Manager:  in Authentication_Manager ) return String is
+	function Get_Users_Table ( Manager:  in Authentication_Manager ) return String is
 	begin
-		return To_String( Manager.User_Table );
-	end Get_User_Table;
+		return To_String( Manager.Users_Table );
+	end Get_Users_Table;
 
 
 	-- Id Field of the Users Tables 
-	procedure Set_User_Id_Field( 	Manager:  in Authentication_Manager;
+	procedure Set_User_Id_Field( 	Manager:  in out Authentication_Manager;
 					User_Id_Field_Name : in String ) is
 	begin
-		Manager.User_Id_Field := User_Id_Field_Name;
+		Manager.User_Id_Field := To_Unbounded_String(User_Id_Field_Name);
 	end Set_User_Id_Field;
 
 	function Get_User_Id_Field( Manager:  in Authentication_Manager )  return String is
@@ -77,62 +77,62 @@ package body Aw_Sec.Authentication.DB is
 
 
 	-- Username Field Name
-	procedure Set_Username_Field( 	Manager:  in Authentication_Manager;
+	procedure Set_Username_Field( 	Manager:  in out Authentication_Manager;
 					Name : in String ) is
 	begin
-		Manager.Username := Name;
+		Manager.Username_Field := To_Unbounded_String(Name);
 	end Set_Username_Field;
 
 	function Get_Username_Field( Manager:  in Authentication_Manager )  return String is
 	begin
-		return To_String( Manager.Username );
+		return To_String( Manager.Username_Field );
 	end Get_Username_Field;
 
 
 	-- Password Field Name
-	procedure Set_Password_Field( 	Manager:  in Authentication_Manager;
+	procedure Set_Password_Field( 	Manager:  in out Authentication_Manager;
 					Pwd : in String ) is
 	begin
-		Manager.Password := Pwd;	
+		Manager.Password_Field := To_Unbounded_String(Pwd);	
 	end Set_Password_Field;
 
 	function Get_Password_Field( Manager:  in Authentication_Manager )  return String is
 	begin
-		return To_String ( Manager.Password );
+		return To_String ( Manager.Password_Field );
 	end Get_Password_Field;
 
 
 	-- First_Name Field Name
-	procedure Set_First_Name_Field( 	Manager:  in Authentication_Manager;
+	procedure Set_First_Name_Field( 	Manager:  in out Authentication_Manager;
 						Name : in String ) is
 	begin
-		Manager.First_Name := Name;
+		Manager.First_Name_Field := To_Unbounded_String(Name);
 	end Set_First_Name_Field;
 
 	function Get_First_Name_Field( Manager:  in Authentication_Manager )  return String is
 	begin
-		return To_String( Manager.First_Name );
+		return To_String( Manager.First_Name_Field );
 	end Get_First_Name_Field;
 
 
 	-- Last_Name Field Name
-	procedure Set_Last_Name_Field( 	Manager:  in Authentication_Manager;
+	procedure Set_Last_Name_Field( 	Manager:  in out Authentication_Manager;
 					Name : in String ) is
 	begin
-		Manager.Last_Name := Name;
+		Manager.Last_Name_Field := To_Unbounded_String(Name);
 	end Set_Last_Name_Field;
 
 	function Get_Last_Name_Field( Manager:  in Authentication_Manager )  return String is
 	begin
-		return To_String( Manager.Last_Name );
+		return To_String( Manager.Last_Name_Field );
 	end Get_Last_Name_Field;
 
 
 	-- Groups Table Name
-	procedure Set_Groups_Table( 	Manager:  in Authentication_Manager;
+	procedure Set_Groups_Table( 	Manager:  in out Authentication_Manager;
 					Groups_Table_Name : in String ) is
 	begin
-		Manager.Groups_Table := Groups_Table_Name;
+		Manager.Groups_Table := To_Unbounded_String(Groups_Table_Name);
 	end Set_Groups_Table;
 
 	function Get_Groups_Table( Manager:  in Authentication_Manager )  return String is
@@ -142,22 +142,22 @@ package body Aw_Sec.Authentication.DB is
 	
 	
 	-- Username Field of the Groups Tables 
-	procedure Set_Groups_Username_Field( 	Manager:  in Authentication_Manager;
+	procedure Set_Groups_Username_Field( 	Manager:  in out Authentication_Manager;
 						Name : in String ) is
 	begin	
-		Manager.Groups_Username := Name;
+		Manager.Groups_Username_Field := To_Unbounded_String(Name);
 	end Set_Groups_Username_Field;
 
 	function Get_Groups_Username_Field( Manager:  in Authentication_Manager )  return String is
 	begin
-		return To_String( Manager.Groups_Username );
+		return To_String( Manager.Groups_Username_Field );
 	end Get_Groups_Username_Field;
 
 	-- Group_Name Field Name
-	procedure Set_Group_Name_Field( 	Manager:  in Authentication_Manager;
-						Name : in String ) is
+	procedure Set_Group_Name_Field(	Manager:  in out Authentication_Manager;
+					Name : in String ) is
 	begin
-		Manager.Group_Name_Field := Name;		
+		Manager.Group_Name_Field := To_Unbounded_String(Name);		
 	end Set_Group_Name_Field;
 
 	function Get_Group_Name_Field( Manager:  in Authentication_Manager )  return String is
@@ -167,10 +167,11 @@ package body Aw_Sec.Authentication.DB is
 	
 
 	-- helper function to get the Query's Value at Column Column_Name
-	function Value(	Query : in  Root_Query_Type; 
-			Column_Name : in String ) return String is
+	function Value(	Query : in  Root_Query_Type'Class; 
+			Column_Name : in String ) return Unbounded_String is
 	begin
-		return Value( Query, Column_Index( Query, Column_Name) );
+		return Ada.Strings.Unbounded.To_Unbounded_String(
+			Value( Query, Column_Index( Query, Column_Name) ) );
 	end Value;
 	
 
@@ -180,26 +181,28 @@ package body Aw_Sec.Authentication.DB is
 	                  	Username: in String;
 	                  	Password: in String ) return User'Class is
 		
-		Query: Root_Query_Type'Class;
-		Required_User : User;
-		Connection : Root_Connection_Type;
-	
-	begin
-		Connection := Get_Connection(Manager);
-		Query := New_Query( Connection );
+		Required_User : User'Class;
 
- 		Prepare( Query,  "SELECT * from " & Get_Users_Table &
-			" where " &  Get_Username_Field & "=");
+		Connection : Root_Connection_Type'Class :=
+			Get_Connection(Manager).all;
+	
+		Query: Root_Query_Type'Class := New_Query( Connection );
+	begin
+ 		Prepare( Query,  "SELECT * from " & Get_Users_Table(Manager) &
+			" where " &  Get_Username_Field(Manager) & "=");
 		Append_Quoted( Query, Connection, Username);
  	
 		Execute( Query, Connection );
 
-		if Username = Value(Query, Get_Username_Field) and then
-			Password = Value(Query, Get_Password_Field) then
+		if Username = Value(Query, Get_Username_Field(Manager)) and then
+			Password = Value(Query, Get_Password_Field(Manager)) then
 			
-			Required_User.Username.all := Value(Query, Get_Username_Field);
-			Required_User.First_Name.all := Value(Query, Get_First_Name_Field);
-			Required_User.Last_Name.all := Value(Query, Get_Last_Name_Field);
+			Required_User.Username :=
+				Value(Query, Get_Username_Field(Manager));
+			Required_User.First_Name := 
+				Value(Query, Get_First_Name_Field(Manager));
+			Required_User.Last_Name :=
+				Value(Query, Get_Last_Name_Field(Manager));
 			
 			return Required_User;
 		else 
@@ -218,20 +221,17 @@ package body Aw_Sec.Authentication.DB is
          		new Ada.Unchecked_Conversion (Source => Unbounded_String,
                 	Target => Authorization_Group);
 
-		Query: Root_Query_Type'Class;
-		Connection : Root_Connection_Type;
+		Connection : Root_Connection_Type'Class := Get_Connection(Manager).all;
+		Query: Root_Query_Type'Class := New_Query( Connection ); 
 		Groups : Authorization_Groups;
 	begin	
-		Connection := Get_Connection(Manager);
-		Query := New_Query( Connection );
-
- 		Prepare( Query,  "SELECT * from " & Get_Groups_Table &
-			" where " &  Get_Groups_Username_Field & "=");
+ 		Prepare( Query,  "SELECT * from " & Get_Groups_Table(Manager) &
+			" where " &  Get_Groups_Username_Field(Manager) & "=");
 		Append_Quoted( Query, Connection, User_Object.Username);
  	
 		Execute( Query, Connection );
 
-		if Value(Query, Get_Group_Name_Field) /= Null_Unbounded_String then
+		while Value(Query, Get_Group_Name_Field(Manager)) /= Null_Unbounded_String
 			loop
 				begin
 					Fetch(Query); 
@@ -239,12 +239,11 @@ package body Aw_Sec.Authentication.DB is
 					when No_Tuple => exit;
 				end;
 	
-				Append( Groups,
+				Ada.Containers.Vectors.Prepend( Groups,
 					To_Authorization_Group(	To_Unbounded_String(
-						Value( Query, Get_Group_Name ) ) ) ) ;
+						Value( Query, Get_Group_Name(Manager) ) ) ) ) ;
 			end loop;
 
-		end if;
 
 		return Groups;
 
@@ -254,12 +253,12 @@ package body Aw_Sec.Authentication.DB is
 -- private
 	
 	function Get_Connection( Auth_Manager: in Authentication_Manager )
-		return Root_Connection_Type'Class is
+		return Connection_Access is
 	begin
 		if Auth_Manager.Connection /= null then 
-			return Auth_Manger.connection.all;
-		elsif Auth_Manager.Connection_Driver /= null then
-			return Get_Connection( Auth_Manager.Connection_Driver );
+			return Auth_Manager.Connection;
+	--	elsif Auth_Manager.Connection_Driver /= null then
+	--		return Get_Connection( Auth_Manager.Connection_Driver );
 		else 
 			raise NOT_CONNECTED;
 		end if;

@@ -424,8 +424,7 @@ package Aw_Sec is
 	-- the action type
 	--
 	type Action is new Base_Action with private;
-	-- An action is any small and localized task that can be performed by the system.
-	-- The action controlls:
+	-- An action is any small and localized task that can be performed by the system.  -- The action controlls:
 	-- 	* when the task (not as in paralel computing!) has been started
 	-- 	* which user, if any, is responsible for triggering this action
 	--	* when the task has been completed
