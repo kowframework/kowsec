@@ -30,7 +30,7 @@
 ------------------------------------------------------------------------------
 
 -------------------------------------------------------------------------------
--- This is the Aw_Sec.Authentication.DB package.                                --
+-- This is the Aw_Sec.Authentication.DB package.                             --
 -------------------------------------------------------------------------------
 
 with Ada.Unchecked_Conversion;
@@ -170,8 +170,7 @@ package body Aw_Sec.Authentication.DB is
 	function Value(	Query : in  Root_Query_Type'Class; 
 			Column_Name : in String ) return Unbounded_String is
 	begin
-		return Ada.Strings.Unbounded.To_Unbounded_String(
-			Value( Query, Column_Index( Query, Column_Name) ) );
+		return To_Unbounded_String("" & Value( Query, Column_Index( Query, Column_Name) ) );
 	end Value;
 	
 
@@ -180,19 +179,18 @@ package body Aw_Sec.Authentication.DB is
 	function Do_Login(	Manager:  in Authentication_Manager;
 	                  	Username: in String;
 	                  	Password: in String ) return User'Class is
-		
-		Required_User : User'Class;
-
-		Connection : Root_Connection_Type'Class :=
-			Get_Connection(Manager).all;
 	
-		Query: Root_Query_Type'Class := New_Query( Connection );
+		Required_User : User;
+
+		Connection: Connection_Access := Get_Connection(Manager);
+	
+		Query: Root_Query_Type'Class := New_Query( Connection.all );
 	begin
  		Prepare( Query,  "SELECT * from " & Get_Users_Table(Manager) &
 			" where " &  Get_Username_Field(Manager) & "=");
-		Append_Quoted( Query, Connection, Username);
+		Append_Quoted( Query, Connection.all , Username);
  	
-		Execute( Query, Connection );
+		Execute( Query, Connection.all );
 
 		if Username = Value(Query, Get_Username_Field(Manager)) and then
 			Password = Value(Query, Get_Password_Field(Manager)) then
@@ -218,18 +216,18 @@ package body Aw_Sec.Authentication.DB is
 
 
         	function To_Authorization_Group is
-         		new Ada.Unchecked_Conversion (Source => Unbounded_String,
-                	Target => Authorization_Group);
+         		new Ada.Unchecked_Conversion (	Source => Unbounded_String,
+                					Target => Authorization_Group	);
 
-		Connection : Root_Connection_Type'Class := Get_Connection(Manager).all;
-		Query: Root_Query_Type'Class := New_Query( Connection ); 
+		Connection : Connection_Access := Get_Connection(Manager);
+		Query: Root_Query_Type'Class := New_Query( Connection.all ); 
 		Groups : Authorization_Groups;
 	begin	
  		Prepare( Query,  "SELECT * from " & Get_Groups_Table(Manager) &
 			" where " &  Get_Groups_Username_Field(Manager) & "=");
-		Append_Quoted( Query, Connection, User_Object.Username);
+		Append_Quoted( Query, Connection.all, User_Object.Username);
  	
-		Execute( Query, Connection );
+		Execute( Query, Connection.all );
 
 		while Value(Query, Get_Group_Name_Field(Manager)) /= Null_Unbounded_String
 			loop
@@ -238,10 +236,10 @@ package body Aw_Sec.Authentication.DB is
 				exception
 					when No_Tuple => exit;
 				end;
-	
-				Ada.Containers.Vectors.Prepend( Groups,
-					To_Authorization_Group(	To_Unbounded_String(
-						Value( Query, Get_Group_Name(Manager) ) ) ) ) ;
+				
+				Authorization_Group_Vectors.Append( Groups,
+					To_Authorization_Group(	Value( Query,
+						Get_Group_Name_Field(Manager) ) ) );
 			end loop;
 
 

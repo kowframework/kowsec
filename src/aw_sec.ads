@@ -96,7 +96,7 @@ package Aw_Sec is
 	-- User Management --
 	---------------------
 
-	type User is tagged limited private;
+	type User is tagged private;
 	-- A user can be extended, even though it's not how Aw_Sec should be 
 	-- extended
 	--
@@ -108,6 +108,7 @@ package Aw_Sec is
 	-- This should be handler somewhere else.
 
 	type User_Access is access all User'Class;
+
 
 	procedure Set_Groups_Timeout( User_Object: in out User;
 		New_Timeout: in Duration );
@@ -598,10 +599,11 @@ private
 		-- when was the last access to this information.
 	end Groups_Cache_Type;
 
+	type Groups_Cache_Access is access Groups_Cache_Type;
 
 	Anonymous_Username : String := "anonymous";
 
-	type User is tagged limited record
+	type User is tagged record
 		Username	: Unbounded_String := To_Unbounded_String( Anonymous_Username );
 		-- as default, in Aw_Sec, anonymous user has this username
 		First_Name	: Unbounded_String;
@@ -609,7 +611,7 @@ private
 		-- this one is optional, depending on the Authorization_Manager
 
 
-		Groups_Cache	: Groups_Cache_Type;
+		Groups_Cache	: Groups_Cache_Access;
 		-- A cache of groups, managed by Aw_Sec.
 	end record;
 
