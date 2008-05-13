@@ -157,7 +157,7 @@ package body Aw_Sec is
 	procedure Register_Manager( Manager: in out Authentication_Manager_Access ) is
 		-- Register a manager so it's usable by Aw_Sec.
 	begin
-		Authentication_Manager_Vectors.Append( Managers_Registry, Manager );
+		Append( Managers_Registry, Manager );
 	end Register_Manager;
 
 
@@ -190,12 +190,12 @@ package body Aw_Sec is
 
 	procedure Require(	User_Object	: in out User'Class;
 				Name		: in Criteria_Name;
-				Pattern		: in Criteria_Descriptor) is
+				Descriptor		: in Criteria_Descriptor) is
 
---		My_Criteria: Criteria'Class := Criteria_Manager.Create_Criteria( Name, Pattern );
+--		My_Criteria: Criteria'Class := Criteria_Manager.Create_Criteria( Name, Descriptor );
 	begin
 --		Require( User_Object, My_Criteria );
-		Internal_Require( User_Object, Criteria_Manager.Create_Criteria( Name, Pattern ) );
+		Internal_Require( User_Object, Criteria_Manager.Create_Criteria( Name, Descriptor ) );
 	end Require;
 
 
@@ -234,9 +234,9 @@ package body Aw_Sec is
 			Clear( Map );
 		end Empty_Criteria_Registry;
 
-		function Create_Criteria( Name : in Criteria_Name; Pattern: in Criteria_Descriptor ) return Criteria'Class is
+		function Create_Criteria( Name : in Criteria_Name; Descriptor: in Criteria_Descriptor ) return Criteria'Class is
 			-- create a new criteria object from an already registered criteria type
-			-- based on it's name and the given pattern.
+			-- based on it's name and the given Descriptor.
 			Factory: Criteria_Factory;
 		begin
 			if not Contains( Map, Name ) then
@@ -245,7 +245,7 @@ package body Aw_Sec is
 
 			Factory := Element( Map, Name );
 
-			return Factory.all( To_String(Pattern) );
+			return Factory.all( To_String(Descriptor) );
 		end Create_Criteria;
 	end Criteria_Manager;
 
@@ -456,14 +456,14 @@ package body Aw_Sec is
 	function Do_Login(	Manager:	 in Authentication_Manager'Class;
 				Username:	 in String;
 				Password:	 in String;
-				Root_Accountant: in Accountant'Class ) return User'Class is
+				Root_Accountant: in Accountant_Access ) return User'Class is
 		-- This function logs any error returned by Do_Login method
 		-- As it's a class wide function, it dynamic dispatching is enabled
 		-- for both Authentication_Manager and Accountant types
 
 		My_Action: Base_Action'Class := New_Action(
 			Name		=> "Do_Login",
-			Root_Accountant	=> Root_Accountant'Access,
+			Root_Accountant	=> Root_Accountant,
 			User_Object	=> Null );
 	begin
 		return Do_Login( Manager, Username, Password );
@@ -484,17 +484,17 @@ package body Aw_Sec is
 			Reraise_Occurrence( E );
 	end Do_Login;
 	
-	procedure Do_Logout(	User_Object:	 in out User'Class;
-				Root_Accountant: in Accountant'Class ) is
+	procedure Do_Logout(	User_Object:	 in out User_Access;
+				Root_Accountant: in Accountant_Access ) is
 		-- This function logs any error returned by Do_Logout method
 		-- As it's a class wide function, it dynamic dispatching is enabled
 		-- for both Authentication_Manager and Accountant types
 		My_Action: Base_Action'Class := New_Action(
 				Name		=> "Do_Logout",
-				Root_Accountant	=> Root_Accountant'Access,
-				User_Object	=> User_Object'Access );
+				Root_Accountant	=> Root_Accountant,
+				User_Object	=> User_Object );
 	begin
-		Do_Logout( User_Object );
+		Do_Logout( User_Object.all );
 	exception
 		when E: Others =>
 			Set_Exit_Status(
@@ -511,18 +511,18 @@ package body Aw_Sec is
 	-------------------------------------------------
 
 
-	procedure Require(	User_Object:	 in out User'Class;
+	procedure Require(	User_Object:	 in User_Access;
 				Criteria_Object: in Criteria'Class; 
-				Root_Accountant: in out Accountant'Class) is
+				Root_Accountant: in out Accountant_Access) is
 		-- matches the user against some criteria.
 		-- raise ACCESS_DENIED if the user fails this criteria.
 		-- logs any error that might occur using the root_accountant
 		My_Action: Base_Action'Class := New_Action(
 				Name		=> "Require",
-				Root_Accountant	=> Root_Accountant'Access,
-				User_Object	=> User_Object'Access );
+				Root_Accountant	=> Root_Accountant,
+				User_Object	=> User_Object );
 	begin
-		Require(	User_Object	=> User_Object,
+		Require(	User_Object	=> User_Object.all,
 				Criteria_Object	=> Criteria_Object );
 	exception
 		when E: Others =>
@@ -535,10 +535,10 @@ package body Aw_Sec is
 
 	end Require;
 
-	procedure Require(	User_Object	: in out User'Class;
+	procedure Require(	User_Object	: in out User_Access;
 				Name		: in Criteria_Name;
 				Descriptor	: in Criteria_Descriptor;
-				Root_Accountant	: in out Accountant'Class) is
+				Root_Accountant	: in out Accountant_Access) is
 		-- matches the user against some criteria that's created at run time.
 		-- raises 
 		-- 	ACCESS_DENIED if the user fails this criteria.
@@ -547,10 +547,10 @@ package body Aw_Sec is
 		-- logs any erro that might occur using the root_accountant
 		My_Action: Base_Action'Class := New_Action(
 				Name		=> "Require",
-				Root_Accountant	=> Root_Accountant'Access,
-				User_Object	=> User_Object'Access );
+				Root_Accountant	=> Root_Accountant,
+				User_Object	=> User_Object );
 	begin
-		Require(	User_Object	=> User_Object,
+		Require(	User_Object	=> User_Object.all,
 				Name		=> Name,
 				Descriptor	=> Descriptor );
 	exception
@@ -589,44 +589,43 @@ package body Aw_Sec is
 		function Should_Update return Boolean is
 		begin
 			if
-				Authorization_Groups = NULL	OR
-				Need_Update = true		OR
+				Authorization_Group_Vectors.Is_Empty( Groups )	OR
+				Need_Update	= true OR
 				(
 					Timeout /= 0.0 AND THEN 
-					Last_Update < (Now - Timeout)
+					Last_Update < (Clock - Timeout)
 				)
 			then
 				return true;
 		 	else 
-		 		return_code := false;
+		 		return false;
 		 	end if;
 		
 		end Should_Update;
 		
-		procedure Update( User_Object: in User'Class; Managers: in Authentication_Manager_Vectors.Vector ) is
+		procedure Update( User_Object: in User'Class; Managers: in Authentication_Managers ) is
 			-- update the groups and then set:
 			-- 	need_update := false
 			-- 	last_update := now
 
-			Empty: Authorization_Groups(1 .. 0);
+			Empty: Authorization_Groups;
 			-- it's used when there is nothing to be returned from Groups.
 			
-			procedure Free is new Unchecked_Deallocation(
-				Object	=> Authorization_Groups
-				);
 
 
-			function Iterate( C: in Cursor ) return Authorization_Groups is
+			function Iterate( C: in Authentication_Manager_Vectors.Cursor ) return Authorization_Groups is
 				My_Groups	: Authorization_Groups;
 				-- Groups I'll get in this iteration, using the current Manager (if any)
 				Next_Groups	: Authorization_Groups;
 				-- Groups I'll get in the next manager + the other manager + ...
 			begin
 
-				if Has_Element( C ) then
-					Next_Groups := Iterate( Next( C ) );
+				if Authentication_Manager_Vectors.Has_Element( C ) then
+					Next_Groups := Iterate( Authentication_Manager_Vectors.Next( C ) );
 
-					My_Groups := Get_Groups( Element( C ), User_Object );
+					My_Groups := Get_Groups(
+						Authentication_Manager_Vectors.Element( C ).all,
+						User_Object );
 
 					Authorization_Group_Vectors.Append(
 						Container => My_Groups,
@@ -642,7 +641,7 @@ package body Aw_Sec is
 
 			Authorization_Group_Vectors.Clear( Groups );
 
-			if Managers'Length = 0 then
+			if Is_Empty( Managers ) then
 				return; -- there is nothing to be feched if manager is null
 			end if;
 

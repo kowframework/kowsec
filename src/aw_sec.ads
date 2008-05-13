@@ -204,7 +204,9 @@ package Aw_Sec is
 			Element_Type	=> Authentication_Manager_Access );
 
 
-	Managers_Registry: Authentication_Manager_Vectors.Vector;
+	type Authentication_Managers is new Authentication_Manager_Vectors.Vector with null record;
+
+	Managers_Registry: Authentication_Managers;
 	-- a registry of the current managers.
 
 	procedure Register_Manager( Manager: in out Authentication_Manager_Access );
@@ -240,8 +242,8 @@ package Aw_Sec is
 	-- extend the authorization type avaliable.
 
 
-	function Create_Criteria( Pattern: in Criteria_Descriptor ) return Criteria is abstract;
-	-- create a criteria to be matched based on the given pattern.
+	function Create_Criteria( Descriptor: in Criteria_Descriptor ) return Criteria is abstract;
+	-- create a criteria to be matched based on the given Descriptor.
 
 	function Get_Type( Criteria_Object: in Criteria ) return String is abstract;
 	-- return a String representing the criteria
@@ -255,14 +257,14 @@ package Aw_Sec is
 
 
 	procedure Require(	User_Object	:	 in out User'Class;
-				Criteria_Object	:	 in Criteria'Class ) is abstract;
+				Criteria_Object	:	 in Criteria ) is abstract;
 	-- matches the user against some criteria.
 	-- raise ACCESS_DENIED if the user fails this criteria.
 
 
 	procedure Require(	User_Object	: in out User'Class;
 				Name		: in Criteria_Name;
-				Pattern		: in Criteria_Descriptor);
+				Descriptor		: in Criteria_Descriptor);
 	-- Create and matches against a criteria using the criteria registry
 	
 
@@ -301,10 +303,10 @@ package Aw_Sec is
 		-- used to unload all the criterias from the registry.
 
 
-		function Create_Criteria( Name: in Criteria_Name;  Pattern: in Criteria_Descriptor )
+		function Create_Criteria( Name: in Criteria_Name;  Descriptor: in Criteria_Descriptor )
 			return Criteria'Class;
 		-- create a new criteria object from an already registered criteria type
-		-- based on it's name and the given pattern.
+		-- based on it's name and the given Descriptor.
 		-- if there is no such criteria, raises INVALID_CRITERIA
 
 	private
@@ -319,8 +321,8 @@ package Aw_Sec is
 	-- in the static part of his package.
 
 
-	INVALID_CRITERIA_PATTERN: Exception;
-	-- should be raised when the pattern used in the criteria can't be parsed.
+	INVALID_CRITERIA_DESCRIPTOR: Exception;
+	-- should be raised when the Descriptor used in the criteria can't be parsed.
 
 	INVALID_CRITERIA: Exception;
 	-- raised when trying to create or unload an unknown criteria.
@@ -513,13 +515,13 @@ package Aw_Sec is
 	function Do_Login(	Manager:	 in Authentication_Manager'Class;
 				Username:	 in String;
 				Password:	 in String;
-				Root_Accountant: in Accountant'Class ) return User'Class;
+				Root_Accountant: in Accountant_Access ) return User'Class;
 	-- This function logs any error returned by Do_Login method
 	-- As it's a class wide function, it dynamic dispatching is enabled
 	-- for both Authentication_Manager and Accountant types
 	
-	procedure Do_Logout(	User_Object:	 in out User'Class;
-				Root_Accountant: in Accountant'Class );
+	procedure Do_Logout(	User_Object:	 in out User_Access;
+				Root_Accountant: in Accountant_Access );
 	-- This function logs any error returned by Do_Logout method
 	-- As it's a class wide function, it dynamic dispatching is enabled
 	-- for both Authentication_Manager and Accountant types
@@ -530,18 +532,18 @@ package Aw_Sec is
 	-------------------------------------------------
 
 
-	procedure Require(	User_Object:	 in out User'Class;
+	procedure Require(	User_Object:	 in User_Access;
 				Criteria_Object: in Criteria'Class; 
-				Root_Accountant: in out Accountant'Class);
+				Root_Accountant: in out Accountant_Access);
 	-- matches the user against some criteria.
 	-- raise ACCESS_DENIED if the user fails this criteria.
 	-- logs any error that might occur using the root_accountant
 
 
-	procedure Require(	User_Object	: in out User'Class;
+	procedure Require(	User_Object	: in out User_Access;
 				Name		: in Criteria_Name;
 				Descriptor	: in Criteria_Descriptor;
-				Root_Accountant	: in out Accountant'Class);
+				Root_Accountant	: in out Accountant_Access);
 	-- matches the user against some criteria that's created at run time.
 	-- raises 
 	-- 	ACCESS_DENIED if the user fails this criteria.
@@ -570,7 +572,7 @@ private
 		-- 	return return_code;
 		
 		
-		procedure Update( User_Object: in User'Class);
+		procedure Update( User_Object: in User'Class; Managers: in Authentication_Managers );
 		-- update the groups and then set:
 		-- 	need_update := false
 		-- 	last_update := now
