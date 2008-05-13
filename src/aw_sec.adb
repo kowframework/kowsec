@@ -190,12 +190,12 @@ package body Aw_Sec is
 
 	procedure Require(	User_Object	: in out User'Class;
 				Name		: in Criteria_Name;
-				Descriptor		: in Criteria_Descriptor) is
+				Descriptor	: in Criteria_Descriptor) is
 
---		My_Criteria: Criteria'Class := Criteria_Manager.Create_Criteria( Name, Descriptor );
+		My_Criteria: Criteria'Class := Criterias.Create_Criteria( Name, Descriptor );
 	begin
---		Require( User_Object, My_Criteria );
-		Internal_Require( User_Object, Criteria_Manager.Create_Criteria( Name, Descriptor ) );
+		Require( User_Object, My_Criteria );
+--		Internal_Require( User_Object, Criteria_Manager.Create_Criteria( Name, Descriptor ) );
 	end Require;
 
 
