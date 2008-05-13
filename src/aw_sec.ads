@@ -199,8 +199,6 @@ package Aw_Sec is
 
 
 
-
-
 	package Authentication_Manager_Vectors is new Ada.Containers.Vectors(
 			Index_Type	=> Natural,
 			Element_Type	=> Authentication_Manager_Access );
@@ -242,7 +240,7 @@ package Aw_Sec is
 	-- extend the authorization type avaliable.
 
 
-	function Create_Criteria( Pattern: in String ) return Criteria is abstract;
+	function Create_Criteria( Pattern: in Criteria_Descriptor ) return Criteria is abstract;
 	-- create a criteria to be matched based on the given pattern.
 
 	function Get_Type( Criteria_Object: in Criteria ) return String is abstract;
@@ -288,7 +286,7 @@ package Aw_Sec is
 
 	protected type Criteria_Manager is
 		--  we created a protected type here so our code is task-safe.
-		procedure Register( Str: in String; Factory: in Criteria_Factory );
+		procedure Register( Name: in String; Factory: in Criteria_Factory );
 		-- Register a criteria based on it's name.
 		-- We do not check if the factory is null as it has been checked before
 		-- in the public register method.
@@ -303,7 +301,7 @@ package Aw_Sec is
 		-- used to unload all the criterias from the registry.
 
 
-		function Create_Criteria( Name, Pattern: in String )
+		function Create_Criteria( Name: in Criteria_Name;  Pattern: in Criteria_Descriptor )
 			return Criteria'Class;
 		-- create a new criteria object from an already registered criteria type
 		-- based on it's name and the given pattern.

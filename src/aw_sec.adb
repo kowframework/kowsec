@@ -192,19 +192,19 @@ package body Aw_Sec is
 
 
 
-
 	protected body Criteria_Manager is
+	
 		--  we created a protected type here so our code is task-safe.
 		procedure Register( Name: in String; Factory: in Criteria_Factory ) is
 			-- We do not check if the factory is null as it has been checked before
 			-- in the public register method.
 			-- Register the factory in this registry.
 		begin
-			if Contains( Map, Name ) then
-				raise DUPICATED_CRITERIA with "Name: " & Name;
+			if Contains( Map, To_Unbounded_String(Name) ) then
+				raise DUPLICATED_CRITERIA with "Name: " & Name;
 			end if;
 
-			Insert( Map, Name, Factory );
+			Insert( Map, To_Unbounded_String(Name), Factory );
 
 		end Register;
 
@@ -215,7 +215,7 @@ package body Aw_Sec is
 				delete( Map, Name );
 			end if;
 
-			raise INVALID_CRITERIA with "Can't unload " & Name;
+			raise INVALID_CRITERIA with "Can't unload " & To_String(Name);
 		end Unload;
 
 
@@ -229,18 +229,18 @@ package body Aw_Sec is
 			end loop;
 		end Empty_Criteria_Registry;
 
-		function Create_Criteria( Name, Pattern: in String ) return Criteria'Class is
+		function Create_Criteria( Name : in Criteria_Name; Pattern: in Criteria_Descriptor ) return Criteria'Class is
 			-- create a new criteria object from an already registered criteria type
 			-- based on it's name and the given pattern.
 			Factory: Criteria_Factory;
 		begin
 			if not Contains( Map, Name ) then
-				raise INVALID_CRITERIA with "Can't create " & Name;
+				raise INVALID_CRITERIA with "Can't create " & To_String(Name);
 			end if;
 
 			Factory :=  Element( Name );
 
-			return Factory.all( Pattern );
+			return Factory.all( To_String(Pattern) );
 		end Create_Criteria;
 	end Criteria_Manager;
 
@@ -338,34 +338,32 @@ package body Aw_Sec is
 	end Flush;
 
 
+	procedure Log( Status, Path, Message: in String; Output: in File_Type ) is
+		Pragma Inline( Log );
+		use Ada.Text_IO;
+	begin
+		Put( File_Type, "[" & Status & " @ " & Path & "] " & Message );
+	end Log;
 
 
-		procedure Log( Status, Path, Message: in String; Output: in File_Type ) is
-			Pragma Inline( Log );
-			use Ada.Text_IO;
-		begin
-			Put( File_Type, "[" & Status & " @ " & Path & "] " & Message );
-		end Log;
+	procedure Log( Child : Action'Class; Path: in String; Output: in File_Type ) is
+		Pragma Inline( Log );
+	begin
+		Log(	Status	=> Exit_Status'Image( Child.Status ),
+			Message	=> To_String( Child.Message ),
+			Path	=> Path,
+			Output	=> Output );
+	end Log;
 
 
-		procedure Log( Child : Action'Class; Path: in String; Output: in File_Type ) is
-			Pragma Inline( Log );
-		begin
-			Log(	Status	=> Exit_Status'Image( Child.Status ),
-				Message	=> To_String( Child.Message ),
-				Path	=> Path,
-				Output	=> Output );
-		end Log;
-
-
-		procedure Log( Child: in Action'Class; Path: in String ) is
-		begin
-			if Child.Status = EXIT_SUCCESS OR Child.Status = EXIT_NULL then
-				Log( Child => Child, Path => Path, Output => Standard_Output );
-			else
-				Log( Child => Child, Path => Path, Output => Standard_Error );
-			end if;
-		end Log;
+	procedure Log( Child: in Action'Class; Path: in String ) is
+	begin
+		if Child.Status = EXIT_SUCCESS OR Child.Status = EXIT_NULL then
+			Log( Child => Child, Path => Path, Output => Standard_Output );
+		else
+			Log( Child => Child, Path => Path, Output => Standard_Error );
+		end if;
+	end Log;
 
 
 	procedure Delegate(	To_Accountant	: in out Accountant;
