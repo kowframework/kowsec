@@ -35,6 +35,8 @@
 
 with Ada.Exceptions;	use Ada.Exceptions;
 
+with Ada.Text_IO;	use Ada.Text_IO;
+
 package body Aw_Sec is
 
 	use Criteria_Maps;
@@ -114,7 +116,7 @@ package body Aw_Sec is
 		-- According Ada2005 RM the Vector needs finalization.
 		-- For this reason we don't deallocate the memory here.
 
-		Groups := User_Object.Groups_Cache.Get_Groups( User_Object );
+		User_Object.Groups_Cache.Get_Groups( User_Object, Groups );
 	end Get_Groups;
 
 	function Is_Anonymous(	User_Object: in User ) return Boolean is
@@ -181,13 +183,19 @@ package body Aw_Sec is
 		raise INVALID_CREDENTIALS;
 	end Do_Login;
 
+	procedure Internal_Require( User_Object: in out User'Class; Criteria_Object: in out Criteria'Class ) is
+	begin
+		Require( User(User_object), Criteria_Object );
+	end Internal_Require;
 
 	procedure Require(	User_Object	: in out User'Class;
 				Name		: in Criteria_Name;
 				Pattern		: in Criteria_Descriptor) is
-		My_Criteria: Criteria'Class := Criteria_Manager.Create_Criteria( Name, Pattern );
+
+--		My_Criteria: Criteria'Class := Criteria_Manager.Create_Criteria( Name, Pattern );
 	begin
-		Require( User_Object, My_Criteria );
+--		Require( User_Object, My_Criteria );
+		Internal_Require( User_Object, Criteria_Manager.Create_Criteria( Name, Pattern ) );
 	end Require;
 
 
@@ -223,10 +231,7 @@ package body Aw_Sec is
 			-- used to unload all the criterias from the registry.
 
 		begin
-			while not Is_Empty( Map )
-			loop
-				Delete_First( Map );
-			end loop;
+			Clear( Map );
 		end Empty_Criteria_Registry;
 
 		function Create_Criteria( Name : in Criteria_Name; Pattern: in Criteria_Descriptor ) return Criteria'Class is
@@ -238,7 +243,7 @@ package body Aw_Sec is
 				raise INVALID_CRITERIA with "Can't create " & To_String(Name);
 			end if;
 
-			Factory :=  Element( Name );
+			Factory := Element( Map, Name );
 
 			return Factory.all( To_String(Pattern) );
 		end Create_Criteria;
@@ -283,11 +288,12 @@ package body Aw_Sec is
 				Root_Accountant	: in Accountant_Access;
 				User_Object	: in User_Access ) return Action is
 	begin
-		return (
+		return ( Ada.Finalization.Limited_Controlled with
 			Creation_Time	=> Ada.Calendar.Clock,
 			User_Object	=> User_Object,
 			Status		=> EXIT_NULL,
-			Root_Accountant => Root_Accountant );
+			Root_Accountant => Root_Accountant,
+			Message		=> Null_Unbounded_String );
 
 	end New_Action;
 
@@ -340,9 +346,14 @@ package body Aw_Sec is
 
 	procedure Log( Status, Path, Message: in String; Output: in File_Type ) is
 		Pragma Inline( Log );
-		use Ada.Text_IO;
 	begin
-		Put( File_Type, "[" & Status & " @ " & Path & "] " & Message );
+		Put(	Output, 
+			"["	&
+			Status	&
+			" @ "	&
+			Path	&
+			"] "	&
+			Message );
 	end Log;
 
 
@@ -370,13 +381,21 @@ package body Aw_Sec is
 				Child		: in Action'Class ) is
 		-- Called to log a child action
 
+		function p_array( Serv: in Unbounded_String ) return Path_Array is
+			Pragma Inline( P_Array );
+			P: Path_Array( 1 .. 1 ) := (1 => Serv );
+		begin
+			return P;
+		end P_array;
+		
+
 	begin
 		if To_Accountant.Root = NULL then
 			Log(	Child	=> Child, 
 				Path	=> Service( To_Accountant ));
 		else
-			Delegate(	To_Accountant	=> To_Accountant.Root,
-					Relative_Path	=> ( Service( To_Accountant ) ),
+			Delegate(	To_Accountant	=> To_Accountant.Root.all,
+					Relative_Path	=> P_Array( Service( To_Accountant ) ),
 					Child		=> Child );
 		end if;
 	end Delegate;
@@ -398,8 +417,8 @@ package body Aw_Sec is
 			if Arr'Length = 0 then
 				return "";
 			else
-				return	Arr(Arr'First)	&
-					"/"		&
+				return	To_String( Arr(Arr'First) )	&
+					"/"				&
 					Build_Path( Arr(Arr'First + 1 .. Arr'Last ) );
 			end if;
 		end Build_Path;
@@ -408,9 +427,19 @@ package body Aw_Sec is
 			Log(	Child	=> Child,
 				Path	=> Build_Path( Relative_Path ) );
 		else
-			Delegate(	To_Accountant	=> To_Accountant.Root.all,
-					Relative_Path	=> ( Service( To_Accountant ) ) & Path_Array,
-					Child		=> Child );
+			declare
+				function Get_Path_Array return Path_Array is
+					P: Path_Array( 1 .. Relative_Path'Length + 1 );
+				begin
+					P(1) := Service( To_Accountant );
+					P(2 .. P'Last) := Relative_Path;
+					return P;
+				end Get_Path_Array;
+			begin
+				Delegate(	To_Accountant	=> To_Accountant.Root.all,
+						Relative_Path	=>  Get_Path_Array,
+						Child		=> Child );
+			end;
 		end if;
 	end Delegate;
 
@@ -574,7 +603,7 @@ package body Aw_Sec is
 		
 		end Should_Update;
 		
-		procedure Update( User_Object: in User'Class; Managers: in Authorization_Manager_Vectors.Vector ) is
+		procedure Update( User_Object: in User'Class; Managers: in Authentication_Manager_Vectors.Vector ) is
 			-- update the groups and then set:
 			-- 	need_update := false
 			-- 	last_update := now
@@ -588,66 +617,54 @@ package body Aw_Sec is
 
 
 			function Iterate( C: in Cursor ) return Authorization_Groups is
-				My_Groups: Authorization_Groups := Get_Groups( Element( C ), User_Object );
-				Next: Integer := I + 1;
+				My_Groups	: Authorization_Groups;
+				-- Groups I'll get in this iteration, using the current Manager (if any)
+				Next_Groups	: Authorization_Groups;
+				-- Groups I'll get in the next manager + the other manager + ...
 			begin
-				if Next <= Managers'Last then
-					declare
-						Next_Groups: Authorization_Groups := Iterate( Next );
-					begin
-						if Next_Groups'Length > 0 then
-							if My_Groups'Length > 0 then
-								return My_Groups & Next_Groups;
-							else
-								return Next_Groups;
-							end if;
-						end if;
-					end;
-				end if;
 
+				if Has_Element( C ) then
+					Next_Groups := Iterate( Next( C ) );
+
+					My_Groups := Get_Groups( Element( C ), User_Object );
+
+					Authorization_Group_Vectors.Append(
+						Container => My_Groups,
+						New_Item => Next_Groups
+						);
+				end if;
+			
 				return My_Groups;
-				-- If it hasn't fetched anything from the next groups
-				-- return the current groups list.
 			end Iterate;
 		begin
 
 			Check_Anonymous_Access( User_Object, "Groups_Cache_Type.Update" );
 
-			Free( Groups );
+			Authorization_Group_Vectors.Clear( Groups );
 
 			if Managers'Length = 0 then
 				return; -- there is nothing to be feched if manager is null
 			end if;
 
 
-			-- now we try to fetch the groups information for
-			-- the current user:
-			declare
-				My_Groups : Authorization_Groups := Iterate ( First( Managers ) );
-			begin
-				if My_Groups'Length /= 0 then
-					Groups := new Authorization_Groups( 1 .. My_Groups'Length );
-					Groups.all := My_Groups;
-				end if;
-			end;
+			Groups := Iterate ( First( Managers ) );
 
 			-- if the update has been a success, then..
 			Need_Update := False;
-			Last_Update := Now;
+			Last_Update := Clock;
 		end Update;
 
-		function Get_Groups( User_Object: in User'Class ) return Authorization_Groups is
+		procedure Get_Groups( User_Object: in User'Class; Auth_Groups: out Authorization_Groups ) is
 			-- checks if the groups should be update
 			-- 	if true, do the update
 			-- 	if false, don't update.
 			-- return the current groups list
-			Empty: Authorization_Groups( 1 .. 0 );
 		begin
 			if Should_Update then
-				Updade( User_Object );
+				Update( User_Object, Managers_Registry);
 			end if;
 
-			return Groups;
+			Auth_Groups := Groups;
 		end Get_Groups;
 
 		procedure Set_Update is
@@ -668,7 +685,7 @@ package body Aw_Sec is
 	procedure Finalize( A: in out Action ) is
 		-- used to flush the action.
 	begin
-		Delegate( A, A.Root_Accountant.all );
+		Delegate( A.Root_Accountant.all, A );
 	end Finalize;
 
 end Aw_Sec;

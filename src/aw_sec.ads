@@ -575,7 +575,7 @@ private
 		-- 	need_update := false
 		-- 	last_update := now
 
-		function Get_Groups( User_Object: in User'Class ) return Authorization_Groups;
+		procedure Get_Groups( User_Object: in User'Class; Auth_Groups: out Authorization_Groups );
 		-- checks if the groups should be update
 		-- 	if true, do the update
 		-- 	if false, don't update.
