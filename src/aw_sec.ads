@@ -142,6 +142,16 @@ package Aw_Sec is
 	--		. Update_Groups( User );
 
 
+	function Get_Username( User_Object: in User'Class ) return String;
+	function Get_Username( User_Object: in User'Class ) return Unbounded_String;
+
+
+	function Get_First_Name( User_Object: in User'Class ) return String;
+	function Get_First_Name( User_Object: in User'Class ) return Unbounded_String;
+
+
+	function Get_Last_Name( User_Object: in User'Class ) return String;
+	function Get_Last_Name( User_Object: in User'Class ) return Unbounded_String;
 
 	function Is_Anonymous(	User_Object: in User ) return Boolean;
 	-- Return true if this user isn't logged in.

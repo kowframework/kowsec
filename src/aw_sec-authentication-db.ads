@@ -43,8 +43,8 @@ package Aw_Sec.Authentication.DB is
 	type Authentication_Manager is new Aw_Sec.Authentication_Manager
 		with private;
 	
-	function New_Authentication_Manager( Conn_Access: Connection_Access )
-		return Authentication_Manager;
+	procedure Set_Connection(	Manager:	in out Authentication_Manager;
+					Conn_Access: Connection_Access );
 
 
 	-- User Table Name
@@ -52,10 +52,6 @@ package Aw_Sec.Authentication.DB is
 					Users_Table_Name : in String );
 	function Get_Users_Table ( Manager:  in Authentication_Manager ) return String;
 
-	-- Id Field of the Users Tables 
-	procedure Set_User_Id_Field(	Manager:  in out Authentication_Manager;
-					User_Id_Field_Name : in String );
-	function Get_User_Id_Field ( Manager:  in Authentication_Manager ) return String;
 
 	-- Username Field Name
 	procedure Set_Username_Field(	Manager:  in out Authentication_Manager;
@@ -135,7 +131,6 @@ private
 		
 		-- Configuration File Properties
 		Users_Table		: Unbounded_String;
-		User_Id_Field 		: Unbounded_String;
 		Username_Field 		: Unbounded_String;
 		Password_Field 		: Unbounded_String;
 		First_Name_Field 	: Unbounded_String;

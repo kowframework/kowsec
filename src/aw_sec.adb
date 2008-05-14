@@ -119,6 +119,45 @@ package body Aw_Sec is
 		User_Object.Groups_Cache.Get_Groups( User_Object, Groups );
 	end Get_Groups;
 
+
+
+	function Get_Username( User_Object: in User'Class ) return String is
+		pragma Inline( Get_Username );
+	begin
+		return To_String( Get_Username( User_Object ) );
+	end Get_Username;
+	function Get_Username( User_Object: in User'Class ) return Unbounded_String is
+		pragma Inline( Get_Username );
+	begin
+		return User_Object.Username;
+	end Get_Username;
+
+
+	function Get_First_Name( User_Object: in User'Class ) return String is
+		pragma Inline( Get_First_Name );
+	begin
+		return To_String( Get_First_Name( User_Object ) );
+	end Get_First_Name;
+	function Get_First_Name( User_Object: in User'Class ) return Unbounded_String is
+		pragma Inline( Get_First_Name );
+	begin
+		return User_Object.First_Name;
+	end Get_First_Name;
+
+
+	function Get_Last_Name( User_Object: in User'Class ) return String is
+		pragma Inline( Get_Last_Name );
+	begin
+		return To_String( Get_Last_Name( User_Object ) );
+	end Get_Last_Name;
+	function Get_Last_Name( User_Object: in User'Class ) return Unbounded_String is
+		pragma Inline( Get_Last_Name );
+	begin
+		return User_Object.Last_Name;
+	end Get_Last_Name;
+
+
+
 	function Is_Anonymous(	User_Object: in User ) return Boolean is
 	-- Return true if this user isn't logged in.
 	-- 
