@@ -43,6 +43,7 @@ package body Aw_Sec.Authentication.DB is
 		return Authentication_Manager is
 	
 		Auth_Manager: Authentication_Manager;
+		
 	begin
 		Auth_Manager.Connection := Conn_Access;
 		

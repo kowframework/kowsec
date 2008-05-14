@@ -46,7 +46,6 @@ package Aw_Sec.Authentication.DB is
 	function New_Authentication_Manager( Conn_Access: Connection_Access )
 		return Authentication_Manager;
 
-
 	-- User Table Name
 	procedure Set_Users_Table(	Manager:  in out Authentication_Manager;
 					Users_Table_Name : in String );
