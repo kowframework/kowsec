@@ -39,11 +39,15 @@ with Ada.Strings.Unbounded;	 use Ada.Strings.Unbounded;
 package body Aw_Sec.Authentication.DB is
 
 
-	procedure Set_Connection(	Manager: in out Authentication_Manager;
-					Conn_Access: Connection_Access ) is
+	function New_Authentication_Manager( Conn_Access: Connection_Access )
+		return Authentication_Manager is
+	
+		Auth_Manager: Authentication_Manager;
 	begin
-		Manager.Connection := Conn_Access;
-	end Set_Connection;
+		Auth_Manager.Connection := Conn_Access;
+		
+		return Auth_Manager;
+	end New_Authentication_Manager;
 
 
 	-- User Table Name
@@ -57,6 +61,19 @@ package body Aw_Sec.Authentication.DB is
 	begin
 		return To_String( Manager.Users_Table );
 	end Get_Users_Table;
+
+
+	-- Id Field of the Users Tables 
+	procedure Set_User_Id_Field( 	Manager:  in out Authentication_Manager;
+					User_Id_Field_Name : in String ) is
+	begin
+		Manager.User_Id_Field := To_Unbounded_String(User_Id_Field_Name);
+	end Set_User_Id_Field;
+
+	function Get_User_Id_Field( Manager:  in Authentication_Manager )  return String is
+	begin
+		return To_String( Manager.User_Id_Field);
+	end Get_User_Id_Field;
 
 
 	-- Username Field Name
