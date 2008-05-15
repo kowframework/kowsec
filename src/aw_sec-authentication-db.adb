@@ -50,7 +50,11 @@ package body Aw_Sec.Authentication.DB is
 		return Auth_Manager;
 	end New_Authentication_Manager;
 
-
+	procedure Set_Connection( Manager: in out Authentication_Manager; Conn_Access: Connection_Access ) is
+	begin
+		Manager.Connection := Conn_Access;
+	end Set_Connection;
+ 
 	-- User Table Name
 	procedure Set_Users_Table(	Manager:  in out Authentication_Manager;
 					Users_Table_Name : in String	) is
