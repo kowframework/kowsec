@@ -37,7 +37,12 @@
 with APQ;	use APQ;
 
 package Aw_Sec.Authentication.DB is
-	
+
+
+
+	INVALID_CONFIGURATION: Exception;
+
+
 	type Connection_Access is access all Root_Connection_Type'Class;
 	
 	type Authentication_Manager is new Aw_Sec.Authentication_Manager

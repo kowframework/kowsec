@@ -32,7 +32,10 @@
 -------------------------------------------------------------------------------
 -- This is the Aw_Sec.Authentication.DB package.                             --
 -------------------------------------------------------------------------------
+with ada.text_io;
+use ada.text_io;
 
+with Ada.Exceptions;
 with Ada.Unchecked_Conversion;
 with Ada.Strings.Unbounded;	 use Ada.Strings.Unbounded;
 
@@ -191,26 +194,45 @@ package body Aw_Sec.Authentication.DB is
 	
 		Query: Root_Query_Type'Class := New_Query( Connection.all );
 	begin
- 		Prepare( Query,  "SELECT * from " & Get_Users_Table(Manager) &
-			" where " &  Get_Username_Field(Manager) & "=");
+		--Set_Case( Query, Preserve_Case );
+
+ 		Prepare( Query, "SELECT * from " );
+		Append( Query, Get_Users_Table(Manager) );
+		Append( Query, " WHERE " );
+		Append( Query, Get_Username_Field(Manager) );
+		Append( Query, " = " );
 		Append_Quoted( Query, Connection.all , Username);
- 	
+		Append( Query, " AND " );
+		Append( Query, Get_Password_Field( Manager ) );
+		Append( Query, " = " );
+		Append_Quoted( Query, Connection.all, Password );
+
 		Execute( Query, Connection.all );
 
-		if Username = Value(Query, Get_Username_Field(Manager)) and then
-			Password = Value(Query, Get_Password_Field(Manager)) then
-			
+
+		begin
+			Fetch( Query );
+			-- if the result is empty, an exception is throwed now.
+			-- so, there is no need to count the tuples.
+
 			Required_User.Username :=
 				Value(Query, Get_Username_Field(Manager));
 			Required_User.First_Name := 
 				Value(Query, Get_First_Name_Field(Manager));
 			Required_User.Last_Name :=
 				Value(Query, Get_Last_Name_Field(Manager));
-			
+		
+			Required_User.Groups_Cache := new Groups_Cache_Type;
+
 			return Required_User;
-		else 
-			raise INVALID_CREDENTIALS;
-		end if;
+
+		exception
+			when others =>
+				raise INVALID_CREDENTIALS with "Empty Result Set";
+		end;
+	exception
+		when APQ.SQL_Error =>
+			raise INVALID_CONFIGURATION with Error_Message( Query );
 		
 	end Do_Login;
 
@@ -228,27 +250,50 @@ package body Aw_Sec.Authentication.DB is
 		Query: Root_Query_Type'Class := New_Query( Connection.all ); 
 		Groups : Authorization_Groups;
 	begin	
- 		Prepare( Query,  "SELECT * from " & Get_Groups_Table(Manager) &
-			" where " &  Get_Groups_Username_Field(Manager) & "=");
-		Append_Quoted( Query, Connection.all, User_Object.Username);
- 	
+ 		Prepare( Query,  "SELECT * from " );
+		Append( Query, Get_Groups_Table(Manager) );
+		Append( Query, " WHERE " );
+		Append( Query, Get_Groups_Username_Field(Manager) & "=");
+		Append_Quoted( Query, Connection.all, Identity( User_Object ));
+		-- we should use Identity here because not aways the identity is the username
+		--
+		-- Even thought it might seen odd, try to picture the following:
+		-- User "B" logged at computer "client" tries to fetch some information at the 
+		-- compuer "server", which has it's own user base.
+		--
+		-- So, there might be another user "B" at the "server". In order to make sure this user
+		-- is unique at "server", inside there the user could be called "B@client" instead of 
+		-- only "B".
+ 
+
+		Put_Line( To_String( Query ) );
+
 		Execute( Query, Connection.all );
 
-		while Value(Query, Get_Group_Name_Field(Manager)) /= Null_Unbounded_String
-			loop
-				begin
-					Fetch(Query); 
-				exception
-					when No_Tuple => exit;
-				end;
-				
-				Authorization_Group_Vectors.Append( Groups,
-					To_Authorization_Group(	Value( Query,
-						Get_Group_Name_Field(Manager) ) ) );
-			end loop;
-
+		loop
+			begin
+				Fetch(Query); 
+			exception
+				when No_Tuple => exit;
+			end;
+		
+			if Value( Query, Get_Group_Name_Field( Manager ) ) /= Null_Unbounded_String then
+				Authorization_Group_Vectors.Append(
+					Groups,
+					To_Authorization_Group(
+						Value(
+							Query,
+							Get_Group_Name_Field(Manager)
+						) 
+					) );
+			end if;
+		end loop;
 
 		return Groups;
+
+	exception
+		when E: APQ.SQL_Error =>
+			raise INVALID_CONFIGURATION with Error_Message( Query );
 
 	end Get_Groups;
 	
