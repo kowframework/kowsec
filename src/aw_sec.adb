@@ -35,6 +35,8 @@
 
 with Ada.Exceptions;	use Ada.Exceptions;
 
+
+with Ada.Strings.Unbounded;
 with Ada.Text_IO;	use Ada.Text_IO;
 
 package body Aw_Sec is
@@ -286,6 +288,11 @@ package body Aw_Sec is
 	end Set_Exit_Status;
 
 	
+	function Name( Action_Object: in Base_Action ) return String is
+	begin
+		return Ada.Strings.Unbounded.To_String( Action_Object.Name );
+	end Name;
+	
 	-- the basic action implementation provided:
 	
 
@@ -294,6 +301,7 @@ package body Aw_Sec is
 				User_Object	: in User_Access ) return Action is
 	begin
 		return ( Ada.Finalization.Limited_Controlled with
+			Name		=> Ada.Strings.Unbounded.To_Unbounded_String( Name ),
 			Creation_Time	=> Ada.Calendar.Clock,
 			User_Object	=> User_Object,
 			Status		=> EXIT_NULL,
@@ -373,7 +381,7 @@ package body Aw_Sec is
 		end if;
 		Log(	Status	=> Exit_Status'Image( Status ),
 			Message	=> To_String( Child.Message ),
-			Path	=> Path,
+			Path	=> Path & Name( Child ),
 			Output	=> Output );
 	end Log;
 
@@ -423,16 +431,23 @@ package body Aw_Sec is
 		-- 			Relative_Path	=> ( Service( Acc2 ) ),
 		-- 			Child		=> Action1 );
 
-		function Build_Path( Arr: in Path_Array ) return String is
+		function Build_Path_Arr( Arr: in Path_Array ) return String is
 		begin
 			if Arr'Length = 0 then
 				return "";
 			else
 				return	To_String( Arr(Arr'First) )	&
 					"/"				&
-					Build_Path( Arr(Arr'First + 1 .. Arr'Last ) );
+					Build_Path_Arr( Arr(Arr'First + 1 .. Arr'Last ) );
 			end if;
+		end Build_Path_Arr;
+
+
+		function Build_Path( Arr: in Path_Array ) return String is
+		begin
+			return Service( To_Accountant ) & Build_Path_Arr( Arr );
 		end Build_Path;
+
 	begin
 		if To_Accountant.Root = NULL then
 			Log(	Child	=> Child,
@@ -477,7 +492,17 @@ package body Aw_Sec is
 			Root_Accountant	=> Root_Accountant,
 			User_Object	=> Null );
 	begin
-		return Do_Login( Manager, Username, Password );
+		declare
+			Usr: User'Class := Do_Login( Manager, Username, Password );
+		begin
+			-- if I got here I managed to login! woot!
+			Set_Exit_Status(
+				My_Action,
+				Exit_Success,
+				"Logged in as [" & Identity( Usr ) & "]"
+				);
+			return Usr;
+		end;
 	exception
 		when E: INVALID_CREDENTIALS =>
 			Set_Exit_Status(
@@ -727,5 +752,8 @@ package body Aw_Sec is
 	begin
 		Delegate( A.Root_Accountant.all, A );
 	end Finalize;
+
+begin
+	Root_Acc := new Accountant'( New_Accountant( Service => "/", Root => null ) );
 
 end Aw_Sec;

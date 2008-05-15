@@ -421,6 +421,9 @@ package Aw_Sec is
 	-- If the status is EXIT_FATAL, then FATAL_ERROR exception is raised.
 	-- As the action is Limited_Controlled, when deallocated it will log the error.
 
+
+	function Name( Action_Object: in Base_Action ) return String;
+
 	--
 	-- the action type
 	--
@@ -634,6 +637,7 @@ private
 	end record;
 
 	type Base_Action is new Ada.Finalization.Limited_Controlled with record
+		Name		: Unbounded_String;
 		Creation_Time	: Time := Ada.Calendar.Clock;
 		User_Object	: User_Access;
 		Status		: Exit_Status := EXIT_NULL;
