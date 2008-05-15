@@ -184,6 +184,10 @@ package body Aw_Sec is
 		raise INVALID_CREDENTIALS;
 	end Do_Login;
 
+
+
+
+
 	procedure Internal_Require( User_Object: in out User'Class; Criteria_Object: in out Criteria'Class ) is
 	begin
 		Require( User(User_object), Criteria_Object );
@@ -305,7 +309,7 @@ package body Aw_Sec is
 	---------------------------
 
 	function New_Accountant(	Service	: in String;
-					Root	: Accountant_Access )
+					Root	: Accountant_Access := Root_Acc)
 		return Accountant is
 		-- This is the constructor for accountants.
 		-- It's far preferable to use constructors instead
@@ -355,13 +359,19 @@ package body Aw_Sec is
 			Path	&
 			"] "	&
 			Message );
+		New_Line( Output );
 	end Log;
 
 
 	procedure Log( Child : Action'Class; Path: in String; Output: in File_Type ) is
 		Pragma Inline( Log );
+
+		Status: Exit_Status := Child.Status;
 	begin
-		Log(	Status	=> Exit_Status'Image( Child.Status ),
+		if Status = Exit_Null then
+			Status := Exit_Success;
+		end if;
+		Log(	Status	=> Exit_Status'Image( Status ),
 			Message	=> To_String( Child.Message ),
 			Path	=> Path,
 			Output	=> Output );
@@ -484,7 +494,37 @@ package body Aw_Sec is
 				);
 			Reraise_Occurrence( E );
 	end Do_Login;
-	
+
+
+
+	function Do_Login(	Username	: in String;
+				Password	: in String;
+				Root_Accountant	: in Accountant_Access ) return User'Class is
+		My_Acc: Accountant_Access := new Accountant'(New_Accountant( "Login_Service", Root_Accountant ));
+
+		use Authentication_Manager_Vectors;
+
+		C: Authentication_Manager_Vectors.Cursor := First( Managers_Registry );
+	begin
+		while Has_Element( C )
+		loop
+			begin
+				return Do_Login(	Element( C ).all,
+							Username,
+							Password,
+							My_Acc);
+			exception
+				when INVALID_CREDENTIALS => null;
+			end;
+			C := Next( C );
+		end loop;
+
+		raise INVALID_CREDENTIALS;
+
+	end Do_Login;
+
+
+
 	procedure Do_Logout(	User_Object:	 in out User_Access;
 				Root_Accountant: in Accountant_Access ) is
 		-- This function logs any error returned by Do_Logout method

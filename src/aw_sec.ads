@@ -467,7 +467,7 @@ package Aw_Sec is
 	---------------------------
 
 	function New_Accountant(	Service	: in String;
-					Root	: Accountant_Access	)
+					Root	: Accountant_Access := Root_Acc)
 		return Accountant;
 	-- This is the constructor for accountants.
 	-- It's far preferable to use constructors instead
@@ -519,7 +519,13 @@ package Aw_Sec is
 	-- This function logs any error returned by Do_Login method
 	-- As it's a class wide function, it dynamic dispatching is enabled
 	-- for both Authentication_Manager and Accountant types
-	
+
+	function Do_Login(	Username	: in String;
+				Password	: in String;
+				Root_Accountant	: in Accountant_Access ) return User'Class;
+
+
+
 	procedure Do_Logout(	User_Object:	 in out User_Access;
 				Root_Accountant: in Accountant_Access );
 	-- This function logs any error returned by Do_Logout method
