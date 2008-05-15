@@ -32,9 +32,6 @@
 -------------------------------------------------------------------------------
 -- This is the Aw_Sec.Authentication.DB package.                             --
 -------------------------------------------------------------------------------
-with ada.text_io;
-use ada.text_io;
-
 with Ada.Exceptions;
 with Ada.Unchecked_Conversion;
 with Ada.Strings.Unbounded;	 use Ada.Strings.Unbounded;
@@ -266,7 +263,6 @@ package body Aw_Sec.Authentication.DB is
 		-- only "B".
  
 
-		Put_Line( To_String( Query ) );
 
 		Execute( Query, Connection.all );
 

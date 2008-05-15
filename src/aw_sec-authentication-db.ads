@@ -122,12 +122,6 @@ package Aw_Sec.Authentication.DB is
 	 
 
 	
-	INVALID_CREDENTIALS: Exception;
-	-- should be raised when login fails.
-
-	ANONYMOUS_ACCESS: Exception;
-	-- should be raised when trying to get information from 
-	-- an anonymous user.
 
 
 private

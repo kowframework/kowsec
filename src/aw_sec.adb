@@ -178,6 +178,7 @@ package body Aw_Sec is
 			exception
 				when INVALID_CREDENTIALS => null;
 			end;
+			C := Next( C );
 		end loop;
 
 		raise INVALID_CREDENTIALS;
