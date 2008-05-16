@@ -252,7 +252,7 @@ package body Aw_Sec is
 
 			Factory := Element( Map, Name );
 
-			return Factory.all( To_String(Descriptor) );
+			return Factory.all( Descriptor );
 		end Create_Criteria;
 	end Criteria_Manager;
 
@@ -463,7 +463,7 @@ package body Aw_Sec is
 				end Get_Path_Array;
 			begin
 				Delegate(	To_Accountant	=> To_Accountant.Root.all,
-						Relative_Path	=>  Get_Path_Array,
+						Relative_Path	=> Get_Path_Array,
 						Child		=> Child );
 			end;
 		end if;

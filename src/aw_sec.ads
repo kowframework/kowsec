@@ -230,7 +230,6 @@ package Aw_Sec is
 	-- should be raised when trying to get information from an anonymous user.
 
 
-
 	------------------------------
 	-- Authorization Management --
 	------------------------------
@@ -242,18 +241,17 @@ package Aw_Sec is
 	-- extend the authorization type avaliable.
 
 
-	function Create_Criteria( Descriptor: in Criteria_Descriptor ) return Criteria is abstract;
+	function Create_Criteria( Descriptor: in Criteria_Descriptor ) return Criteria'Class is abstract;
 	-- create a criteria to be matched based on the given Descriptor.
 
-	function Get_Type( Criteria_Object: in Criteria ) return String is abstract;
+	function Get_Type( Criteria_Object: in Criteria'Class ) return String is abstract;
 	-- return a String representing the criteria
 	-- it's the same string that will be used by the methods:
 	-- 	Register( Name, Factory )
 	-- 	Create_Criteria( Name, Patern ) return Criteria'Class;
 	
-	function Describe( Criteria_Object: in Criteria ) return String is abstract;
+	function Describe( Criteria_Object: in Criteria'Class ) return String is abstract;
 	-- return a string describing the current criteria
-
 
 
 	procedure Require(	User_Object	:	 in out User'Class;
@@ -264,7 +262,7 @@ package Aw_Sec is
 
 	procedure Require(	User_Object	: in out User'Class;
 				Name		: in Criteria_Name;
-				Descriptor		: in Criteria_Descriptor);
+				Descriptor	: in Criteria_Descriptor);
 	-- Create and matches against a criteria using the criteria registry
 	
 
@@ -272,7 +270,7 @@ package Aw_Sec is
 	-- Plugin Loading in Authorization Management --
 	------------------------------------------------
 
-	type Criteria_Factory is access function ( Descriptor: in String )
+	type Criteria_Factory is access function ( Descriptor: in Criteria_Descriptor )
 		return Criteria'Class;
 	-- When the package containing the criteria is loaded,
 	-- it should register itself with the main
