@@ -33,8 +33,8 @@
 -- This is the Aw_Sec.Criteria_Util package                                 --
 ------------------------------------------------------------------------------
 
-
-with Ada.Characters.Handling; 		use Ada.Characters.Handling;
+with Ada.Text_IO;		use Ada.Text_IO;	
+with Ada.Characters.Handling; 	use Ada.Characters.Handling;
 
 package body Aw_Sec.Criterias_Util is
 
@@ -52,7 +52,6 @@ package body Aw_Sec.Criterias_Util is
 			end if;
 			
 			Evaluate( Term.Word, Parser.User_Object, Ret_Value );
-
 		end isTrue;
 
 
@@ -69,7 +68,7 @@ package body Aw_Sec.Criterias_Util is
 		begin
 			isTrue( Op.Exp1.all, Parser, Value1 );
 			isTrue( Op.Exp2.all, Parser, Value2 );	
-			Ret_Value := Value1 and then Value2;
+			Ret_Value := Value1 or else Value2;
 		end isTrue;
 
 		procedure isTrue( Op : And_Operator; Parser : in out Bool_Parser; Ret_Value : out Boolean) is
@@ -77,7 +76,7 @@ package body Aw_Sec.Criterias_Util is
 		begin
 			isTrue( Op.Exp1.all, Parser, Value1 );
 			isTrue( Op.Exp2.all, Parser, Value2 );	
-			Ret_Value := Value1 or else  Value2;
+			Ret_Value := Value1 and then  Value2;
 		end isTrue;
 
 
@@ -119,21 +118,23 @@ package body Aw_Sec.Criterias_Util is
 			Next_Char : Character := Element( Parser.Descriptor, Parser.Index );
 			Op_Buffer : Pattern := To_Unbounded_String("") ;
 		begin
+
 			if Is_Letter( Next_Char ) then
 				while Is_Letter( Next_Char )
 				loop
 					Op_Buffer := Op_Buffer & Next_Char;
 					Parser.Index := Parser.Index + 1;
-					
-					exit when Length( Parser.Descriptor ) <= Parser.Index;
+				
+					exit when Length( Parser.Descriptor ) <= Parser.Index - 1;
 				
 					Next_Char := Element( Parser.Descriptor, Parser.Index );
 				end loop;
 
-				Exp := new Terminal'(Word => Op_Buffer );
+				Exp := new Terminal'( Word => Op_Buffer );
+			else
+				Exp := null;
 			end if;
 
-			Exp := null;
 		end Match_Terminal;
 
 
@@ -147,7 +148,7 @@ package body Aw_Sec.Criterias_Util is
 					Begin_Index : Integer := Parser.Index;
 					Level : Integer := 1;
 				begin
-					while Parser.Index < Length( Parser.Descriptor ) and then Level > 0
+					while Parser.Index <= Length( Parser.Descriptor ) and then Level > 0
 					loop
 						Parser.Index := Parser.Index + 1;
 						Next_Char := Element ( Parser.Descriptor, Parser.Index );
@@ -162,7 +163,7 @@ package body Aw_Sec.Criterias_Util is
 					if Level = 0 then
 						declare
 							Desc : Pattern := To_Unbounded_String( 
-								Slice(Parser.Descriptor, Begin_Index + 1, Parser.Index ) );
+								Slice(Parser.Descriptor, Begin_Index + 1, Parser.Index-1 ) );
 							New_Parser : Bool_Parser := (	User_object => Parser.User_Object,
 											Descriptor => Desc,
 											Index => 0 ); 
@@ -188,9 +189,9 @@ package body Aw_Sec.Criterias_Util is
 			Next_Char 	: Character;
 		begin
 			
-			Parser.Index := 0;
+			Parser.Index := 1;
 
-			while Parser.Index < Length( Parser.Descriptor ) 
+			while Parser.Index <= Length( Parser.Descriptor ) 
 			loop
 				Next_Char := Element( Parser.Descriptor, Parser.Index );
 				
@@ -207,7 +208,7 @@ package body Aw_Sec.Criterias_Util is
 					Match_Not_Or_Block_Or_Terminal( Parser, Term2 );
 					Exp := new And_Operator'( Exp, Term2 );
 				else
-					raise INVALID_CRITERIA_DESCRIPTOR with To_String( Parser.Descriptor );  
+					raise INVALID_CRITERIA_DESCRIPTOR with "Descriptor is " & To_String( Parser.Descriptor );  
 				end if;
 			end loop;
 		end Parse;

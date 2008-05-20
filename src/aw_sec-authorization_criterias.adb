@@ -34,7 +34,14 @@
 ------------------------------------------------------------------------------
 
 
+with Aw_Sec.Authentication.DB;	use Aw_Sec.Authentication.DB;
+
+with Aw_Sec;			use Aw_Sec;
+with Ada.Containers.Vectors;
+
 with Aw_Sec.Criterias_Util;	use Aw_Sec.Criterias_Util;
+
+with Ada.Text_IO;		use Ada.Text_IO;	
 
 
 package body Aw_Sec.Authorization_Criterias is
@@ -46,8 +53,15 @@ package body Aw_Sec.Authorization_Criterias is
 	procedure Eval_Groups(	Descriptor	: in Criteria_Descriptor;
 				User_Object	: in out User_Access;
 				Ret_Code	: out Boolean ) is
+		
+		use Authorization_Group_Vectors;
+		
+		Groups: Authorization_Groups;
+		C: Authorization_Group_Vectors.Cursor;
 	begin
-		if To_String( Descriptor ) = User_Object.Username then
+		Aw_Sec.Get_Groups( User_Object.all, Groups );
+	
+		if Authorization_Group_Vectors.Contains(Groups, Authorization_Group(Descriptor) ) then
 			Ret_Code := True;
 		else
 			Ret_Code := False;
@@ -142,6 +156,7 @@ package body Aw_Sec.Authorization_Criterias is
 	begin
 		Parse(Parser, Exp); 
 		IsTrue(Exp.all, Parser, Ret_Value); 
+
 
 		if not Ret_Value then
 			raise ACCESS_DENIED with "Reason: " & To_String( Criteria_Object.Descriptor );
