@@ -34,145 +34,208 @@
 ------------------------------------------------------------------------------
 
 
-with APQ;	use APQ;
+with Aw_Sec.Criterias_Util;	use Aw_Sec.Criterias_Util;
+
 
 package body Aw_Sec.Authorization_Criterias is
 
+	---------------------
+	-- GROUPS CRITERIA --
+	---------------------
 	
-	function Create_Criteria( Descriptor: in Criteria_Descriptor ) 
-		return Criteria'Class is
-		-- create a criteria, Users_Criteria by default,
-		-- to be matched based on the given Descriptor.
-  	begin
-		return  Create_Users_Criteria( Descriptor );
-	end Create_Criteria;
+	procedure Eval_Groups(	Descriptor	: in Criteria_Descriptor;
+				User_Object	: in out User_Access;
+				Ret_Code	: out Boolean ) is
+	begin
+		if To_String( Descriptor ) = User_Object.Username then
+			Ret_Code := True;
+		else
+			Ret_Code := False;
+		end if;
+	end Eval_Groups;
+
+	package Groups_Parse is new Bool_Parse( Pattern => Criteria_Descriptor,
+						Evaluate => Eval_Groups); 
 	
 	function Create_Groups_Criteria( Descriptor: in Criteria_Descriptor )
 		return Criteria'Class is
 		-- create a GROUPS criteria to be matched
 		-- based on the given Descriptor.
-		
-		Groups_Criteria : Auth_Criteria := (	To_Unbounded_String("GROUPS"),
-						   	Descriptor );
-	begin
-		return Groups_Criteria;	
+		My_Criteria: Groups_Criteria := (Descriptor => Descriptor );
+	begin		
+		return My_Criteria;
 	end Create_Groups_Criteria;
-	
-	function Create_Users_Criteria( Descriptor: in Criteria_Descriptor )
-		return Criteria'Class is
-		-- create a USERS criteria to be matched
-		-- based on the given Descriptor.
-		
-		Users_Criteria : Auth_Criteria := (	To_Unbounded_String("USERS"),
-						  	Descriptor );
+
+
+	procedure Require( User_Object: in out User'Class; Criteria_Object: in Groups_Criteria ) is
+		use Groups_Parse;
+
+		Parser: Bool_Parser := (	User_Object	=> User_object'Unchecked_Access,
+						Descriptor	=> Criteria_Object.Descriptor,
+						Index		=> 0 );
+		Exp : Expression_Access;
+		Ret_Value : Boolean := False;
 	begin
-		return Users_Criteria;	
-		
-	end Create_Users_Criteria;
-	
-	function Create_Expression_Criteria( Descriptor: in Criteria_Descriptor )
-		return Criteria'Class is
-		-- create a EXPRESSION criteria to be matched
-		-- based on the given Descriptor.
-		
-		Ex_Criteria : Auth_Criteria := (	To_Unbounded_String("EXPRESSION"),
-							Descriptor );
-	begin
-		return Ex_Criteria;	
-	end Create_Expression_Criteria;
+		Parse(Parser, Exp); 
+		IsTrue(Exp.all, Parser, Ret_Value); 
+
+		if not Ret_Value then
+			raise ACCESS_DENIED with "Reason: " & To_String( Criteria_Object.Descriptor );
+		end if;
+	end Require;
 	
 
-	function Get_Type( Criteria_Object: in Auth_Criteria ) return String is
+	function Get_Type( Criteria_Object: in Groups_Criteria ) return String is
 		-- return a String representing the criteria
 		-- it's the same string that will be used by the methods:
 		--      Register( Name, Factory )
 		--      Create_Criteria( Name, Patern ) return Criteria'Class;
 	begin
-		return ("CRITERIA_" & To_String( Criteria_Object.Criteria_Name ) ); 
+		return ("CRITERIA_GROUPS"); 
 	end Get_Type;
 
 
-	function Describe( Criteria_Object: in Auth_Criteria ) return String is
+	function Describe( Criteria_Object: in Groups_Criteria ) return String is
 		-- return a string describing the current criteria
 	begin
-		return To_String( Criteria_Object.Criteria_Descriptor );
+		return To_String( Criteria_Object.Descriptor );
 	end Describe;
 
-	procedure Require(	User_Object     : in out User'Class;
-				Criteria_Object : in Auth_Criteria ) is
-		-- matches the user against some criteria.
-		-- raise ACCESS_DENIED if the user fails this criteria.
+	--------------------
+	-- USERS CRITERIA --
+	--------------------
+	
+	procedure Eval_Users(	Descriptor	: in Criteria_Descriptor;
+				User_Object	: in out User_Access;
+				Ret_Code	: out Boolean ) is
 	begin
-		null;		
-	end Require;
+		if To_String( Descriptor ) = User_Object. Username then
+			Ret_Code := True;
+		else
+			Ret_Code := False;
+		end if;
+	end Eval_Users;
 
-
-
-
-	function isTrue( Term : Terminal ) return Boolean is
-	begin
-		return False;	
-	end isTrue;
-
-
-	function isTrue( Op : NotOperator ) return Boolean is
-	begin
-		return not isTrue(Op.Exp.all); 
-	end isTrue;
-
-
-	function isTrue( Op : OrOperator ) return Boolean is
-	begin
-		return isTrue(Op.Exp1.all) and then isTrue(Op.Exp2.all);	
-	end isTrue;
-
-	function isTrue( Op : AndOperator) return Boolean is
-	begin
-		return isTrue(Op.Exp1.all) or else  isTrue(Op.Exp2.all);	
-	end isTrue;
-
-
-	function Parse(Descriptor : Criteria_Descriptor) return Boolean is
-
-		OpBuffer	: String := "";
-		Term1		: Terminal;  
-		Exp		: Expression_Access; 	
-		i 		: Integer := 0;
-		Next_Character 	: Character; 
-	begin
-		while i < Lenght(Descriptor) then
-		loop
-			Next_Character = Descriptor[i];
-			
-			if Expression = Null
-				Expression := Match_Terminal;
-
-			else if Next_Char = '|'
-				i++;
-				Term2 := Match_Terminal;
-				Expression := new OrOperator'(Expression, Term2);
-
-			else if Next_Char = '&'
-				i++;
-				Term2 := Match_Terminal;
-				Expression := new AndOperator'(Expression, Term2);
+	package Users_Parse is new Bool_Parse(	Pattern => Criteria_Descriptor,
+						Evaluate => Eval_Users); 
+	
+	function Create_Users_Criteria( Descriptor: in Criteria_Descriptor )
+		return Criteria'Class is
+		-- create a Users_Criteria to be matched
+		-- based on the given Descriptor.
 		
-			else
-				raise Exception...
-			end if;
-		end loop;
-	
-		return Expression.isTrue;
+		My_Criteria: Users_Criteria := (Descriptor => Descriptor );
+	begin
+		return My_Criteria;
+	end Create_Users_Criteria;
 
-	end Parse;
-	
 
+	procedure Require( User_Object: in out User'Class; Criteria_Object: in Users_Criteria ) is
+		use Users_Parse;
+		
+		Parser: Bool_Parser := (
+				User_Object	=> User_Object'Unchecked_Access,
+				Descriptor	=> Criteria_Object.Descriptor,
+				Index		=> 0 );
+		Exp : Expression_Access;
+		Ret_Value : Boolean := False;
+	begin
+		Parse(Parser, Exp); 
+		IsTrue(Exp.all, Parser, Ret_Value); 
+
+		if not Ret_Value then
+			raise ACCESS_DENIED with "Reason: " & To_String( Criteria_Object.Descriptor );
+		end if;
+	end Require;
+	
+	
+	function Get_Type( Criteria_Object: in Users_Criteria ) return String is
+		-- return a String representing the criteria
+		-- it's the same string that will be used by the methods:
+		--      Register( Name, Factory )
+		--      Create_Criteria( Name, Patern ) return Criteria'Class;
+	begin
+		return ("CRITERIA_USERS"); 
+	end Get_Type;
+
+
+	function Describe( Criteria_Object: in Users_Criteria ) return String is
+		-- return a string describing the current criteria
+	begin
+		return To_String( Criteria_Object.Descriptor );
+	end Describe;
+
+
+
+	--------------------------
+	-- EXPRESSIONS CRITERIA --
+	--------------------------
+	
+	procedure Eval_Expressions(	Descriptor	: in Criteria_Descriptor;
+					User_Object	: in out User_Access;
+					Ret_Code	: out Boolean ) is
+	begin
+		if To_String( Descriptor ) =  User_Object.Username  then
+			Ret_Code := True;
+		else
+			Ret_Code := False;
+		end if;
+	end Eval_Expressions;
+
+	package Expressions_Parse is new Bool_Parse(	Pattern => Criteria_Descriptor,
+							Evaluate => Eval_Expressions); 
+	
+	function Create_Expressions_Criteria( Descriptor: in Criteria_Descriptor )
+		return Criteria'Class is
+		-- create a Expressions_Criteria to be matched
+		-- based on the given Descriptor.
+		
+		My_Criteria: Expressions_Criteria := (Descriptor => Descriptor );
+	begin
+		return My_Criteria;
+	end Create_Expressions_Criteria;
+
+
+	procedure Require( User_Object: in out User'Class; Criteria_Object: in Expressions_Criteria ) is
+		use Expressions_Parse;
+	
+		Parser: Bool_Parser := (
+				User_Object	=> User_Object'Unchecked_Access,
+				Descriptor	=> Criteria_Object.Descriptor,
+				Index		=> 0 );
+		Exp : Expression_Access;
+		Ret_Value : Boolean := False;
+	begin
+		Parse(Parser, Exp); 
+		IsTrue(Exp.all, Parser, Ret_Value); 
+
+		if not Ret_Value then
+			raise ACCESS_DENIED with "Reason: " & To_String( Criteria_Object.Descriptor );
+		end if;
+	end Require;
+	
+	
+	function Get_Type( Criteria_Object: in Expressions_Criteria ) return String is
+		-- return a String representing the criteria
+		-- it's the same string that will be used by the methods:
+		--      Register( Name, Factory )
+		--      Create_Criteria( Name, Patern ) return Criteria'Class;
+	begin
+		return ("CRITERIA_EXPRESSIONS"); 
+	end Get_Type;
+
+
+	function Describe( Criteria_Object: in Expressions_Criteria ) return String is
+		-- return a string describing the current criteria
+	begin
+		return To_String( Criteria_Object.Descriptor );
+	end Describe;
 
 
 
 begin
 	Aw_Sec.Criterias.Register( "GROUPS", Create_Groups_Criteria'Access );
 	Aw_Sec.Criterias.Register( "USERS", Create_Users_Criteria'Access );
-	Aw_Sec.Criterias.Register( "EXPRESSION", Create_Expression_Criteria'Access );
+	Aw_Sec.Criterias.Register( "EXPRESSIONS", Create_Expressions_Criteria'Access );
 
 end Aw_Sec.Authorization_Criterias;

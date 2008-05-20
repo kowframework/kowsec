@@ -39,86 +39,86 @@ with APQ;	use APQ;
 package Aw_Sec.Authorization_Criterias is
 
 
-	type Auth_Criteria is new Aw_Sec.Criteria with private;
-
-
-	function Create_Criteria( Descriptor: in Criteria_Descriptor )
-		return Criteria'Class;
-	-- create a criteria to be matched based on the given Descriptor.
- 
+	type Groups_Criteria is new Aw_Sec.Criteria with private;
 
 	function Create_Groups_Criteria( Descriptor: in Criteria_Descriptor )
 		return Criteria'Class;
-	-- create a GROUPS criteria to be matched based on the given Descriptor.
-	
-	function Create_Users_Criteria( Descriptor: in Criteria_Descriptor ) 
-		return Criteria'Class;
-	-- create a USERS criteria to be matched based on the given Descriptor.
-	
-	function Create_Expression_Criteria( Descriptor: in Criteria_Descriptor ) 
-		return Criteria'Class;
-	-- create a EXPRESSION criteria to be matched based on the given Descriptor.
+		-- create a GROUPS criteria to be matched
+		-- based on the given Descriptor.
 
+	function Get_Type( Criteria_Object: in Groups_Criteria ) return String;
+		-- return a String representing the criteria
+		-- it's the same string that will be used by the methods:
+		--      Register( Name, Factory )
+		--      Create_Criteria( Name, Patern ) return Criteria'Class;
 
-	function Get_Type( Criteria_Object: in Auth_Criteria ) return String;
-	-- return a String representing the criteria
-	-- it's the same string that will be used by the methods:
-	--      Register( Name, Factory )
-	--      Create_Criteria( Name, Patern ) return Criteria'Class;
-
-	function Describe( Criteria_Object: in Auth_Criteria ) return String;
+	function Describe( Criteria_Object: in Groups_Criteria ) return String;
 	-- return a string describing the current criteria
-
-
-	procedure Require(	User_Object     : in out User'Class;
-				Criteria_Object : in Auth_Criteria );
+	
+	procedure Require( User_Object: in out User'Class; Criteria_Object: in Groups_Criteria );
 	-- matches the user against some criteria.
 	-- raise ACCESS_DENIED if the user fails this criteria.
 
 
 
-	type Expression is abstract tagged null record;
-	function isTrue( Exp : Expression ) return Boolean is abstract; 	
+	type Users_Criteria is new Aw_Sec.Criteria with private;
 
-	type Expression_Access is access all Expression'Class;
+	function Create_Users_Criteria( Descriptor: in Criteria_Descriptor )
+		return Criteria'Class;
+		-- create a USERS criteria to be matched
+		-- based on the given Descriptor.
 
-	type Terminal is new Expression with
-	record
-		Word : Unbounded_String;
-	end record;
-	function isTrue( Term : Terminal ) return Boolean;
+	function Get_Type( Criteria_Object: in Users_Criteria ) return String;
+		-- return a String representing the criteria
+		-- it's the same string that will be used by the methods:
+		--      Register( Name, Factory )
+		--      Create_Criteria( Name, Patern ) return Criteria'Class;
 
-	type NotOperator is new Expression with
-	record
-		Exp : Expression_Access;
-	end record;
-	function isTrue( Op : NotOperator ) return Boolean;
+	function Describe( Criteria_Object: in Users_Criteria ) return String;
+	-- return a string describing the current criteria
+	
+	procedure Require( User_Object: in out User'Class; Criteria_Object: in Users_Criteria );
+	-- matches the user against some criteria.
+	-- raise ACCESS_DENIED if the user fails this criteria.
 
+	
+	
+	type Expressions_Criteria is new Aw_Sec.Criteria with private;
 
-	type BinaryOperator is abstract new Expression with 
-	record
-		Exp1 : Expression_Access;
-		Exp2 : Expression_Access;
-	end record;
-		
-	type OrOperator is new BinaryOperator with null record;
-	function isTrue( Op : OrOperator ) return Boolean;
+	function Create_Expressions_Criteria( Descriptor: in Criteria_Descriptor )
+		return Criteria'Class;
+		-- create a EXPRESSIONS criteria to be matched
+		-- based on the given Descriptor.
 
-	type AndOperator is new BinaryOperator with null record;
-	function isTrue( Op : AndOperator) return Boolean;
+	function Get_Type( Criteria_Object: in Expressions_Criteria ) return String;
+		-- return a String representing the criteria
+		-- it's the same string that will be used by the methods:
+		--      Register( Name, Factory )
+		--      Create_Criteria( Name, Patern ) return Criteria'Class;
 
-
-
-
-
+	function Describe( Criteria_Object: in Expressions_Criteria ) return String;
+	-- return a string describing the current criteria
+	
+	procedure Require( User_Object: in out User'Class; Criteria_Object: in Expressions_Criteria );
+	-- matches the user against some criteria.
+	-- raise ACCESS_DENIED if the user fails this criteria.
 
 
 private
 
-	type Auth_Criteria is new Aw_Sec.Criteria with 
+	type Groups_Criteria is new Aw_Sec.Criteria with 
 	record
-		Criteria_Name : Aw_Sec.Criteria_Name;
-		Criteria_Descriptor : Aw_Sec.Criteria_Descriptor;
+		Descriptor : Aw_Sec.Criteria_Descriptor;
+	end record;
+	
+	type Users_Criteria is new Aw_Sec.Criteria with 
+	record
+		Descriptor : Aw_Sec.Criteria_Descriptor;
+	end record;
+	
+	type Expressions_Criteria is new Aw_Sec.Criteria with 
+	record
+		Descriptor : Aw_Sec.Criteria_Descriptor;
 	end record;
 
 end Aw_Sec.Authorization_Criterias;
