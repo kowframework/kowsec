@@ -601,6 +601,13 @@ package body Aw_Sec is
 	begin
 		Require(	User_Object	=> User_Object.all,
 				Criteria_Object	=> Criteria_Object );
+
+		-- if it got here, the user has been accepted.
+		Set_Exit_Status(
+			My_Action,
+			Exit_Success,
+			"[" & Get_Type( Criteria_Object ) & "] " & Describe( Criteria_Object )
+			);
 	exception
 		when E: Others =>
 			Set_Exit_Status(
@@ -630,6 +637,11 @@ package body Aw_Sec is
 		Require(	User_Object	=> User_Object.all,
 				Name		=> Name,
 				Descriptor	=> Descriptor );
+
+		Set_Exit_Status(
+			My_Action,
+			Exit_Success,
+			"[" & To_String( Name ) & "] " & To_String( Descriptor ) );
 	exception
 		when E: INVALID_CRITERIA => 
 			Set_Exit_Status(

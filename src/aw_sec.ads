@@ -247,13 +247,13 @@ package Aw_Sec is
 	-- extend the authorization type avaliable.
 
 
-	function Get_Type( Criteria_Object: in Criteria'Class ) return String is abstract;
+	function Get_Type( Criteria_Object: in Criteria ) return String is abstract;
 	-- return a String representing the criteria
 	-- it's the same string that will be used by the methods:
 	-- 	Register( Name, Factory )
 	-- 	Create_Criteria( Name, Patern ) return Criteria'Class;
 	
-	function Describe( Criteria_Object: in Criteria'Class ) return String is abstract;
+	function Describe( Criteria_Object: in Criteria ) return String is abstract;
 	-- return a string describing the current criteria
 
 
