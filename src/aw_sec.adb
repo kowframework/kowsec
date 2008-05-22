@@ -44,6 +44,17 @@ package body Aw_Sec is
 	use Criteria_Maps;
 
 
+	function To_Criteria_Name ( Name : String ) return Criteria_Name is
+	begin
+		return To_Unbounded_String(Name);
+	end To_Criteria_Name;
+
+	function To_Criteria_Descriptor ( Descriptor : String ) return Criteria_Descriptor is
+	begin
+		return To_Unbounded_String(Descriptor);
+	end To_Criteria_Descriptor;
+
+
 	-- AUXILIAR PROCEDURES AND FUNCTIONS --
 	procedure Check_Anonymous_Access( User_Object: in User'Class; Where: in String ) is
 		-- This procedure is called by all the procedures and functions that

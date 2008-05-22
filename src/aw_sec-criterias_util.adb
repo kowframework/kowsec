@@ -38,13 +38,32 @@ with Ada.Characters.Handling; 	use Ada.Characters.Handling;
 
 package body Aw_Sec.Criterias_Util is
 
+
+	function Is_Valid_Character ( Char : Character ) 
+		return Boolean is
+	begin
+		if Is_Alphanumeric( Char )
+			or else  Char = '_'
+			or else	Char = '.'
+			or else Char = '-' then
+			
+			return True;
+		else
+			return False;
+		end if;
+	end Is_Valid_Character;
+
+
+
 	-------------------
 	-- BOOLEAN PARSE --
 	-------------------
 	
 	package body Bool_Parse is 
 
-		procedure isTrue( Term : Terminal; Parser : in out Bool_Parser; Ret_Value : out Boolean ) is
+		procedure isTrue(	Term		: Terminal; 
+					Parser		: in out Bool_Parser;
+					Ret_Value	: out Boolean ) is 	
 		begin
 			if Length( Term.Word ) = 0 then
 				raise INVALID_CRITERIA_DESCRIPTOR with 
@@ -55,7 +74,9 @@ package body Aw_Sec.Criterias_Util is
 		end isTrue;
 
 
-		procedure isTrue( Op : Not_Operator; Parser : in out Bool_Parser; Ret_Value : out Boolean ) is
+		procedure isTrue(	Op		: Not_Operator;
+					Parser		: in out Bool_Parser;
+					Ret_Value	: out Boolean ) is
 			Value1 : Boolean;
 		begin
 			isTrue( Op.Exp.all, Parser, Value1 );
@@ -63,7 +84,9 @@ package body Aw_Sec.Criterias_Util is
 		end isTrue;
 
 
-		procedure isTrue( Op : Or_Operator; Parser : in out Bool_Parser; Ret_Value : out Boolean) is
+		procedure isTrue(	Op		: Or_Operator;
+					Parser		: in out Bool_Parser;
+					Ret_Value	: out Boolean) is
 			Value1, Value2 : Boolean;
 		begin
 			isTrue( Op.Exp1.all, Parser, Value1 );
@@ -71,12 +94,18 @@ package body Aw_Sec.Criterias_Util is
 			Ret_Value := Value1 or else Value2;
 		end isTrue;
 
-		procedure isTrue( Op : And_Operator; Parser : in out Bool_Parser; Ret_Value : out Boolean) is
+		procedure isTrue(	Op : And_Operator;
+					Parser : in out Bool_Parser;
+					Ret_Value : out Boolean) is
 			Value1, Value2 : Boolean;
 		begin
 			isTrue( Op.Exp1.all, Parser, Value1 );
-			isTrue( Op.Exp2.all, Parser, Value2 );	
-			Ret_Value := Value1 and then  Value2;
+			if Value1 = False then
+				Ret_Value := False;
+			else			
+				isTrue( Op.Exp2.all, Parser, Value2 );	
+				Ret_Value := Value1 and then  Value2;
+			end if;
 		end isTrue;
 
 
@@ -107,7 +136,8 @@ package body Aw_Sec.Criterias_Util is
 
 			if Exp = Null then
 				raise INVALID_CRITERIA_DESCRIPTOR with
-					"Block or terminal expected in at: " & Integer'Image( Parser.Index );
+					"Block or terminal expected in at: " & 
+					Integer'Image( Parser.Index );
 			end if;
 		end Match_Block_Or_Terminal;
 
@@ -118,16 +148,31 @@ package body Aw_Sec.Criterias_Util is
 			Next_Char : Character := Element( Parser.Descriptor, Parser.Index );
 			Op_Buffer : Pattern := To_Unbounded_String("") ;
 		begin
-
-			if Is_Letter( Next_Char ) then
-				while Is_Letter( Next_Char )
+			if Is_Valid_Character( Next_Char ) then
+				
+				while Is_Valid_Character( Next_Char ) or else Next_Char = '='
 				loop
 					Op_Buffer := Op_Buffer & Next_Char;
 					Parser.Index := Parser.Index + 1;
 				
 					exit when Length( Parser.Descriptor ) <= Parser.Index - 1;
-				
+					
 					Next_Char := Element( Parser.Descriptor, Parser.Index );
+					
+					if Next_Char = '{' then
+						loop
+							Op_Buffer := Op_Buffer & Next_Char;
+							Parser.Index := Parser.Index + 1;
+							
+							exit when Next_Char = '}' or else
+								Length( Parser.Descriptor ) <= Parser.Index - 1;
+					
+							Next_Char := Element( Parser.Descriptor, Parser.Index );
+						end loop;
+					
+					exit when Length( Parser.Descriptor ) <= Parser.Index - 1;
+					
+					end if;
 				end loop;
 
 				Exp := new Terminal'( Word => Op_Buffer );
@@ -139,7 +184,7 @@ package body Aw_Sec.Criterias_Util is
 
 
 		procedure Match_Block(	Parser : in out Bool_Parser;
-					Exp : out Expression_Access) is
+					Exp : out Expression_Access ) is
 
 			Next_Char : Character := Element( Parser.Descriptor, Parser.Index );
 		begin
@@ -164,9 +209,9 @@ package body Aw_Sec.Criterias_Util is
 						declare
 							Desc : Pattern := To_Unbounded_String( 
 								Slice(Parser.Descriptor, Begin_Index + 1, Parser.Index-1 ) );
-							New_Parser : Bool_Parser := (	User_object => Parser.User_Object,
-											Descriptor => Desc,
-											Index => 0 ); 
+							New_Parser : Bool_Parser := (	User_object	=> Parser.User_Object,
+											Descriptor	=> Desc,
+											Index 		=> 0 ); 
 						begin	
 							Parse( New_Parser, Exp );	
 						
@@ -177,6 +222,8 @@ package body Aw_Sec.Criterias_Util is
 							"Unmatched '(' at " & Integer'Image(Parser.Index);		
 					end if;
 				end;
+			else
+				Exp := null;
 			end if;
 		end Match_Block;
 		
@@ -194,7 +241,7 @@ package body Aw_Sec.Criterias_Util is
 			while Parser.Index <= Length( Parser.Descriptor ) 
 			loop
 				Next_Char := Element( Parser.Descriptor, Parser.Index );
-				
+			
 				if Exp = Null then
 					Match_Not_Or_Block_Or_Terminal( Parser, Exp );
 
@@ -208,13 +255,12 @@ package body Aw_Sec.Criterias_Util is
 					Match_Not_Or_Block_Or_Terminal( Parser, Term2 );
 					Exp := new And_Operator'( Exp, Term2 );
 				else
-					raise INVALID_CRITERIA_DESCRIPTOR with "Descriptor is " & To_String( Parser.Descriptor );  
+					raise INVALID_CRITERIA_DESCRIPTOR with To_String( Parser.Descriptor );  
 				end if;
 			end loop;
 		end Parse;
 
 	end Bool_Parse;
-
 
 end Aw_Sec.Criterias_Util;
 

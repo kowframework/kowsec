@@ -40,6 +40,7 @@ with Aw_Sec;			use Aw_Sec;
 with Ada.Containers.Vectors;
 
 with Aw_Sec.Criterias_Util;	use Aw_Sec.Criterias_Util;
+with Ada.Characters.Handling; 	use Ada.Characters.Handling;
 
 with Ada.Text_IO;		use Ada.Text_IO;	
 
@@ -61,27 +62,28 @@ package body Aw_Sec.Authorization_Criterias is
 	begin
 		Aw_Sec.Get_Groups( User_Object.all, Groups );
 	
-		if Authorization_Group_Vectors.Contains(Groups, Authorization_Group(Descriptor) ) then
+		if Contains(Groups, Authorization_Group(Descriptor) ) then
 			Ret_Code := True;
 		else
 			Ret_Code := False;
 		end if;
 	end Eval_Groups;
 
-	package Groups_Parse is new Bool_Parse( Pattern => Criteria_Descriptor,
-						Evaluate => Eval_Groups); 
+	package Groups_Parse is new Bool_Parse( Pattern		=> Criteria_Descriptor,
+						Evaluate	=> Eval_Groups); 
 	
 	function Create_Groups_Criteria( Descriptor: in Criteria_Descriptor )
 		return Criteria'Class is
 		-- create a GROUPS criteria to be matched
 		-- based on the given Descriptor.
-		My_Criteria: Groups_Criteria := (Descriptor => Descriptor );
+		My_Criteria: Groups_Criteria := ( Descriptor => Descriptor );
 	begin		
 		return My_Criteria;
 	end Create_Groups_Criteria;
 
 
-	procedure Require( User_Object: in out User'Class; Criteria_Object: in Groups_Criteria ) is
+	procedure Require(	User_Object	: in out User'Class;
+				Criteria_Object	: in Groups_Criteria ) is
 		use Groups_Parse;
 
 		Parser: Bool_Parser := (	User_Object	=> User_object'Unchecked_Access,
@@ -94,7 +96,8 @@ package body Aw_Sec.Authorization_Criterias is
 		IsTrue(Exp.all, Parser, Ret_Value); 
 
 		if not Ret_Value then
-			raise ACCESS_DENIED with "Reason: " & To_String( Criteria_Object.Descriptor );
+			raise ACCESS_DENIED with "Reason: " &
+			To_String( Criteria_Object.Descriptor );
 		end if;
 	end Require;
 	
@@ -130,8 +133,8 @@ package body Aw_Sec.Authorization_Criterias is
 		end if;
 	end Eval_Users;
 
-	package Users_Parse is new Bool_Parse(	Pattern => Criteria_Descriptor,
-						Evaluate => Eval_Users); 
+	package Users_Parse is new Bool_Parse(	Pattern		=> Criteria_Descriptor,
+						Evaluate	=> Eval_Users); 
 	
 	function Create_Users_Criteria( Descriptor: in Criteria_Descriptor )
 		return Criteria'Class is
@@ -144,7 +147,8 @@ package body Aw_Sec.Authorization_Criterias is
 	end Create_Users_Criteria;
 
 
-	procedure Require( User_Object: in out User'Class; Criteria_Object: in Users_Criteria ) is
+	procedure Require(	User_Object: in out User'Class; 
+				Criteria_Object: in Users_Criteria ) is
 		use Users_Parse;
 		
 		Parser: Bool_Parser := (
@@ -154,12 +158,13 @@ package body Aw_Sec.Authorization_Criterias is
 		Exp : Expression_Access;
 		Ret_Value : Boolean := False;
 	begin
-		Parse(Parser, Exp); 
-		IsTrue(Exp.all, Parser, Ret_Value); 
+		Parse( Parser, Exp ); 
+		IsTrue( Exp.all, Parser, Ret_Value ); 
 
 
 		if not Ret_Value then
-			raise ACCESS_DENIED with "Reason: " & To_String( Criteria_Object.Descriptor );
+			raise ACCESS_DENIED with "Reason: " &
+			To_String( Criteria_Object.Descriptor );
 		end if;
 	end Require;
 	
@@ -185,20 +190,69 @@ package body Aw_Sec.Authorization_Criterias is
 	--------------------------
 	-- EXPRESSIONS CRITERIA --
 	--------------------------
-	
+
 	procedure Eval_Expressions(	Descriptor	: in Criteria_Descriptor;
 					User_Object	: in out User_Access;
 					Ret_Code	: out Boolean ) is
+	
+		Index		: Integer		:= 1;		
+		Next_Char	: Character		:= Element( Descriptor, Index );
+		My_Name		: Unbounded_String	:= To_Unbounded_String("") ;
+		My_Descriptor	: Criteria_Descriptor	:= Null_Unbounded_String;
 	begin
-		if To_String( Descriptor ) =  User_Object.Username  then
-			Ret_Code := True;
-		else
-			Ret_Code := False;
+		if Is_Valid_Character( Next_Char ) then
+		
+			while Next_Char /= '=' and then Index <= Length( Descriptor ) 
+			loop
+				My_Name := My_Name & Next_Char; 
+				Index := Index + 1;
+				Next_Char := Element( Descriptor, Index );
+			end loop;	
+			
+			Index := Index + 1;
+			
+			if Index <= Length( Descriptor ) then
+				Next_Char := Element( Descriptor, Index );
+			
+				if Next_Char = '{' and then 
+					Element(Descriptor, Length( Descriptor )) = '}' then
+					My_Descriptor := To_Unbounded_String( 
+						Slice( Descriptor, Index + 1, Length( Descriptor )-1 ) );
+				
+				elsif Is_Valid_Character( Next_Char ) then
+					My_Descriptor := To_Unbounded_String( 
+						Slice( Descriptor, Index, Length( Descriptor ) ) );
+				
+				else
+					raise INVALID_CRITERIA_DESCRIPTOR with
+						"Expected curly brackets after of the '=' in " & 
+						To_String( Descriptor );
+				end if;
+			end if;
 		end if;
+
+		if My_Descriptor = Null_Unbounded_String or else
+			My_Name = To_Unbounded_String("") then
+			
+			raise INVALID_CRITERIA_DESCRIPTOR with
+				"Expected Pattern Criteria_Name '=' Descriptor in " &
+				To_String( Descriptor ); 
+		end if;
+
+		declare 
+			My_Criteria: Criteria'Class := Criterias.Create_Criteria( My_Name, My_Descriptor );
+		begin
+			Require( User_Object.all, My_Criteria );
+			Ret_Code := True;
+		exception
+			when ACCESS_DENIED => Ret_Code := False;	
+		end;		
+
 	end Eval_Expressions;
 
-	package Expressions_Parse is new Bool_Parse(	Pattern => Criteria_Descriptor,
-							Evaluate => Eval_Expressions); 
+
+	package Expressions_Parse is new Bool_Parse(	Pattern		=> Criteria_Descriptor,
+							Evaluate	=> Eval_Expressions); 
 	
 	function Create_Expressions_Criteria( Descriptor: in Criteria_Descriptor )
 		return Criteria'Class is
@@ -211,7 +265,8 @@ package body Aw_Sec.Authorization_Criterias is
 	end Create_Expressions_Criteria;
 
 
-	procedure Require( User_Object: in out User'Class; Criteria_Object: in Expressions_Criteria ) is
+	procedure Require(	User_Object	: in out User'Class;
+				Criteria_Object	: in Expressions_Criteria ) is
 		use Expressions_Parse;
 	
 		Parser: Bool_Parser := (
@@ -225,7 +280,8 @@ package body Aw_Sec.Authorization_Criterias is
 		IsTrue(Exp.all, Parser, Ret_Value); 
 
 		if not Ret_Value then
-			raise ACCESS_DENIED with "Reason: " & To_String( Criteria_Object.Descriptor );
+			raise ACCESS_DENIED with "Reason: " &
+			To_String( Criteria_Object.Descriptor );
 		end if;
 	end Require;
 	

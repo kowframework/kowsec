@@ -55,7 +55,8 @@ package Aw_Sec.Authorization_Criterias is
 	function Describe( Criteria_Object: in Groups_Criteria ) return String;
 	-- return a string describing the current criteria
 	
-	procedure Require( User_Object: in out User'Class; Criteria_Object: in Groups_Criteria );
+	procedure Require(	User_Object	: in out User'Class; 
+				Criteria_Object	: in Groups_Criteria );
 	-- matches the user against some criteria.
 	-- raise ACCESS_DENIED if the user fails this criteria.
 
@@ -77,7 +78,8 @@ package Aw_Sec.Authorization_Criterias is
 	function Describe( Criteria_Object: in Users_Criteria ) return String;
 	-- return a string describing the current criteria
 	
-	procedure Require( User_Object: in out User'Class; Criteria_Object: in Users_Criteria );
+	procedure Require(	User_Object	: in out User'Class;
+				Criteria_Object	: in Users_Criteria );
 	-- matches the user against some criteria.
 	-- raise ACCESS_DENIED if the user fails this criteria.
 
@@ -99,7 +101,8 @@ package Aw_Sec.Authorization_Criterias is
 	function Describe( Criteria_Object: in Expressions_Criteria ) return String;
 	-- return a string describing the current criteria
 	
-	procedure Require( User_Object: in out User'Class; Criteria_Object: in Expressions_Criteria );
+	procedure Require(	User_Object	: in out User'Class; 
+				Criteria_Object	: in Expressions_Criteria );
 	-- matches the user against some criteria.
 	-- raise ACCESS_DENIED if the user fails this criteria.
 

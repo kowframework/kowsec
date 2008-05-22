@@ -65,6 +65,12 @@ package Aw_Sec is
 	subtype Criteria_Name is Unbounded_String;
 	subtype Criteria_Descriptor is Unbounded_String;
 
+	function To_Criteria_Name ( Name : String ) return Criteria_Name;
+	
+	function To_Criteria_Descriptor ( Descriptor : String )
+		return Criteria_Descriptor;
+
+
 	-----------------------
 	-- Groups Management --
 	-----------------------

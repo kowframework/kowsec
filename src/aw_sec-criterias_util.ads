@@ -36,22 +36,27 @@
 
 package Aw_Sec.Criterias_Util is
 
+	function Is_Valid_Character ( Char : Character ) 
+		return Boolean;
 
-generic
-	type Pattern is new Unbounded_String;
 
-	with procedure Evaluate (	Descriptor : Pattern;
-					User_Object : in out User_Access;
-					Ret_Value : out Boolean);
-	 package Bool_Parse is
+	generic
+		type Pattern is new Unbounded_String;
+
+		with procedure Evaluate (	Descriptor	: Pattern;
+						User_Object	: in out User_Access;
+						Ret_Value	: out Boolean);
+	package Bool_Parse is
 		type Bool_Parser is record
-			User_Object : User_Access;
-			Descriptor : Pattern;
-			Index : Integer;	
+			User_Object	: User_Access;
+			Descriptor	: Pattern;
+			Index		: Integer;	
 		end record;
 
 		type Expression is abstract tagged null record;
-		procedure isTrue( Exp : Expression; Parser : in out Bool_Parser; Ret_Value : out Boolean)  is abstract; 	
+		procedure isTrue(	Exp		: Expression;
+					Parser		: in out Bool_Parser;
+					Ret_Value 	: out Boolean)  is abstract; 	
 
 		type Expression_Access is access all Expression'Class;
 
@@ -59,12 +64,16 @@ generic
 		record
 			Word : Pattern;
 		end record;
-		procedure isTrue( Term : Terminal; Parser : in out Bool_Parser; Ret_Value : out Boolean);
+		procedure isTrue(	Term		: Terminal;
+					Parser		: in out Bool_Parser;
+					Ret_Value	: out Boolean);
 		type Not_Operator is new Expression with
 		record
 			Exp : Expression_Access;
 		end record;
-		procedure isTrue( Op : Not_Operator; Parser : in out Bool_Parser; Ret_Value : out Boolean);
+		procedure isTrue(	Op	 	: Not_Operator;
+					Parser		: in out Bool_Parser;
+					Ret_Value	: out Boolean);
 
 
 		type Binary_Operator is abstract new Expression with 
@@ -74,25 +83,30 @@ generic
 		end record;
 			
 		type Or_Operator is new Binary_Operator with null record;
-		procedure isTrue( Op : Or_Operator; Parser : in out Bool_Parser; Ret_Value : out Boolean);
+		procedure isTrue(	Op		: Or_Operator;
+					Parser		: in out Bool_Parser;
+					Ret_Value	: out Boolean);
 
 		type And_Operator is new Binary_Operator with null record;
-		procedure isTrue( Op : And_Operator; Parser : in out Bool_Parser; Ret_Value : out Boolean);
+		procedure isTrue(	Op		: And_Operator;
+					Parser		: in out Bool_Parser;
+					Ret_Value	: out Boolean);
 
 	 
-		procedure Match_Not_Or_Block_Or_Terminal(	Parser : in out Bool_Parser;
-								Exp : out Expression_Access);
+		procedure Match_Not_Or_Block_Or_Terminal(	Parser	: in out Bool_Parser;
+								Exp	: out Expression_Access);
 
-		procedure Match_Block_Or_Terminal(	Parser : in out Bool_Parser;
-							Exp : out Expression_Access);
+		procedure Match_Block_Or_Terminal(	Parser	: in out Bool_Parser;
+							Exp 	: out Expression_Access);
 
-		procedure Match_Terminal(	Parser : in out Bool_Parser;
-						Exp : out Expression_Access);
+		procedure Match_Terminal(	Parser	: in out Bool_Parser;
+						Exp	: out Expression_Access);
 
-		procedure Match_Block(	Parser : in out Bool_Parser;
-					Exp : out Expression_Access);
+		procedure Match_Block(	Parser	: in out Bool_Parser;
+					Exp	: out Expression_Access);
 
-		procedure Parse(Parser : in out Bool_Parser; Exp : out Expression_Access);
+		procedure Parse(	Parser	: in out Bool_Parser;
+					Exp	: out Expression_Access);
 
 	end Bool_Parse;
 
