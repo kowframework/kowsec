@@ -54,7 +54,9 @@ package body Aw_Sec.Authorization_Criterias is
 	procedure Eval_Groups(	Descriptor	: in Criteria_Descriptor;
 				User_Object	: in out User_Access;
 				Ret_Code	: out Boolean ) is
-		
+		-- Procedure evaluate to the Bool_Parse. Descriptor is
+		-- a group name.
+
 		use Authorization_Group_Vectors;
 		
 		Groups: Authorization_Groups;
@@ -125,6 +127,8 @@ package body Aw_Sec.Authorization_Criterias is
 	procedure Eval_Users(	Descriptor	: in Criteria_Descriptor;
 				User_Object	: in out User_Access;
 				Ret_Code	: out Boolean ) is
+		-- Procedure evaluate to the Bool_Parse. Descriptor is
+		-- a username.
 	begin
 		if To_String( Descriptor ) = User_Object. Username then
 			Ret_Code := True;
@@ -194,6 +198,8 @@ package body Aw_Sec.Authorization_Criterias is
 	procedure Eval_Expressions(	Descriptor	: in Criteria_Descriptor;
 					User_Object	: in out User_Access;
 					Ret_Code	: out Boolean ) is
+		-- Procedure evaluate to the Bool_Parse. Descriptor is a 
+		-- expression like 'criteria_name={criteria_descriptor}'. 
 	
 		Index		: Integer		:= 1;		
 		Next_Char	: Character		:= Element( Descriptor, Index );
@@ -204,6 +210,7 @@ package body Aw_Sec.Authorization_Criterias is
 		
 			while Next_Char /= '=' and then Index <= Length( Descriptor ) 
 			loop
+				-- The Name of the Criteria is before the '='.
 				My_Name := My_Name & Next_Char; 
 				Index := Index + 1;
 				Next_Char := Element( Descriptor, Index );
@@ -215,11 +222,14 @@ package body Aw_Sec.Authorization_Criterias is
 				Next_Char := Element( Descriptor, Index );
 			
 				if Next_Char = '{' and then 
+					-- takes descriptor enclosed in curly brackets and 
+					-- initialize my_descriptor without the curly brackets.
 					Element(Descriptor, Length( Descriptor )) = '}' then
 					My_Descriptor := To_Unbounded_String( 
 						Slice( Descriptor, Index + 1, Length( Descriptor )-1 ) );
 				
 				elsif Is_Valid_Character( Next_Char ) then
+					-- initialize my_descriptor with all characters after the '='.
 					My_Descriptor := To_Unbounded_String( 
 						Slice( Descriptor, Index, Length( Descriptor ) ) );
 				
@@ -242,6 +252,7 @@ package body Aw_Sec.Authorization_Criterias is
 		declare 
 			My_Criteria: Criteria'Class := Criterias.Create_Criteria( My_Name, My_Descriptor );
 		begin
+			-- call require using dynamic dispatching
 			Require( User_Object.all, My_Criteria );
 			Ret_Code := True;
 		exception

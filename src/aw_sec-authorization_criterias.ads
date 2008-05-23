@@ -66,14 +66,14 @@ package Aw_Sec.Authorization_Criterias is
 
 	function Create_Users_Criteria( Descriptor: in Criteria_Descriptor )
 		return Criteria'Class;
-		-- create a USERS criteria to be matched
-		-- based on the given Descriptor.
+	-- create a USERS criteria to be matched
+	-- based on the given Descriptor.
 
 	function Get_Type( Criteria_Object: in Users_Criteria ) return String;
-		-- return a String representing the criteria
-		-- it's the same string that will be used by the methods:
-		--      Register( Name, Factory )
-		--      Create_Criteria( Name, Patern ) return Criteria'Class;
+	-- return a String representing the criteria
+	-- it's the same string that will be used by the methods:
+	--      Register( Name, Factory )
+	--      Create_Criteria( Name, Patern ) return Criteria'Class;
 
 	function Describe( Criteria_Object: in Users_Criteria ) return String;
 	-- return a string describing the current criteria
@@ -89,14 +89,14 @@ package Aw_Sec.Authorization_Criterias is
 
 	function Create_Expressions_Criteria( Descriptor: in Criteria_Descriptor )
 		return Criteria'Class;
-		-- create a EXPRESSIONS criteria to be matched
-		-- based on the given Descriptor.
+	-- create a EXPRESSIONS criteria to be matched
+	-- based on the given Descriptor.
 
 	function Get_Type( Criteria_Object: in Expressions_Criteria ) return String;
-		-- return a String representing the criteria
-		-- it's the same string that will be used by the methods:
-		--      Register( Name, Factory )
-		--      Create_Criteria( Name, Patern ) return Criteria'Class;
+	-- return a String representing the criteria
+	-- it's the same string that will be used by the methods:
+	--      Register( Name, Factory )
+	--      Create_Criteria( Name, Patern ) return Criteria'Class;
 
 	function Describe( Criteria_Object: in Expressions_Criteria ) return String;
 	-- return a string describing the current criteria
@@ -110,16 +110,20 @@ package Aw_Sec.Authorization_Criterias is
 private
 
 	type Groups_Criteria is new Aw_Sec.Criteria with 
+	-- Criteria of authorization based in name of groups. 
 	record
 		Descriptor : Aw_Sec.Criteria_Descriptor;
 	end record;
 	
 	type Users_Criteria is new Aw_Sec.Criteria with 
+	-- Criteria of authorization based in usernames. 
 	record
 		Descriptor : Aw_Sec.Criteria_Descriptor;
 	end record;
 	
 	type Expressions_Criteria is new Aw_Sec.Criteria with 
+	-- Criteria of authorization associating others criterias.
+	-- Example: USERS={adele|OgRo}&GROUPS={!design&(dev|admin)} 
 	record
 		Descriptor : Aw_Sec.Criteria_Descriptor;
 	end record;

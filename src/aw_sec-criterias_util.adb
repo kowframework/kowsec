@@ -41,6 +41,8 @@ package body Aw_Sec.Criterias_Util is
 
 	function Is_Valid_Character ( Char : Character ) 
 		return Boolean is
+		-- Returns a Boolean that defines if a character
+		-- can be used in Pattern or not.
 	begin
 		if Is_Alphanumeric( Char )
 			or else  Char = '_'
@@ -64,12 +66,15 @@ package body Aw_Sec.Criterias_Util is
 		procedure isTrue(	Term		: Terminal; 
 					Parser		: in out Bool_Parser;
 					Ret_Value	: out Boolean ) is 	
-		begin
+		-- Verifies if the terminal's word is true according to generic
+		-- 'evaluate' procedure and set the boolean value in Ret_Value.
+		begin 
 			if Length( Term.Word ) = 0 then
 				raise INVALID_CRITERIA_DESCRIPTOR with 
 					"Terminal has length 0. Oops.";
 			end if;
-			
+		
+			-- calling the generic procedure
 			Evaluate( Term.Word, Parser.User_Object, Ret_Value );
 		end isTrue;
 
@@ -78,6 +83,7 @@ package body Aw_Sec.Criterias_Util is
 					Parser		: in out Bool_Parser;
 					Ret_Value	: out Boolean ) is
 			Value1 : Boolean;
+		-- Ret_Value indicates if a condition !Exp is true or false.
 		begin
 			isTrue( Op.Exp.all, Parser, Value1 );
 			Ret_Value := not Value1;
@@ -88,6 +94,7 @@ package body Aw_Sec.Criterias_Util is
 					Parser		: in out Bool_Parser;
 					Ret_Value	: out Boolean) is
 			Value1, Value2 : Boolean;
+		-- Ret_Value indicates if a condition Exp1|Exp2 is true or false.
 		begin
 			isTrue( Op.Exp1.all, Parser, Value1 );
 			isTrue( Op.Exp2.all, Parser, Value2 );	
@@ -98,6 +105,7 @@ package body Aw_Sec.Criterias_Util is
 					Parser : in out Bool_Parser;
 					Ret_Value : out Boolean) is
 			Value1, Value2 : Boolean;
+		-- Ret_Value indicates if a condition Exp1&Exp2 is true or false.
 		begin
 			isTrue( Op.Exp1.all, Parser, Value1 );
 			if Value1 = False then
@@ -112,14 +120,20 @@ package body Aw_Sec.Criterias_Util is
 		procedure Match_Not_Or_Block_Or_Terminal(	Parser : in out Bool_Parser;
 								Exp : out Expression_Access) is
 			
-			Next_Char : Character := Element(Parser.Descriptor, Parser.Index); 
+		-- Searches for a Not_Operator or a 
+		-- Block (Expression within a pair of brackets) or a
+		-- Terminal (Expression with one word).
 			
+			Next_Char : Character := Element(Parser.Descriptor, Parser.Index); 
+		
 		begin
 			if Next_Char = '!' then
+				-- Matches a Not_Operator.	
 				Parser.Index := Parser.Index + 1;
 				Match_Block_Or_Terminal(Parser, Exp);
 				Exp := new Not_Operator'(Expression with Exp => Exp); 
 			else
+				-- Searches for a Block or Terminal.
 				Match_Block_Or_Terminal(Parser, Exp);
 			end if;
 		end Match_Not_Or_Block_Or_Terminal;
@@ -127,10 +141,13 @@ package body Aw_Sec.Criterias_Util is
 
 		procedure Match_Block_Or_Terminal(	Parser : in out Bool_Parser;
 							Exp : out Expression_Access) is
+		-- Searches for Block (Expression within a pair of brackets) or a
+		-- Terminal (Expression with one word).
 		begin
 			Match_Block( Parser, Exp );
 		
 			if Exp = Null then
+				-- Didn't match a block. Trying to match a terminal.
 				Match_Terminal (Parser, Exp);
 			end if;
 
@@ -144,7 +161,8 @@ package body Aw_Sec.Criterias_Util is
 
 		procedure Match_Terminal(	Parser : in out Bool_Parser;
 						Exp : out Expression_Access) is
-		
+		-- Searches for a Terminal (Expression with one word).
+	
 			Next_Char : Character := Element( Parser.Descriptor, Parser.Index );
 			Op_Buffer : Pattern := To_Unbounded_String("") ;
 		begin
@@ -154,11 +172,12 @@ package body Aw_Sec.Criterias_Util is
 				loop
 					Op_Buffer := Op_Buffer & Next_Char;
 					Parser.Index := Parser.Index + 1;
-				
+			
 					exit when Length( Parser.Descriptor ) <= Parser.Index - 1;
 					
 					Next_Char := Element( Parser.Descriptor, Parser.Index );
 					
+					-- add all characters encloses in curly brackets
 					if Next_Char = '{' then
 						loop
 							Op_Buffer := Op_Buffer & Next_Char;
@@ -185,13 +204,14 @@ package body Aw_Sec.Criterias_Util is
 
 		procedure Match_Block(	Parser : in out Bool_Parser;
 					Exp : out Expression_Access ) is
-
+		-- Searches for a Block (Expression within a pair of brackets).
+		
 			Next_Char : Character := Element( Parser.Descriptor, Parser.Index );
 		begin
 			if Next_Char = '(' then
 				declare
 					Begin_Index : Integer := Parser.Index;
-					Level : Integer := 1;
+					Level : Integer := 1; -- bracket level
 				begin
 					while Parser.Index <= Length( Parser.Descriptor ) and then Level > 0
 					loop
@@ -199,13 +219,15 @@ package body Aw_Sec.Criterias_Util is
 						Next_Char := Element ( Parser.Descriptor, Parser.Index );
 
 						if Next_Char = '(' then 
-							Level := Level + 1;
+							Level := Level + 1; -- found a nested bracket.
 						elsif Next_Char = ')' then
-							Level := Level - 1;
+							-- found a closing bracket, so decrease a level. 
+							Level := Level - 1; 
 						end if;		
 					end loop;
 					
 					if Level = 0 then
+						-- all opening brackets have corresponding closing brackets.
 						declare
 							Desc : Pattern := To_Unbounded_String( 
 								Slice(Parser.Descriptor, Begin_Index + 1, Parser.Index-1 ) );
@@ -213,6 +235,8 @@ package body Aw_Sec.Criterias_Util is
 											Descriptor	=> Desc,
 											Index 		=> 0 ); 
 						begin	
+							-- call recursively the parse to the expression within of
+							-- the brackets. 
 							Parse( New_Parser, Exp );	
 						
 							Parser.Index := Parser.Index + 1;
@@ -229,7 +253,10 @@ package body Aw_Sec.Criterias_Util is
 		
 
 		procedure Parse(Parser : in out Bool_Parser; Exp : out Expression_Access) is
-
+		--  Reads the whole Parser.Descriptor identifying Not_Operators,
+		--  And_Operators and Or_Operators. 
+		--  Exp is the expression with  all operators and expression.
+			
 			OpBuffer	: String := "";
 			Term1		: Terminal;  
 			Term2		: Expression_Access;		
@@ -243,16 +270,33 @@ package body Aw_Sec.Criterias_Util is
 				Next_Char := Element( Parser.Descriptor, Parser.Index );
 			
 				if Exp = Null then
+					-- Initialize the Exp with a Not_Operator and/or
+					-- the left expression of the Or_Operator
+					-- or And_Opertator.
 					Match_Not_Or_Block_Or_Terminal( Parser, Exp );
 
 				elsif Next_Char = '|' then
+					-- The parse found a '|', so it will initialize
+					-- a Or_Operator.
+					
 					Parser.Index := Parser.Index + 1;
+					
+					-- Searches for a Block or Terminal and initializes
+					-- the right expression of the Or_Operator.
 					Match_Not_Or_Block_Or_Terminal( Parser, Term2 );
+					
 					Exp := new Or_Operator'(Exp, Term2);
 
 				elsif Next_Char = '&' then
+					-- The parse found a '|', so it will initialize
+					-- a Or_Operator.
+					
 					Parser.Index := Parser.Index + 1;
+					
+					-- Searches for a Block or Terminal and initializes
+					-- the right expression of the Or_Operator.
 					Match_Not_Or_Block_Or_Terminal( Parser, Term2 );
+					
 					Exp := new And_Operator'( Exp, Term2 );
 				else
 					raise INVALID_CRITERIA_DESCRIPTOR with To_String( Parser.Descriptor );  
