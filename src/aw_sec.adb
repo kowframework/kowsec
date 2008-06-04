@@ -164,7 +164,32 @@ package body Aw_Sec is
 	end Do_Logout;
 
 
+	procedure Set_Username( User_Object: in out User; Username: in String ) is
+	begin
+		User_Object.Username := To_Unbounded_String( Username );
+	end Set_Username;
+	function Get_Username( User_Object: in User ) return String is
+	begin
+		return To_String( User_Object.Username );
+	end Get_Username;
 
+	procedure Set_First_Name( User_Object: in out User; First_Name: in String ) is
+	begin
+		User_Object.First_Name := To_Unbounded_String( First_Name );
+	end Set_First_Name;
+	function Get_First_Name( User_Object: in User ) return String is
+	begin
+		return To_String( User_Object.First_Name );
+	end Get_First_Name;
+
+	procedure Set_Last_Name( User_Object: in out User; Last_Name: in String ) is
+	begin
+		User_Object.Last_Name := To_Unbounded_String( Last_Name );
+	end Set_Last_Name;
+	function Get_Last_Name( User_Object: in User ) return String is
+	begin
+		return To_String( User_Object.Last_Name );
+	end Get_Last_Name;
 
 
 	procedure Register_Manager( Manager: in out Authentication_Manager_Access ) is

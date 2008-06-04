@@ -161,6 +161,17 @@ package Aw_Sec is
 	-- Make sure Is_Anonymous returns true for now on for this user.
 
 
+
+	procedure Set_Username( User_Object: in out User; Username: in String );
+	function Get_Username( User_Object: in User ) return String;
+
+	procedure Set_First_Name( User_Object: in out User; First_Name: in String );
+	function Get_First_Name( User_Object: in User ) return String;
+
+	procedure Set_Last_Name( User_Object: in out User; Last_Name: in String );
+	function Get_Last_Name( User_Object: in User ) return String;
+
+
 	-------------------------------
 	-- AUTHENTICATION MANAGEMENT --
 	-------------------------------
