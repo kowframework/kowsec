@@ -199,9 +199,8 @@ package body Aw_Sec is
 	end Register_Manager;
 
 
-	function Do_Login(	Username	: in String;
-				Password	: in String; 
-				Enforce_Local	: in Boolean := False ) return User'Class is
+	function Do_Login(	Username: in String;
+				Password: in String ) return User'Class is
 		--  tries to login the user using the registered managers.
 		
 		use Authentication_Manager_Vectors;
@@ -213,8 +212,7 @@ package body Aw_Sec is
 			begin
 				return Do_Login(	Element( C ).all,
 							Username,
-							Password,
-							Enforce_Local);
+							Password);
 			exception
 				when INVALID_CREDENTIALS => null;
 			end;
@@ -520,7 +518,6 @@ package body Aw_Sec is
 	function Do_Login(	Manager:	 in Authentication_Manager'Class;
 				Username:	 in String;
 				Password:	 in String;
-				Enforce_Local	: in Boolean := False;
 				Root_Accountant: in Accountant_Access ) return User'Class is
 		-- This function logs any error returned by Do_Login method
 		-- As it's a class wide function, it dynamic dispatching is enabled
@@ -532,7 +529,7 @@ package body Aw_Sec is
 			User_Object	=> Null );
 	begin
 		declare
-			Usr: User'Class := Do_Login( Manager, Username, Password, Enforce_Local );
+			Usr: User'Class := Do_Login( Manager, Username, Password );
 		begin
 			-- if I got here I managed to login! woot!
 			Set_Exit_Status(
@@ -563,7 +560,6 @@ package body Aw_Sec is
 
 	function Do_Login(	Username	: in String;
 				Password	: in String;
-				Enforce_Local	: in Boolean := False;
 				Root_Accountant	: in Accountant_Access ) return User'Class is
 		My_Acc: Accountant_Access := new Accountant'(New_Accountant( "Login_Service", Root_Accountant ));
 
@@ -577,7 +573,6 @@ package body Aw_Sec is
 				return Do_Login(	Element( C ).all,
 							Username,
 							Password,
-							Enforce_Local,
 							My_Acc);
 			exception
 				when INVALID_CREDENTIALS => null;

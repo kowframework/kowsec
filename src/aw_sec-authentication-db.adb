@@ -181,10 +181,9 @@ package body Aw_Sec.Authentication.DB is
 
 	-- verify if exists the Username with corresponding Password
 	-- at the Users Table.
-	function Do_Login(	Manager		: in Authentication_Manager;
-	                  	Username	: in String;
-	                  	Password	: in String;
-				Enforce_Local	: in Boolean := False ) return User'Class is
+	function Do_Login(	Manager:  in Authentication_Manager;
+	                  	Username: in String;
+	                  	Password: in String ) return User'Class is
 	
 		Required_User : User;
 
