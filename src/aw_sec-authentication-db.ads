@@ -101,13 +101,16 @@ package Aw_Sec.Authentication.DB is
 
 	
 	
-	function Do_Login(	Manager:  in Authentication_Manager;
-	                  	Username: in String;
-	                  	Password: in String ) return User'Class;
+	function Do_Login(	Manager		: in Authentication_Manager;
+	                  	Username	: in String;
+	                  	Password	: in String;
+				Enforce_Local	: in Boolean := False ) return User'Class;
 	-- Login the user, returning a object representing it.
         -- This object might be a direct instance of User or a subclass.
         -- It's this way so the authentication method might have
         -- a user with extended properties.
+	--
+	-- Enforce_Local is ignored as it's a local backend!
 	 
 	 
 	function Get_Groups(    Manager:        in Authentication_Manager;

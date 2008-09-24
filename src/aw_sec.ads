@@ -188,13 +188,16 @@ package Aw_Sec is
 
 	type Authentication_Manager_Access is access all Authentication_Manager'Class;
 
-	function Do_Login(	Manager:  in Authentication_Manager;
-				Username: in String;
-				Password: in String ) return User'Class is abstract;
+	function Do_Login(	Manager		: in Authentication_Manager;
+				Username	: in String;
+				Password	: in String;
+				Enforce_Local	: in Boolean := False ) return User'Class is abstract;
 	-- Login the user, returning a object representing it.
 	-- This object might be a direct instance of User or a subclass.
 	-- It's this way so the authentication method might have
 	-- a user with extended properties.
+	-- When Enforce_Local is true, enforce to use only local authentication backends.
+	-- This is to avoid loopings in a distributed authentication environment
 
 
 
@@ -230,8 +233,9 @@ package Aw_Sec is
 	-- Register a manager so it's usable by Aw_Sec.
 	
 
-	function Do_Login(	Username: in String;
-				Password: in String ) return User'Class;
+	function Do_Login(	Username	: in String;
+				Password	: in String;
+				Enforce_Local	: in Boolean := False ) return User'Class;
 	-- tries to login the user using the registered managers.
 
 
@@ -523,20 +527,22 @@ package Aw_Sec is
 	-----------------------------------
 	-- CLASSWIDE METHODS DECLARATION --
 	-----------------------------------
-
+ 
 	----------------------------------------
 	-- User Management - accounting aware --
 	----------------------------------------
-	function Do_Login(	Manager:	 in Authentication_Manager'Class;
-				Username:	 in String;
-				Password:	 in String;
-				Root_Accountant: in Accountant_Access ) return User'Class;
+	function Do_Login(	Manager		: in Authentication_Manager'Class;
+				Username	: in String;
+				Password	: in String;
+				Enforce_Local	: in Boolean := False;
+				Root_Accountant	: in Accountant_Access ) return User'Class;
 	-- This function logs any error returned by Do_Login method
 	-- As it's a class wide function, it dynamic dispatching is enabled
 	-- for both Authentication_Manager and Accountant types
 
 	function Do_Login(	Username	: in String;
 				Password	: in String;
+				Enforce_Local	: in Boolean := False;
 				Root_Accountant	: in Accountant_Access ) return User'Class;
 
 
