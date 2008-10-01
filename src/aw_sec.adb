@@ -192,6 +192,80 @@ package body Aw_Sec is
 	end Get_Last_Name;
 
 
+
+
+
+
+
+
+
+
+
+
+
+	----------------
+	-- State Vars --
+	----------------
+
+
+	procedure Set_State_Variable(	User_Object	: in out User;
+					Name		: in String;
+					Value		: in String ) is
+		-- Set a Session variable for this user
+		Pragma Inline( Set_State_Variable );
+	begin
+		Set_State_Variable( User_Object, To_Unbounded_String( Name ), To_Unbounded_String( Value ) );
+	end Set_State_Variable;
+
+	procedure Set_State_Variable(	User_Object	: in out User;
+					Name		: in String;
+					Value		: in Unbounded_String ) is
+		-- Set a Session variable for this user
+		Pragma Inline( Set_State_Variable );
+	begin
+		Set_State_Variable( User_Object, To_Unbounded_String( Name ), Value  );
+	end Set_State_Variable;
+
+	procedure Set_State_Variable(	User_Object	: in out User;
+					Name		: in Unbounded_String;
+					Value		: in Unbounded_String ) is
+		-- Set a Session variable for this user
+		Pragma Inline( Set_State_Variable );
+	begin
+		Aw_Lib.UString_Ordered_Maps.Include( User_Object.State, Name, Value );
+	end Set_State_Variable;
+
+
+	function Get_State_Variable(	User_Object	: in User;
+					Name		: in String ) return String is
+		-- get the state variable Name
+		-- if not set, raise UNOWN_STATE_VARIABLE exception
+		Pragma Inline( Get_State_Variable );
+	begin
+		return To_String( Get_State_Variable( User_Object, To_Unbounded_String( Name ) ) );
+	end Get_State_Variable;
+
+
+	function Get_State_Variable(	User_Object	: in User;
+					Name		: in String ) return Unbounded_String is
+		-- get the state variable Name
+		-- if not set, raise UNOWN_STATE_VARIABLE exception
+		Pragma Inline( Get_State_Variable );
+	begin
+		return Get_State_Variable( User_Object, To_Unbounded_String( Name ) );
+	end Get_State_Variable;
+
+	function Get_State_Variable(	User_Object	: in User;
+					Name		: in Unbounded_String ) return Unbounded_String is
+		-- get the state variable Name
+		-- if not set, raise UNOWN_STATE_VARIABLE exception
+		Pragma Inline( Get_State_Variable );
+	begin
+		return Aw_Lib.UString_Ordered_Maps.Element( User_Object.State, Name );
+	end Get_State_Variable;
+
+
+
 	procedure Register_Manager( Manager: in out Authentication_Manager_Access ) is
 		-- Register a manager so it's usable by Aw_Sec.
 	begin

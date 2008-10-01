@@ -51,10 +51,11 @@ with Ada.Calendar;		use Ada.Calendar;
 with Ada.Containers.Vectors;
 with Ada.Finalization;
 with Ada.Strings.Unbounded;	use Ada.Strings.Unbounded;
-with Aw_Lib.Locales;
 with Ada.Containers.Hashed_Maps;
 with Ada.Strings.Unbounded.Hash;
 
+with Aw_Lib.Locales;
+with Aw_Lib.UString_Ordered_Maps;
 
 package Aw_Sec is
 
@@ -162,6 +163,7 @@ package Aw_Sec is
 
 
 
+
 	procedure Set_Username( User_Object: in out User; Username: in String );
 	function Get_Username( User_Object: in User ) return String;
 
@@ -170,6 +172,53 @@ package Aw_Sec is
 
 	procedure Set_Last_Name( User_Object: in out User; Last_Name: in String );
 	function Get_Last_Name( User_Object: in User ) return String;
+
+
+
+	----------------
+	-- State Vars --
+	----------------
+
+	-- they represent some state associated to the user
+	-- TODO: implement a backend mechanism for state variables
+
+	UNKNOWN_STATE_VARIABLE: Exception;
+
+	procedure Set_State_Variable(	User_Object	: in out User;
+					Name		: in String;
+					Value		: in String );
+	-- Set a Session variable for this user
+	-- TODO: implement support to other types, such as Date and numeric values
+
+	procedure Set_State_Variable(	User_Object	: in out User;
+					Name		: in String;
+					Value		: in Unbounded_String );
+	-- Set a Session variable for this user
+
+	procedure Set_State_Variable(	User_Object	: in out User;
+					Name		: in Unbounded_String;
+					Value		: in Unbounded_String );
+	-- Set a Session variable for this user
+
+
+
+	function Get_State_Variable(	User_Object	: in User;
+					Name		: in String ) return String;
+	-- get the state variable Name
+	-- if not set, raise UNOWN_STATE_VARIABLE exception
+
+
+	function Get_State_Variable(	User_Object	: in User;
+					Name		: in String ) return Unbounded_String;
+	-- get the state variable Name
+	-- if not set, raise UNOWN_STATE_VARIABLE exception
+
+
+	function Get_State_Variable(	User_Object	: in User;
+					Name		: in Unbounded_String ) return Unbounded_String;
+	-- get the state variable Name
+	-- if not set, raise UNOWN_STATE_VARIABLE exception
+
 
 
 	-------------------------------
@@ -634,6 +683,11 @@ private
 
 		Groups_Cache	: Groups_Cache_Access;
 		-- A cache of groups, managed by Aw_Sec.
+
+
+		State		: Aw_Lib.UString_Ordered_Maps.Map;
+		-- A map of state variables
+		-- They are stored as serialized strings
 	end record;
 
 
