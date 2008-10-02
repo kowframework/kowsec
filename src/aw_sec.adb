@@ -262,6 +262,9 @@ package body Aw_Sec is
 		Pragma Inline( Get_State_Variable );
 	begin
 		return Aw_Lib.UString_Ordered_Maps.Element( User_Object.State, Name );
+	exception
+		when CONSTRAINT_ERROR =>
+			raise UNKNOWN_STATE_VARIABLE with To_String( Name );
 	end Get_State_Variable;
 
 
