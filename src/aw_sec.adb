@@ -206,6 +206,13 @@ package body Aw_Sec is
 	----------------
 	-- State Vars --
 	----------------
+	procedure Set_State(	User_Object	: in out User;
+				State		: in Aw_Lib.UString_Ordered_Maps.Map) is
+		-- set the complete state map
+		pragma Inline( Set_State );
+	begin
+		User_Object.State := State;
+	end Set_State;
 
 
 	procedure Set_State_Variable(	User_Object	: in out User;
@@ -234,6 +241,13 @@ package body Aw_Sec is
 	begin
 		Aw_Lib.UString_Ordered_Maps.Include( User_Object.State, Name, Value );
 	end Set_State_Variable;
+
+
+
+	function Get_State( User_Object	: in User ) return Aw_Lib.UString_Ordered_Maps.Map is
+	begin
+		return User_Object.State;
+	end Get_State;
 
 
 	function Get_State_Variable(	User_Object	: in User;

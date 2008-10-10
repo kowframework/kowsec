@@ -184,6 +184,10 @@ package Aw_Sec is
 
 	UNKNOWN_STATE_VARIABLE: Exception;
 
+	procedure Set_State(	User_Object	: in out User;
+				State		: in Aw_Lib.UString_Ordered_Maps.Map);
+	-- set the complete state map
+
 	procedure Set_State_Variable(	User_Object	: in out User;
 					Name		: in String;
 					Value		: in String );
@@ -200,6 +204,9 @@ package Aw_Sec is
 					Value		: in Unbounded_String );
 	-- Set a Session variable for this user
 
+
+	function Get_State( User_Object : in User ) return Aw_Lib.UString_Ordered_Maps.Map;
+	-- get the complete state map
 
 
 	function Get_State_Variable(	User_Object	: in User;
