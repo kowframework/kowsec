@@ -75,6 +75,13 @@ package body Aw_Sec is
 
 	-- SPEC IMPLEMENTATION --
 
+
+
+	function To_Access( User_Object: in User ) return User_Access is
+	begin
+		return new User'( User_Object );
+	end To_Access;
+
 	procedure Set_Groups_Timeout( User_Object: in out User; New_Timeout: in Duration ) is
 	        -- set the timeout of the groups cache for this user
 	begin

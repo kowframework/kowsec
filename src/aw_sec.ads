@@ -117,6 +117,10 @@ package Aw_Sec is
 	type User_Access is access all User'Class;
 
 
+	function To_Access( User_Object: in User ) return User_Access;
+	-- this will clone the user object type to a dynamically alocated object
+	-- Other user implementations MUST override this function!
+
 	procedure Set_Groups_Timeout( User_Object: in out User;
 		New_Timeout: in Duration );
 	-- set the timeout of the groups cache for this user
