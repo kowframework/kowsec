@@ -38,13 +38,6 @@
 -- 	  Also, there is now a static variable that handles the registered managers.
 -- 	  First we should update the code to use vectors and the global registry.
 -- 	  Then we should make implement the registry's methods.
---
--- 	. accounting :: the body!
---
--- Notice:
--- 	I decided to finish the user and authentication schema before continuing
--- 	the rest of Aw_Sec design as it's a critical area.
--- 		OgRo.
 
 
 with Ada.Calendar;		use Ada.Calendar;
