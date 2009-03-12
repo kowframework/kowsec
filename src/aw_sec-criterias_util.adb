@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---        Copyright (C) 2007-2008, Ydea Desenv. de Softwares Ltda           --
+--               Copyright (C) 2007-2009, Ada Works Project                 --
 --                                                                          --
 --                                                                          --
 -- AwSec; free software; you can redistribute it  and/or modify it under    --
