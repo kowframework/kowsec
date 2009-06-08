@@ -34,15 +34,20 @@
 ------------------------------------------------------------------------------
 
 
-with Aw_Sec.Authentication.DB;	use Aw_Sec.Authentication.DB;
-
-with Aw_Sec;			use Aw_Sec;
-with Ada.Containers.Vectors;
-
-with Aw_Sec.Criterias_Util;	use Aw_Sec.Criterias_Util;
+--------------
+-- Ada 2005 --
+--------------
 with Ada.Characters.Handling; 	use Ada.Characters.Handling;
-
+with Ada.Containers.Vectors;
 with Ada.Text_IO;		use Ada.Text_IO;	
+
+
+---------------
+-- Ada Works --
+---------------
+with Aw_Sec;			use Aw_Sec;
+with Aw_Sec.Authentication.DB;	use Aw_Sec.Authentication.DB;
+with Aw_Sec.Criterias_Util;	use Aw_Sec.Criterias_Util;
 
 
 package body Aw_Sec.Authorization_Criterias is
@@ -145,7 +150,7 @@ package body Aw_Sec.Authorization_Criterias is
 		-- create a Users_Criteria to be matched
 		-- based on the given Descriptor.
 		
-		My_Criteria: Users_Criteria := (Descriptor => Descriptor );
+		My_Criteria: Users_Criteria := ( Descriptor => Descriptor );
 	begin
 		return My_Criteria;
 	end Create_Users_Criteria;
