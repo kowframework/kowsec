@@ -1,0 +1,38 @@
+-- Build file for Aw_Lib tests.
+--
+-- author Marcelo Coraça de Freitas <marcelo.batera@gmail.com> 
+--
+-- Repository information:
+-- $Date: 2008-02-15 12:27:31 -0200 (Sex, 15 Fev 2008) $
+-- $Revision: 199 $
+-- $Author: ogro $
+
+
+
+with "awsec.gpr";
+
+with "apq.gpr";
+with "apq-mysql.gpr";
+
+
+project AwSec.Samples is
+
+   for Source_Dirs use ( "src" );
+
+   -- LIBRARY
+   for Object_Dir use "obj";
+
+   -- TESTES:
+   for Exec_Dir use "bin";
+   for Main use ("authentication_db_sample");
+
+
+   package Compiler is
+      for Default_Switches ("ada") use ("-O2", "-gnat05");
+   end Compiler;
+
+   package Linker renames AwSec.Linker;
+
+
+end AwSec.Samples;
+
