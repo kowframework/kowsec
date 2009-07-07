@@ -9,14 +9,14 @@
 --               Copyright (C) 2007-2009, Ada Works Project                 --
 --                                                                          --
 --                                                                          --
--- AwSec is free software; you can redistribute it  and/or modify it under  --
+-- KOWSec is free software; you can redistribute it  and/or modify it under  --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
 -- ware  Foundation;  either version 2,  or (at your option) any later ver- --
--- sion. AwSec is distributed in the hope that it will be useful, but WITH- --
+-- sion. KOWSec is distributed in the hope that it will be useful, but WITH- --
 -- OUT ANY WARRANTY;  without even the  implied warranty of MERCHANTABILITY --
 -- or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License --
 -- for  more details.  You should have  received  a copy of the GNU General --
--- Public License distributed with AwSec; see file COPYING.  If not, write  --
+-- Public License distributed with KOWSec; see file COPYING.  If not, write  --
 -- to  the Free Software Foundation,  59 Temple Place - Suite 330,  Boston, --
 -- MA 02111-1307, USA.                                                      --
 --                                                                          --
@@ -30,7 +30,7 @@
 ------------------------------------------------------------------------------
 
 ------------------------------------------------------------------------------
--- This is the base package for AwSec.                                      --
+-- This is the base package for KOWSec.                                      --
 ------------------------------------------------------------------------------
 
 with Ada.Exceptions;	use Ada.Exceptions;
@@ -39,7 +39,7 @@ with Ada.Exceptions;	use Ada.Exceptions;
 with Ada.Strings.Unbounded;
 with Ada.Text_IO;	use Ada.Text_IO;
 
-package body Aw_Sec is
+package body KOW_Sec is
 
 	use Criteria_Maps;
 
@@ -105,13 +105,13 @@ package body Aw_Sec is
 
 
 	function Full_Name(	User_Object	: in User;
-				Locale		: Aw_Lib.Locales.Locale
-					:= Aw_Lib.Locales.Default_Locale
+				Locale		: KOW_Lib.Locales.Locale
+					:= KOW_Lib.Locales.Default_Locale
 		) return String is
 		-- return the full name for this user, respecting the locale's conventions
 	begin
 		Check_Anonymous_Access( User_Object, "Full_Name" );
-		return Aw_Lib.Locales.Get_Formated_Full_Name(
+		return KOW_Lib.Locales.Get_Formated_Full_Name(
 			L		=> Locale,
 			First_Name	=> To_String( User_Object.First_Name ),
 			Last_Name	=> To_String( User_Object.Last_Name )
@@ -214,7 +214,7 @@ package body Aw_Sec is
 	-- State Vars --
 	----------------
 	procedure Set_State(	User_Object	: in out User;
-				State		: in Aw_Lib.UString_Ordered_Maps.Map) is
+				State		: in KOW_Lib.UString_Ordered_Maps.Map) is
 		-- set the complete state map
 		pragma Inline( Set_State );
 	begin
@@ -246,12 +246,12 @@ package body Aw_Sec is
 		-- Set a Session variable for this user
 		Pragma Inline( Set_State_Variable );
 	begin
-		Aw_Lib.UString_Ordered_Maps.Include( User_Object.State, Name, Value );
+		KOW_Lib.UString_Ordered_Maps.Include( User_Object.State, Name, Value );
 	end Set_State_Variable;
 
 
 
-	function Get_State( User_Object	: in User ) return Aw_Lib.UString_Ordered_Maps.Map is
+	function Get_State( User_Object	: in User ) return KOW_Lib.UString_Ordered_Maps.Map is
 	begin
 		return User_Object.State;
 	end Get_State;
@@ -282,7 +282,7 @@ package body Aw_Sec is
 		-- if not set, raise UNOWN_STATE_VARIABLE exception
 		Pragma Inline( Get_State_Variable );
 	begin
-		return Aw_Lib.UString_Ordered_Maps.Element( User_Object.State, Name );
+		return KOW_Lib.UString_Ordered_Maps.Element( User_Object.State, Name );
 	exception
 		when CONSTRAINT_ERROR =>
 			raise UNKNOWN_STATE_VARIABLE with To_String( Name );
@@ -291,7 +291,7 @@ package body Aw_Sec is
 
 
 	procedure Register_Manager( Manager: in out Authentication_Manager_Access ) is
-		-- Register a manager so it's usable by Aw_Sec.
+		-- Register a manager so it's usable by KOW_Sec.
 	begin
 		Append( Managers_Registry, Manager );
 	end Register_Manager;
@@ -902,4 +902,4 @@ package body Aw_Sec is
 begin
 	Root_Acc := new Accountant'( New_Accountant( Service => "/", Root => null ) );
 
-end Aw_Sec;
+end KOW_Sec;

@@ -9,14 +9,14 @@
 --               Copyright (C) 2007-2009, Ada Works Project                 --
 --                                                                          --
 --                                                                          --
--- AwSec; free software; you can redistribute it  and/or modify it under    --
+-- KOWSec; free software; you can redistribute it  and/or modify it under    --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
 -- ware  Foundation;  either version 2,  or (at your option) any later ver- --
--- sion. AwSec; distributed in the hope that it will be useful, but WITH- --
+-- sion. KOWSec; distributed in the hope that it will be useful, but WITH- --
 -- OUT ANY WARRANTY;  without even the  implied warranty of MERCHANTABILITY --
 -- or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License --
 -- for  more details.  You should have  received  a copy of the GNU General --
--- Public License distributed with AwSec; see file COPYING.  If not, write  --
+-- Public License distributed with KOWSec; see file COPYING.  If not, write  --
 -- to  the Free Software Foundation,  59 Temple Place - Suite 330,  Boston, --
 -- MA 02111-1307, USA.                                                      --
 --                                                                          --
@@ -30,7 +30,7 @@
 ------------------------------------------------------------------------------
 
 ------------------------------------------------------------------------------
--- This is the Aw_Sec.Authorization_Criterias package                       --
+-- This is the KOW_Sec.Authorization_Criterias package                       --
 ------------------------------------------------------------------------------
 
 
@@ -45,12 +45,12 @@ with Ada.Text_IO;		use Ada.Text_IO;
 ---------------
 -- Ada Works --
 ---------------
-with Aw_Sec;			use Aw_Sec;
-with Aw_Sec.Authentication.DB;	use Aw_Sec.Authentication.DB;
-with Aw_Sec.Criterias_Util;	use Aw_Sec.Criterias_Util;
+with KOW_Sec;			use KOW_Sec;
+with KOW_Sec.Authentication.DB;	use KOW_Sec.Authentication.DB;
+with KOW_Sec.Criterias_Util;	use KOW_Sec.Criterias_Util;
 
 
-package body Aw_Sec.Authorization_Criterias is
+package body KOW_Sec.Authorization_Criterias is
 
 	---------------------
 	-- GROUPS CRITERIA --
@@ -67,7 +67,7 @@ package body Aw_Sec.Authorization_Criterias is
 		Groups: Authorization_Groups;
 		C: Authorization_Group_Vectors.Cursor;
 	begin
-		Aw_Sec.Get_Groups( User_Object.all, Groups );
+		KOW_Sec.Get_Groups( User_Object.all, Groups );
 	
 		if Contains(Groups, Authorization_Group(Descriptor) ) then
 			Ret_Code := True;
@@ -321,8 +321,8 @@ package body Aw_Sec.Authorization_Criterias is
 
 
 begin
-	Aw_Sec.Criterias.Register( "GROUPS", Create_Groups_Criteria'Access );
-	Aw_Sec.Criterias.Register( "USERS", Create_Users_Criteria'Access );
-	Aw_Sec.Criterias.Register( "EXPRESSIONS", Create_Expressions_Criteria'Access );
+	KOW_Sec.Criterias.Register( "GROUPS", Create_Groups_Criteria'Access );
+	KOW_Sec.Criterias.Register( "USERS", Create_Users_Criteria'Access );
+	KOW_Sec.Criterias.Register( "EXPRESSIONS", Create_Expressions_Criteria'Access );
 
-end Aw_Sec.Authorization_Criterias;
+end KOW_Sec.Authorization_Criterias;

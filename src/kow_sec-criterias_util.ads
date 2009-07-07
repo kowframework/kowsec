@@ -9,14 +9,14 @@
 --               Copyright (C) 2007-2009, Ada Works Project                 --
 --                                                                          --
 --                                                                          --
--- AwSec; free software; you can redistribute it  and/or modify it under    --
+-- KOWSec; free software; you can redistribute it  and/or modify it under    --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
 -- ware  Foundation;  either version 2,  or (at your option) any later ver- --
--- sion. AwSec; distributed in the hope that it will be useful, but WITH- --
+-- sion. KOWSec; distributed in the hope that it will be useful, but WITH- --
 -- OUT ANY WARRANTY;  without even the  implied warranty of MERCHANTABILITY --
 -- or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License --
 -- for  more details.  You should have  received  a copy of the GNU General --
--- Public License distributed with AwSec; see file COPYING.  If not, write  --
+-- Public License distributed with KOWSec; see file COPYING.  If not, write  --
 -- to  the Free Software Foundation,  59 Temple Place - Suite 330,  Boston, --
 -- MA 02111-1307, USA.                                                      --
 --                                                                          --
@@ -30,11 +30,11 @@
 ------------------------------------------------------------------------------
 
 ------------------------------------------------------------------------------
--- This is the Aw_Sec.Criteria_Util package                                 --
+-- This is the KOW_Sec.Criteria_Util package                                 --
 ------------------------------------------------------------------------------
 
 
-package Aw_Sec.Criterias_Util is
+package KOW_Sec.Criterias_Util is
 
 	function Is_Valid_Character ( Char : Character ) 
 		return Boolean;
@@ -153,5 +153,5 @@ package Aw_Sec.Criterias_Util is
 	end Bool_Parse;
 
 
-end Aw_Sec.Criterias_Util;
+end KOW_Sec.Criterias_Util;
 

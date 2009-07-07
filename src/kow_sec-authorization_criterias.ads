@@ -9,14 +9,14 @@
 --               Copyright (C) 2007-2009, Ada Works Project                 --
 --                                                                          --
 --                                                                          --
--- AwSec; free software; you can redistribute it  and/or modify it under    --
+-- KOWSec; free software; you can redistribute it  and/or modify it under    --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
 -- ware  Foundation;  either version 2,  or (at your option) any later ver- --
--- sion. AwSec; distributed in the hope that it will be useful, but WITH- --
+-- sion. KOWSec; distributed in the hope that it will be useful, but WITH- --
 -- OUT ANY WARRANTY;  without even the  implied warranty of MERCHANTABILITY --
 -- or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License --
 -- for  more details.  You should have  received  a copy of the GNU General --
--- Public License distributed with AwSec; see file COPYING.  If not, write  --
+-- Public License distributed with KOWSec; see file COPYING.  If not, write  --
 -- to  the Free Software Foundation,  59 Temple Place - Suite 330,  Boston, --
 -- MA 02111-1307, USA.                                                      --
 --                                                                          --
@@ -30,16 +30,16 @@
 ------------------------------------------------------------------------------
 
 ------------------------------------------------------------------------------
--- This is the Aw_Sec.Authorization_Criterias package                       --
+-- This is the KOW_Sec.Authorization_Criterias package                       --
 ------------------------------------------------------------------------------
 
 
 with APQ;	use APQ;
 
-package Aw_Sec.Authorization_Criterias is
+package KOW_Sec.Authorization_Criterias is
 
 
-	type Groups_Criteria is new Aw_Sec.Criteria with private;
+	type Groups_Criteria is new KOW_Sec.Criteria with private;
 
 	function Create_Groups_Criteria( Descriptor: in Criteria_Descriptor )
 		return Criteria'Class;
@@ -62,7 +62,7 @@ package Aw_Sec.Authorization_Criterias is
 
 
 
-	type Users_Criteria is new Aw_Sec.Criteria with private;
+	type Users_Criteria is new KOW_Sec.Criteria with private;
 
 	function Create_Users_Criteria( Descriptor: in Criteria_Descriptor )
 		return Criteria'Class;
@@ -85,7 +85,7 @@ package Aw_Sec.Authorization_Criterias is
 
 	
 	
-	type Expressions_Criteria is new Aw_Sec.Criteria with private;
+	type Expressions_Criteria is new KOW_Sec.Criteria with private;
 
 	function Create_Expressions_Criteria( Descriptor: in Criteria_Descriptor )
 		return Criteria'Class;
@@ -109,23 +109,23 @@ package Aw_Sec.Authorization_Criterias is
 
 private
 
-	type Groups_Criteria is new Aw_Sec.Criteria with 
+	type Groups_Criteria is new KOW_Sec.Criteria with 
 	-- Criteria of authorization based in name of groups. 
 	record
-		Descriptor : Aw_Sec.Criteria_Descriptor;
+		Descriptor : KOW_Sec.Criteria_Descriptor;
 	end record;
 	
-	type Users_Criteria is new Aw_Sec.Criteria with 
+	type Users_Criteria is new KOW_Sec.Criteria with 
 	-- Criteria of authorization based in usernames. 
 	record
-		Descriptor : Aw_Sec.Criteria_Descriptor;
+		Descriptor : KOW_Sec.Criteria_Descriptor;
 	end record;
 	
-	type Expressions_Criteria is new Aw_Sec.Criteria with 
+	type Expressions_Criteria is new KOW_Sec.Criteria with 
 	-- Criteria of authorization associating others criterias.
 	-- Example: USERS={adele|OgRo}&GROUPS={!design&(dev|admin)} 
 	record
-		Descriptor : Aw_Sec.Criteria_Descriptor;
+		Descriptor : KOW_Sec.Criteria_Descriptor;
 	end record;
 
-end Aw_Sec.Authorization_Criterias;
+end KOW_Sec.Authorization_Criterias;

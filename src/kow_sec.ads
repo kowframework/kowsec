@@ -9,14 +9,14 @@
 --               Copyright (C) 2007-2009, Ada Works Project                 --
 --                                                                          --
 --                                                                          --
--- AwSec is free software; you can redistribute it  and/or modify it under  --
+-- KOWSec is free software; you can redistribute it  and/or modify it under  --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
 -- ware  Foundation;  either version 2,  or (at your option) any later ver- --
--- sion. AwSec is distributed in the hope that it will be useful, but WITH- --
+-- sion. KOWSec is distributed in the hope that it will be useful, but WITH- --
 -- OUT ANY WARRANTY;  without even the  implied warranty of MERCHANTABILITY --
 -- or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License --
 -- for  more details.  You should have  received  a copy of the GNU General --
--- Public License distributed with AwSec; see file COPYING.  If not, write  --
+-- Public License distributed with KOWSec; see file COPYING.  If not, write  --
 -- to  the Free Software Foundation,  59 Temple Place - Suite 330,  Boston, --
 -- MA 02111-1307, USA.                                                      --
 --                                                                          --
@@ -30,7 +30,7 @@
 ------------------------------------------------------------------------------
 
 -------------------------------------------------------------------------------
--- This is the base package for AwSec.                                       --
+-- This is the base package for KOWSec.                                       --
 -------------------------------------------------------------------------------
 
 -- TODO:
@@ -47,10 +47,10 @@ with Ada.Strings.Unbounded;	use Ada.Strings.Unbounded;
 with Ada.Containers.Hashed_Maps;
 with Ada.Strings.Unbounded.Hash;
 
-with Aw_Lib.Locales;
-with Aw_Lib.UString_Ordered_Maps;
+with KOW_Lib.Locales;
+with KOW_Lib.UString_Ordered_Maps;
 
-package Aw_Sec is
+package KOW_Sec is
 
 	------------------------------------
 	-- TYPE AND CONSTANT DECLARATIONS --
@@ -85,9 +85,9 @@ package Aw_Sec is
 			Index_Type	=> Natural,
 			Element_Type	=> Authorization_Group );
 
-	subtype Authorization_Groups is Aw_Sec.Authorization_Group_Vectors.Vector;
+	subtype Authorization_Groups is KOW_Sec.Authorization_Group_Vectors.Vector;
 	-- this will make all the vector's methods avaliable here
-	-- in Aw_Sec package.
+	-- in KOW_Sec package.
 
 
 	-- there is no special method for the Authorization_Group type.
@@ -97,7 +97,7 @@ package Aw_Sec is
 	---------------------
 
 	type User is tagged private;
-	-- A user can be extended, even though it's not how Aw_Sec should be 
+	-- A user can be extended, even though it's not how KOW_Sec should be 
 	-- extended
 	--
 	-- Instead, try extending the Authentication_Manager type.
@@ -129,8 +129,8 @@ package Aw_Sec is
 
 
 	function Full_Name(	User_Object	: in User;
-				Locale		: Aw_Lib.Locales.Locale
-					:= Aw_Lib.Locales.Default_Locale
+				Locale		: KOW_Lib.Locales.Locale
+					:= KOW_Lib.Locales.Default_Locale
 		) return String;
 	-- return the full name for this user, respecting the locale's conventions
 
@@ -182,7 +182,7 @@ package Aw_Sec is
 	UNKNOWN_STATE_VARIABLE: Exception;
 
 	procedure Set_State(	User_Object	: in out User;
-				State		: in Aw_Lib.UString_Ordered_Maps.Map);
+				State		: in KOW_Lib.UString_Ordered_Maps.Map);
 	-- set the complete state map
 
 	procedure Set_State_Variable(	User_Object	: in out User;
@@ -202,7 +202,7 @@ package Aw_Sec is
 	-- Set a Session variable for this user
 
 
-	function Get_State( User_Object : in User ) return Aw_Lib.UString_Ordered_Maps.Map;
+	function Get_State( User_Object : in User ) return KOW_Lib.UString_Ordered_Maps.Map;
 	-- get the complete state map
 
 
@@ -280,7 +280,7 @@ package Aw_Sec is
 	-- a registry of the current managers.
 
 	procedure Register_Manager( Manager: in out Authentication_Manager_Access );
-	-- Register a manager so it's usable by Aw_Sec.
+	-- Register a manager so it's usable by KOW_Sec.
 	
 
 	function Do_Login(	Username: in String;
@@ -442,7 +442,7 @@ package Aw_Sec is
 	--
 	type Accountant is new Ada.Finalization.Limited_Controlled with private;
 	-- The Accountant should be overwritten by anyone willing to extend the
-	-- Accounting Management schema of Aw_Sec.
+	-- Accounting Management schema of KOW_Sec.
 	--
 	-- There is a basic implementation avaliable in this package that outputs
 	-- the messages to stdout and stderr.
@@ -510,7 +510,7 @@ package Aw_Sec is
 	-- already have your own root accountant.
 	--
 	-- Now, for the accountant, if you don't specify any root it understands you meant
-	-- to use the Aw_Sec.Root_Acc instance.
+	-- to use the KOW_Sec.Root_Acc instance.
 
 	
 	function New_Action(	Name		: in String;
@@ -526,7 +526,7 @@ package Aw_Sec is
 	Root_Acc: Accountant_Access;
 	-- The root acc is initialized by the static code part of the body.
 	-- It's not a constant because of the network topology proposed by AdaWorks.
-	-- See Aw_Dist.Accountant for more details.
+	-- See KOW_Dist.Accountant for more details.
 
 
 
@@ -679,17 +679,17 @@ private
 
 	type User is tagged record
 		Username	: Unbounded_String := To_Unbounded_String( Anonymous_Username );
-		-- as default, in Aw_Sec, anonymous user has this username
+		-- as default, in KOW_Sec, anonymous user has this username
 		First_Name	: Unbounded_String;
 		Last_Name	: Unbounded_String;
 		-- this one is optional, depending on the Authorization_Manager
 
 
 		Groups_Cache	: Groups_Cache_Access;
-		-- A cache of groups, managed by Aw_Sec.
+		-- A cache of groups, managed by KOW_Sec.
 
 
-		State		: Aw_Lib.UString_Ordered_Maps.Map;
+		State		: KOW_Lib.UString_Ordered_Maps.Map;
 		-- A map of state variables
 		-- They are stored as serialized strings
 	end record;
@@ -722,4 +722,4 @@ private
 	procedure Finalize( A: in out Action );
 	-- used to flush the action.
 
-end Aw_Sec;
+end KOW_Sec;

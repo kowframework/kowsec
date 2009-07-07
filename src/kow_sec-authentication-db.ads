@@ -9,14 +9,14 @@
 --               Copyright (C) 2007-2009, Ada Works Project                 --
 --                                                                          --
 --                                                                          --
--- AwSec; free software; you can redistribute it  and/or modify it under  --
+-- KOWSec; free software; you can redistribute it  and/or modify it under  --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
 -- ware  Foundation;  either version 2,  or (at your option) any later ver- --
--- sion. AwSec; distributed in the hope that it will be useful, but WITH- --
+-- sion. KOWSec; distributed in the hope that it will be useful, but WITH- --
 -- OUT ANY WARRANTY;  without even the  implied warranty of MERCHANTABILITY --
 -- or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License --
 -- for  more details.  You should have  received  a copy of the GNU General --
--- Public License distributed with AwSec; see file COPYING.  If not, write  --
+-- Public License distributed with KOWSec; see file COPYING.  If not, write  --
 -- to  the Free Software Foundation,  59 Temple Place - Suite 330,  Boston, --
 -- MA 02111-1307, USA.                                                      --
 --                                                                          --
@@ -30,13 +30,13 @@
 ------------------------------------------------------------------------------
 
 -------------------------------------------------------------------------------
--- This; the Aw_Sec.Authentication.DB package                              --
+-- This; the KOW_Sec.Authentication.DB package                              --
 -------------------------------------------------------------------------------
 
 
 with APQ;	use APQ;
 
-package Aw_Sec.Authentication.DB is
+package KOW_Sec.Authentication.DB is
 
 
 
@@ -45,7 +45,7 @@ package Aw_Sec.Authentication.DB is
 
 	type Connection_Access is access all Root_Connection_Type'Class;
 	
-	type Authentication_Manager is new Aw_Sec.Authentication_Manager
+	type Authentication_Manager is new KOW_Sec.Authentication_Manager
 		with private;
 	
 	function New_Authentication_Manager( Conn_Access: Connection_Access )
@@ -129,7 +129,7 @@ private
 	function Get_Connection( Auth_Manager: in Authentication_Manager )
 		return Connection_Access;
 
-	type Authentication_Manager is new Aw_Sec.Authentication_Manager with
+	type Authentication_Manager is new KOW_Sec.Authentication_Manager with
 	record
 		Connection		: Connection_access;
 	--	Connection_Driver	: APQ.Connection_Driver;
@@ -148,4 +148,4 @@ private
 	
 	end record;
 
-end Aw_Sec.Authentication.DB;
+end KOW_Sec.Authentication.DB;
