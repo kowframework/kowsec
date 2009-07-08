@@ -685,7 +685,7 @@ private
 		-- this one is optional, depending on the Authorization_Manager
 
 
-		Groups_Cache	: Groups_Cache_Access;
+		Groups_Cache	: Groups_Cache_Access := new Groups_Cache_Type;
 		-- A cache of groups, managed by KOW_Sec.
 
 
