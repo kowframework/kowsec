@@ -14,12 +14,12 @@ with "apq";
 project KOWSec is
 
 	version := KOWLib.version;
-	prefix	:= $prefix;
 	
-	for Source_Dirs use ( prefix & "/include/kowsec" ) ;
+	
+	for Source_Dirs use ( $include_prefix );
 	
 	-- LIBRARY
-	for Library_Dir use prefix & "/lib";
+	for Library_Dir use $lib_prefix;
 	for Library_Name use "kowsec";
 	for Library_Kind use KOWLib'Library_Kind;
 	for Library_Version use "libkowsec.so." & Version;
