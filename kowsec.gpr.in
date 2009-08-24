@@ -13,7 +13,7 @@ with "apq";
 
 project KOWSec is
 
-	version := KOWLib.version;
+	version := $version;
 	
 	for Source_Dirs use ( "src" ) ;
 	

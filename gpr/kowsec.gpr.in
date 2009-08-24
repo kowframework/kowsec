@@ -13,13 +13,13 @@ with "apq";
 
 project KOWSec is
 
-	version := KOWLib.version;
+	version := $version;
 	
 	
-	for Source_Dirs use ( $include_prefix );
+	for Source_Dirs use ( $include_path );
 	
 	-- LIBRARY
-	for Library_Dir use $lib_prefix;
+	for Library_Dir use $lib_path;
 	for Library_Name use "kowsec";
 	for Library_Kind use KOWLib'Library_Kind;
 	for Library_Version use "libkowsec.so." & Version;
