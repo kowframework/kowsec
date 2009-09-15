@@ -317,7 +317,7 @@ package body KOW_Sec is
 			C := Next( C );
 		end loop;
 
-		raise INVALID_CREDENTIALS;
+		raise INVALID_CREDENTIALS with "for username """ & Username & """";
 	end Do_Login;
 
 
