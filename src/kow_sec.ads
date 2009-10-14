@@ -134,6 +134,9 @@ package KOW_Sec is
 		) return String;
 	-- return the full name for this user, respecting the locale's conventions
 
+	function Email( User_Object : in User ) return String;
+	-- Return a string with the email address for this user or an empty string
+
 	
 	procedure Get_Groups( User_object: in out User'Class;
 		Groups: in out Authorization_Groups);
@@ -684,6 +687,7 @@ private
 		Last_Name	: Unbounded_String;
 		-- this one is optional, depending on the Authorization_Manager
 
+		Email		: Unbounded_String;
 
 		Groups_Cache	: Groups_Cache_Access := new Groups_Cache_Type;
 		-- A cache of groups, managed by KOW_Sec.

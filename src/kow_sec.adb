@@ -118,6 +118,12 @@ package body KOW_Sec is
 			);
 	end Full_Name;
 
+
+	function Email( User_Object : in User ) return String is
+		-- Return a string with the email address for this user or an empty string
+	begin
+		return To_String( User_Object.Email );
+	end Email;
 	
 	procedure Get_Groups( User_object: in out User'Class; Groups: in out Authorization_Groups ) is
 	-- Get the groups for this user.

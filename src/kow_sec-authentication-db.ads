@@ -84,6 +84,12 @@ package KOW_Sec.Authentication.DB is
 					Name : in String );
 	function Get_Last_Name_Field  (	Manager:  in Authentication_Manager ) return String;
 
+	-- Email Field Name
+	procedure Set_Email_Field(	Manager:  in out Authentication_Manager;
+					Name : in String );
+	function Get_Email_Field  (	Manager:  in Authentication_Manager ) return String;
+
+
 	-- Groups Table Name
 	procedure Set_Groups_Table(	Manager:  in out Authentication_Manager;
 					Groups_Table_Name : in String );
@@ -141,6 +147,7 @@ private
 		Password_Field 		: Unbounded_String;
 		First_Name_Field 	: Unbounded_String;
 		Last_Name_Field		: Unbounded_String;
+		Email_Field		: Unbounded_String;
 		
 		Groups_Table	 	: Unbounded_String;
 		Groups_Username_Field 	: Unbounded_String;

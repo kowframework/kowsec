@@ -133,6 +133,19 @@ package body KOW_Sec.Authentication.DB is
 	end Get_Last_Name_Field;
 
 
+	-- Email Field Name
+	procedure Set_Email_Field(	Manager:  in out Authentication_Manager;
+					Name : in String ) is
+	begin
+		Manager.Email_Field := To_Unbounded_String( Name );
+	end Set_Email_Field;
+
+	function Get_Email_Field  (	Manager:  in Authentication_Manager ) return String is
+	begin
+		return To_String( Manager.Email_Field );
+	end Get_Email_Field;
+
+
 	-- Groups Table Name
 	procedure Set_Groups_Table( 	Manager:  in out Authentication_Manager;
 					Groups_Table_Name : in String ) is
@@ -218,6 +231,8 @@ package body KOW_Sec.Authentication.DB is
 				Value(Query, Get_First_Name_Field(Manager));
 			Required_User.Last_Name :=
 				Value(Query, Get_Last_Name_Field(Manager));
+			Required_user.Email :=
+				Value( Query, Get_Email_Field(Manager));
 		
 			Required_User.Groups_Cache := new Groups_Cache_Type;
 
