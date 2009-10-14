@@ -204,6 +204,14 @@ package body KOW_Sec is
 		return To_String( User_Object.Last_Name );
 	end Get_Last_Name;
 
+	procedure Set_Email( User_Object : in out User; Email : in String ) is
+	begin
+		User_Object.Email := To_Unbounded_String( Email );
+	end Set_Email;
+	function Get_Email( User_Object : in User ) return String is
+	begin
+		return Email( User_Object );
+	end Get_Email;
 
 
 

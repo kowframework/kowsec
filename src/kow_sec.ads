@@ -174,6 +174,10 @@ package KOW_Sec is
 	function Get_Last_Name( User_Object: in User ) return String;
 
 
+	procedure Set_Email( User_Object : in out User; Email : in String );
+	function Get_Email( User_Object : in User ) return String;
+
+
 
 	----------------
 	-- State Vars --
