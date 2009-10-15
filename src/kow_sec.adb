@@ -33,11 +33,20 @@
 -- This is the base package for KOWSec.                                      --
 ------------------------------------------------------------------------------
 
+
+
+--------------
+-- Ada 2005 --
+--------------
 with Ada.Exceptions;	use Ada.Exceptions;
-
-
 with Ada.Strings.Unbounded;
 with Ada.Text_IO;	use Ada.Text_IO;
+
+
+-------------
+-- Contrib --
+-------------
+with MD5;
 
 package body KOW_Sec is
 
@@ -124,6 +133,12 @@ package body KOW_Sec is
 	begin
 		return To_String( User_Object.Email );
 	end Email;
+
+
+	function Gravatar_URL( User_Object : in User ) return String is
+	begin
+		return "http://www.gravatar.com/avatar/" & Email( User_Object ) & ".jpg";
+	end Gravatar_URL;
 	
 	procedure Get_Groups( User_object: in out User'Class; Groups: in out Authorization_Groups ) is
 	-- Get the groups for this user.

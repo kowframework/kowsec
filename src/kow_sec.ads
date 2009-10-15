@@ -137,6 +137,8 @@ package KOW_Sec is
 	function Email( User_Object : in User ) return String;
 	-- Return a string with the email address for this user or an empty string
 
+	function Gravatar_URL( User_Object : in User ) return String;
+	-- return the gravatar URL for the given user
 	
 	procedure Get_Groups( User_object: in out User'Class;
 		Groups: in out Authorization_Groups);
