@@ -137,7 +137,7 @@ package body KOW_Sec is
 
 	function Gravatar_URL( User_Object : in User ) return String is
 	begin
-		return "http://www.gravatar.com/avatar/" & Email( User_Object ) & ".jpg";
+		return "http://www.gravatar.com/avatar/" & MD5.Calculate( Email( User_Object ) ) & ".jpg";
 	end Gravatar_URL;
 	
 	procedure Get_Groups( User_object: in out User'Class; Groups: in out Authorization_Groups ) is
