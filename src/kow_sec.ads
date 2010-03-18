@@ -52,6 +52,8 @@ with KOW_Lib.UString_Ordered_Maps;
 
 package KOW_Sec is
 
+	Anonymous_Username : constant String := "anonymous";
+
 	------------------------------------
 	-- TYPE AND CONSTANT DECLARATIONS --
 	------------------------------------
@@ -684,7 +686,6 @@ private
 
 	type Groups_Cache_Access is access Groups_Cache_Type;
 
-	Anonymous_Username : String := "anonymous";
 
 	type User is tagged record
 		Username	: Unbounded_String := To_Unbounded_String( Anonymous_Username );
