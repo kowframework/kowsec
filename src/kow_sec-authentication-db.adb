@@ -192,17 +192,31 @@ package body KOW_Sec.Authentication.DB is
 	end Value;
 	
 
+
+	function Set_Values( Query : in Root_Query_Type'Class; Manager : in Authentication_Manager ) return User'Class is
+		The_user : User;
+	begin
+		The_User.Username :=
+			Value(Query, Get_Username_Field(Manager));
+		The_User.First_Name := 
+			Value(Query, Get_First_Name_Field(Manager));
+		The_User.Last_Name :=
+			Value(Query, Get_Last_Name_Field(Manager));
+		The_User.Email :=
+			Value( Query, Get_Email_Field(Manager));
+	
+		The_User.Groups_Cache := new Groups_Cache_Type;
+
+		return The_User;
+	end Set_Values;
+
 	-- verify if exists the Username with corresponding Password
 	-- at the Users Table.
 	function Do_Login(	Manager:  in Authentication_Manager;
 	                  	Username: in String;
 	                  	Password: in String ) return User'Class is
-	
-		Required_User : User;
-
-		Connection: Connection_Access := Get_Connection(Manager);
-	
-		Query: Root_Query_Type'Class := New_Query( Connection.all );
+		Connection	: Connection_Access := Get_Connection(Manager);
+		Query		: Root_Query_Type'Class := New_Query( Connection.all );
 	begin
 		--Set_Case( Query, Preserve_Case );
 
@@ -224,29 +238,49 @@ package body KOW_Sec.Authentication.DB is
 			Fetch( Query );
 			-- if the result is empty, an exception is throwed now.
 			-- so, there is no need to count the tuples.
-
-			Required_User.Username :=
-				Value(Query, Get_Username_Field(Manager));
-			Required_User.First_Name := 
-				Value(Query, Get_First_Name_Field(Manager));
-			Required_User.Last_Name :=
-				Value(Query, Get_Last_Name_Field(Manager));
-			Required_user.Email :=
-				Value( Query, Get_Email_Field(Manager));
-		
-			Required_User.Groups_Cache := new Groups_Cache_Type;
-
-			return Required_User;
-
 		exception
 			when others =>
 				raise INVALID_CREDENTIALS with "Empty Result Set";
 		end;
+
+		return Set_Values( query, Manager );
 	exception
 		when APQ.SQL_Error =>
 			raise INVALID_CONFIGURATION with Error_Message( Query );
 		
 	end Do_Login;
+
+
+
+	 function Get_User(
+	 			Manager		: in Authentication_Manager;
+				Username	: in String
+			) return User'Class is
+		Connection	: Connection_Access := Get_Connection(Manager);
+		Query		: Root_Query_Type'Class := New_Query( Connection.all );
+	begin
+ 		Prepare( Query, "SELECT * from " );
+		Append( Query, Get_Users_Table(Manager) );
+		Append( Query, " WHERE " );
+		Append( Query, Get_Username_Field(Manager) );
+		Append( Query, " = " );
+		Append_Quoted( Query, Connection.all , Username);
+
+		Execute( Query, Connection.all );
+
+		begin
+			Fetch( Query );
+		exception
+			when others =>
+				raise UNKNOWN_USER with username;
+		end;
+
+		return Set_Values( query, Manager );
+	exception
+		when APQ.SQL_Error =>
+			raise INVALID_CONFIGURATION with Error_Message( Query );
+	end Get_User;
+
 
 	
 	function Get_Groups(    Manager:	in Authentication_Manager;

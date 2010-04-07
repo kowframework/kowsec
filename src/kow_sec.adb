@@ -341,13 +341,32 @@ package body KOW_Sec is
 							Username,
 							Password);
 			exception
-				when INVALID_CREDENTIALS => null;
+				when INVALID_CREDENTIALS | UNKNOWN_USER => null;
 			end;
 			C := Next( C );
 		end loop;
 
 		raise INVALID_CREDENTIALS with "for username """ & Username & """";
 	end Do_Login;
+
+
+	function Get_User( Username : in String ) return User'Class is
+		use Authentication_Manager_Vectors;
+
+		C : Authentication_Manager_Vectors.Cursor := First( Managers_Registry );
+	begin
+		while Has_Element( C )
+		loop
+			begin
+				return Get_User( Element( C ).all, Username );
+			exception
+				when INVALID_CREDENTIALS | UNKNOWN_USER => null;
+			end;
+			C := Next( C );
+		end loop;
+
+		raise UNKNOWN_USER with Username;
+	end Get_User;
 
 
 

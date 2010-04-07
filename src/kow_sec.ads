@@ -261,6 +261,8 @@ package KOW_Sec is
 	-- a user with extended properties.
 
 
+	function Get_User( Manager : in Authentication_Manager; Username : in String ) return User'Class is abstract;
+	-- get a user by the given username
 
 	function Get_Groups(	Manager:	in Authentication_Manager;
 				User_Object:	in User'Class )
@@ -298,6 +300,8 @@ package KOW_Sec is
 				Password: in String ) return User'Class;
 	-- tries to login the user using the registered managers.
 
+	function Get_User(	Username: in String ) return User'Class;
+	-- get the user using the registered managers.
 
 	----------------------------------------
 	-- USER AND AUTHENTICATION EXCEPTIONS --
@@ -310,6 +314,8 @@ package KOW_Sec is
 	ANONYMOUS_ACCESS: Exception;
 	-- should be raised when trying to get information from an anonymous user.
 
+	UNKNOWN_USER : Exception;
+	-- when get_user fails or in case you want your do_login function more precise on error reporting
 
 	------------------------------
 	-- Authorization Management --
