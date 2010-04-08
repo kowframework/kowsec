@@ -39,6 +39,8 @@
 -- Ada 2005 --
 --------------
 with Ada.Exceptions;	use Ada.Exceptions;
+with Ada.Strings;
+with Ada.Strings.Fixed;
 with Ada.Strings.Unbounded;
 with Ada.Text_IO;	use Ada.Text_IO;
 
@@ -135,9 +137,10 @@ package body KOW_Sec is
 	end Email;
 
 
-	function Gravatar_URL( User_Object : in User ) return String is
+	function Gravatar_URL( User_Object : in User; Size : Positive := 69 ) return String is
+		S : constant String := Ada.Strings.Fixed.Trim( Positive'Image( Size ), Ada.Strings.Both );
 	begin
-		return "http://www.gravatar.com/avatar/" & MD5.Calculate( Email( User_Object ) ) & ".jpg";
+		return "http://www.gravatar.com/avatar/" & MD5.Calculate( Email( User_Object ) ) & ".jpg?s=" & S;
 	end Gravatar_URL;
 	
 	procedure Get_Groups( User_object: in out User'Class; Groups: in out Authorization_Groups ) is
