@@ -114,6 +114,15 @@ package body KOW_Sec is
 		return To_String( User_Object.Username );
 	end Identity;
 
+	function First_Name( User_Object : in User ) return String is
+	begin
+		return To_String( User_Object.First_Name );
+	end First_name;
+
+	function Last_Name( User_Object : in User ) return String is
+	begin
+		return To_String( User_Object.Last_Name );
+	end Last_Name;
 
 	function Full_Name(	User_Object	: in User;
 				Locale		: KOW_Lib.Locales.Locale

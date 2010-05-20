@@ -130,6 +130,11 @@ package KOW_Sec is
 	-- but one could implement other methods, such as a numeric id for this user
 
 
+	function First_Name( User_Object : in User ) return String;
+
+	function Last_Name( User_Object : in User ) return String;
+
+
 	function Full_Name(	User_Object	: in User;
 				Locale		: KOW_Lib.Locales.Locale
 					:= KOW_Lib.Locales.Default_Locale

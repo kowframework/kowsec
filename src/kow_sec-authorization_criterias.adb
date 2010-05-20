@@ -115,7 +115,7 @@ package body KOW_Sec.Authorization_Criterias is
 		--      Register( Name, Factory )
 		--      Create_Criteria( Name, Patern ) return Criteria'Class;
 	begin
-		return ("CRITERIA_GROUPS"); 
+		return ("GROUPS"); 
 	end Get_Type;
 
 
@@ -184,7 +184,7 @@ package body KOW_Sec.Authorization_Criterias is
 		--      Register( Name, Factory )
 		--      Create_Criteria( Name, Patern ) return Criteria'Class;
 	begin
-		return ("CRITERIA_USERS"); 
+		return ("USERS"); 
 	end Get_Type;
 
 
@@ -308,7 +308,7 @@ package body KOW_Sec.Authorization_Criterias is
 		--      Register( Name, Factory )
 		--      Create_Criteria( Name, Patern ) return Criteria'Class;
 	begin
-		return ("CRITERIA_EXPRESSIONS"); 
+		return ("EXPRESSIONS"); 
 	end Get_Type;
 
 
