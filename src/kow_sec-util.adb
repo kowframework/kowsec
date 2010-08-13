@@ -76,10 +76,10 @@ package body KOW_Sec.Util is
 		end Rand_Char;
 
 
-		Ret : String ( 0 .. Length - 1 );
+		Ret : String ( 1 .. Length );
 
 	begin
-
+		Char_Random.Reset( Generator );
 		for idx in Ret'Range loop
 			Ret( idx ) := Rand_Char;
 		end loop;
