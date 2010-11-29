@@ -31,8 +31,5 @@ project KOWSec is
 		for Default_Switches ("Ada") use ("-O2", "-gnat05");
 	end Compiler;
 
-	package Linker is
-		for Default_Switches ( "Ada" ) use KOWLib.Linker'Default_Switches( "Ada" );
-	end Linker;
 end KOWSec;
 
