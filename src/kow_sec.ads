@@ -61,10 +61,9 @@ package KOW_Sec is
 	subtype Criteria_Name is Unbounded_String;
 	subtype Criteria_Descriptor is Unbounded_String;
 
-	function To_Criteria_Name ( Name : String ) return Criteria_Name;
+	function To_Criteria_Name( Name : String ) return Criteria_Name;
 	
-	function To_Criteria_Descriptor ( Descriptor : String )
-		return Criteria_Descriptor;
+	function To_Criteria_Descriptor( Descriptor : String ) return Criteria_Descriptor;
 
 
 	-----------------------
@@ -489,19 +488,22 @@ package KOW_Sec is
 	-- See type action for more information.
 
 
-	function New_Action(	Name		: in String;
+	function New_Action(
+				Name		: in String;
 				Root_Accountant	: in Accountant_Access;
-				User_Object	: in User_Access ) 
-		return Base_Action'Class is abstract;
+				User_Object	: in User_Access
+			) return Base_Action'Class is abstract;
 	-- This method should be used by the constructor and never be overrided.
 	-- It will initialize the common attributes to all action types.
 	--
 	-- The action implementor should provide a New_Action method 
 	-- as a constructor using this Make_Action here.
 	
-	procedure Set_Exit_Status(	Action_Object	: in out Base_Action;
-					Status		: in Exit_Status;
-					Message		: in String );
+	procedure Set_Exit_Status(
+				Action_Object	: in out Base_Action;
+				Status		: in Exit_Status;
+				Message		: in String
+			);
 	-- Set the exit status and a message describing what hapenned.
 	-- Raise STATUS_CONFLICT when the status has been already defined 
 	-- or EXIT_NULL is passed as parameter
@@ -619,7 +621,7 @@ package KOW_Sec is
 	procedure Do_Logout(	User_Object:	 in out User_Access;
 				Root_Accountant: in Accountant_Access );
 	-- This function logs any error returned by Do_Logout method
-	-- As it's a class wide function, it dynamic dispatching is enabled
+	-- As it's a class wide function, it dPynamic dispatching is enabled
 	-- for both Authentication_Manager and Accountant types
 	
 
