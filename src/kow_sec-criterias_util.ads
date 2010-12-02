@@ -48,14 +48,14 @@ package KOW_Sec.Criterias_Util is
 		-- The descriptor type.	
 
 		with procedure Evaluate (	Descriptor	: Pattern;
-						User_Object	: in out User_Access;
+						User	: in out User_Type;
 						Ret_Value	: out Boolean);
 		-- Procedure called to evaluate a Terminal. Ret_Value will define if
-		-- the user 'User_Object' has access to the terminal 'Descriptor' or not. 
+		-- the user 'User' has access to the terminal 'Descriptor' or not. 
 
 	package Bool_Parse is
 		type Bool_Parser is record
-			User_Object	: User_Access;  
+			User	: User_Type;  
 			Descriptor	: Pattern; -- the full expression.
 			Index		: Integer := 1; -- the index to start the parse from.	
 		end record;

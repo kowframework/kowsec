@@ -1,22 +1,22 @@
 ------------------------------------------------------------------------------
 --                                                                          --
---                          Ada Works :: Security                           --
+--                       KOW Framework :: Security                          --
 --                                                                          --
---                                Ada Works                                 --
+--                              KOW Framework                               --
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---               Copyright (C) 2007-2009, Ada Works Project                 --
+--               Copyright (C) 2007-2011, KOW Framework Project             --
 --                                                                          --
 --                                                                          --
--- KOWSec; free software; you can redistribute it  and/or modify it under    --
+-- KOWSec is free software; you can redistribute it  and/or modify it under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
 -- ware  Foundation;  either version 2,  or (at your option) any later ver- --
--- sion. KOWSec; distributed in the hope that it will be useful, but WITH- --
+-- sion. KOWSec is distributed in the hope that it will be useful, but WITH---
 -- OUT ANY WARRANTY;  without even the  implied warranty of MERCHANTABILITY --
 -- or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License --
 -- for  more details.  You should have  received  a copy of the GNU General --
--- Public License distributed with KOWSec; see file COPYING.  If not, write  --
+-- Public License distributed with KOWSec; see file COPYING.  If not, write --
 -- to  the Free Software Foundation,  59 Temple Place - Suite 330,  Boston, --
 -- MA 02111-1307, USA.                                                      --
 --                                                                          --
@@ -29,34 +29,44 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
+
 ------------------------------------------------------------------------------
--- This is the KOW_Sec.Authorization_Criterias package                       --
+-- This is the KOW_Sec.Authorization_Criterias package                      --
 ------------------------------------------------------------------------------
 
 
-with APQ;	use APQ;
+
+------------------------------------------------------------------------------
+-- This package contains some common criterias                              --
+------------------------------------------------------------------------------
+
 
 package KOW_Sec.Authorization_Criterias is
+	pragma Elaborate_Body( KOW_Sec.Authorization_Criterias );
 
 
 	type Groups_Criteria is new KOW_Sec.Criteria_Interface with private;
 
-	function Create_Groups_Criteria( Descriptor: in Criteria_Descriptor )
-		return Criteria'Class;
+	function Create_Groups_Criteria( Descriptor: in Criteria_Descriptor ) return Criteria_Interface'Class;
 		-- create a GROUPS criteria to be matched
 		-- based on the given Descriptor.
 
-	function Get_Type( Criteria_Object: in Groups_Criteria ) return String;
+	overriding
+	function Get_Name( Criteria_Object: in Groups_Criteria ) return String;
 		-- return a String representing the criteria
 		-- it's the same string that will be used by the methods:
 		--      Register( Name, Factory )
-		--      Create_Criteria( Name, Patern ) return Criteria'Class;
+		--      Create_Criteria( Name, Patern ) return Criteria_Interface'Class;
 
+	overriding
 	function Describe( Criteria_Object: in Groups_Criteria ) return String;
 	-- return a string describing the current criteria
 	
-	procedure Require(	User_Object	: in out User'Class; 
-				Criteria_Object	: in Groups_Criteria );
+	overriding
+	procedure Require(
+				User	: in out User_Type; 
+				Criteria_Object	: in Groups_Criteria
+			);
 	-- matches the user against some criteria.
 	-- raise ACCESS_DENIED if the user fails this criteria.
 
@@ -64,21 +74,23 @@ package KOW_Sec.Authorization_Criterias is
 
 	type Users_Criteria is new KOW_Sec.Criteria_Interface with private;
 
-	function Create_Users_Criteria( Descriptor: in Criteria_Descriptor )
-		return Criteria'Class;
+	function Create_Users_Criteria( Descriptor: in Criteria_Descriptor ) return Criteria_Interface'Class;
 	-- create a USERS criteria to be matched
 	-- based on the given Descriptor.
 
-	function Get_Type( Criteria_Object: in Users_Criteria ) return String;
+	overriding
+	function Get_Name( Criteria_Object: in Users_Criteria ) return String;
 	-- return a String representing the criteria
 	-- it's the same string that will be used by the methods:
 	--      Register( Name, Factory )
-	--      Create_Criteria( Name, Patern ) return Criteria'Class;
+	--      Create_Criteria( Name, Patern ) return Criteria_Interface'Class;
 
+	overriding
 	function Describe( Criteria_Object: in Users_Criteria ) return String;
 	-- return a string describing the current criteria
 	
-	procedure Require(	User_Object	: in out User'Class;
+	overriding
+	procedure Require(	User	: in out User_Type;
 				Criteria_Object	: in Users_Criteria );
 	-- matches the user against some criteria.
 	-- raise ACCESS_DENIED if the user fails this criteria.
@@ -88,20 +100,23 @@ package KOW_Sec.Authorization_Criterias is
 	type Expressions_Criteria is new KOW_Sec.Criteria_Interface with private;
 
 	function Create_Expressions_Criteria( Descriptor: in Criteria_Descriptor )
-		return Criteria'Class;
+		return Criteria_Interface'Class;
 	-- create a EXPRESSIONS criteria to be matched
 	-- based on the given Descriptor.
 
-	function Get_Type( Criteria_Object: in Expressions_Criteria ) return String;
+	overriding
+	function Get_Name( Criteria_Object: in Expressions_Criteria ) return String;
 	-- return a String representing the criteria
 	-- it's the same string that will be used by the methods:
 	--      Register( Name, Factory )
-	--      Create_Criteria( Name, Patern ) return Criteria'Class;
+	--      Create_Criteria( Name, Patern ) return Criteria_Interface'Class;
 
+	overriding
 	function Describe( Criteria_Object: in Expressions_Criteria ) return String;
 	-- return a string describing the current criteria
 	
-	procedure Require(	User_Object	: in out User'Class; 
+	overriding
+	procedure Require(	User	: in out User_Type; 
 				Criteria_Object	: in Expressions_Criteria );
 	-- matches the user against some criteria.
 	-- raise ACCESS_DENIED if the user fails this criteria.
@@ -112,20 +127,20 @@ private
 	type Groups_Criteria is new KOW_Sec.Criteria_Interface with 
 	-- Criteria of authorization based in name of groups. 
 	record
-		Descriptor : KOW_Sec.Criteria_Interface_Descriptor;
+		Descriptor : KOW_Sec.Criteria_Descriptor;
 	end record;
 	
 	type Users_Criteria is new KOW_Sec.Criteria_Interface with 
 	-- Criteria of authorization based in usernames. 
 	record
-		Descriptor : KOW_Sec.Criteria_Interface_Descriptor;
+		Descriptor : KOW_Sec.Criteria_Descriptor;
 	end record;
 	
 	type Expressions_Criteria is new KOW_Sec.Criteria_Interface with 
 	-- Criteria of authorization associating others criterias.
 	-- Example: USERS={adele|OgRo}&GROUPS={!design&(dev|admin)} 
 	record
-		Descriptor : KOW_Sec.Criteria_Interface_Descriptor;
+		Descriptor : KOW_Sec.Criteria_Descriptor;
 	end record;
 
 end KOW_Sec.Authorization_Criterias;

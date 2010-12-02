@@ -54,6 +54,9 @@ with KOW_Lib.Locales;
 with KOW_Lib.UString_Ordered_Maps;
 
 
+with KOW_Sec.Authorization_Criterias;
+pragma Elaborate( KOW_Sec.Authorization_Criterias );
+
 -------------
 -- Contrib --
 -------------

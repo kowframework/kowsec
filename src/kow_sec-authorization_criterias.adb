@@ -1,22 +1,22 @@
 ------------------------------------------------------------------------------
 --                                                                          --
---                          Ada Works :: Security                           --
+--                       KOW Framework :: Security                          --
 --                                                                          --
---                                Ada Works                                 --
+--                              KOW Framework                               --
 --                                                                          --
---                                 B o d y                                  --
+--                                 S p e c                                  --
 --                                                                          --
---               Copyright (C) 2007-2009, Ada Works Project                 --
+--               Copyright (C) 2007-2011, KOW Framework Project             --
 --                                                                          --
 --                                                                          --
--- KOWSec; free software; you can redistribute it  and/or modify it under    --
+-- KOWSec is free software; you can redistribute it  and/or modify it under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
 -- ware  Foundation;  either version 2,  or (at your option) any later ver- --
--- sion. KOWSec; distributed in the hope that it will be useful, but WITH- --
+-- sion. KOWSec is distributed in the hope that it will be useful, but WITH---
 -- OUT ANY WARRANTY;  without even the  implied warranty of MERCHANTABILITY --
 -- or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License --
 -- for  more details.  You should have  received  a copy of the GNU General --
--- Public License distributed with KOWSec; see file COPYING.  If not, write  --
+-- Public License distributed with KOWSec; see file COPYING.  If not, write --
 -- to  the Free Software Foundation,  59 Temple Place - Suite 330,  Boston, --
 -- MA 02111-1307, USA.                                                      --
 --                                                                          --
@@ -28,6 +28,7 @@
 -- covered by the  GNU Public License.                                      --
 --                                                                          --
 ------------------------------------------------------------------------------
+
 
 ------------------------------------------------------------------------------
 -- This is the KOW_Sec.Authorization_Criterias package                       --
@@ -56,20 +57,20 @@ package body KOW_Sec.Authorization_Criterias is
 	-- GROUPS CRITERIA --
 	---------------------
 	
-	procedure Eval_Groups(	Descriptor	: in Criteria_Descriptor;
-				User_Object	: in out User_Access;
-				Ret_Code	: out Boolean ) is
+	procedure Eval_Groups(	
+				Descriptor	: in     Criteria_Descriptor;
+				User		: in out User_Type;
+				Ret_Code	: out    Boolean
+			) is
 		-- Procedure evaluate to the Bool_Parse. Descriptor is
 		-- a group name.
 
-		use Authorization_Group_Vectors;
-		
-		Groups: Authorization_Groups;
-		C: Authorization_Group_Vectors.Cursor;
+		Groups	: Group_Vectors.Vector;
+		C	: Group_Vectors.Cursor;
 	begin
-		KOW_Sec.Get_Groups( User_Object.all, Groups );
+		Groups := KOW_Sec.Get_Groups( User );
 	
-		if Contains(Groups, Authorization_Group(Descriptor) ) then
+		if Group_Vectors.Contains(Groups, Group_Type( Descriptor ) ) then
 			Ret_Code := True;
 		else
 			Ret_Code := False;
@@ -80,7 +81,7 @@ package body KOW_Sec.Authorization_Criterias is
 						Evaluate	=> Eval_Groups); 
 	
 	function Create_Groups_Criteria( Descriptor: in Criteria_Descriptor )
-		return Criteria'Class is
+		return Criteria_Interface'Class is
 		-- create a GROUPS criteria to be matched
 		-- based on the given Descriptor.
 		My_Criteria: Groups_Criteria := ( Descriptor => Descriptor );
@@ -89,13 +90,15 @@ package body KOW_Sec.Authorization_Criterias is
 	end Create_Groups_Criteria;
 
 
-	procedure Require(	User_Object	: in out User'Class;
+	procedure Require(	User	: in out User_Type;
 				Criteria_Object	: in Groups_Criteria ) is
 		use Groups_Parse;
 
-		Parser: Bool_Parser := (	User_Object	=> User_object'Unchecked_Access,
-						Descriptor	=> Criteria_Object.Descriptor,
-						Index		=> 0 );
+		Parser : Bool_Parser := (
+					User		=> User,
+					Descriptor	=> Criteria_Object.Descriptor,
+					Index		=> 0
+				);
 		Exp : Expression_Access;
 		Ret_Value : Boolean := False;
 	begin
@@ -109,14 +112,14 @@ package body KOW_Sec.Authorization_Criterias is
 	end Require;
 	
 
-	function Get_Type( Criteria_Object: in Groups_Criteria ) return String is
+	function Get_Name( Criteria_Object: in Groups_Criteria ) return String is
 		-- return a String representing the criteria
 		-- it's the same string that will be used by the methods:
 		--      Register( Name, Factory )
-		--      Create_Criteria( Name, Patern ) return Criteria'Class;
+		--      Create_Criteria( Name, Patern ) return Criteria_Interface'Class;
 	begin
 		return ("GROUPS"); 
-	end Get_Type;
+	end Get_Name;
 
 
 	function Describe( Criteria_Object: in Groups_Criteria ) return String is
@@ -130,12 +133,12 @@ package body KOW_Sec.Authorization_Criterias is
 	--------------------
 	
 	procedure Eval_Users(	Descriptor	: in Criteria_Descriptor;
-				User_Object	: in out User_Access;
+				User	: in out User_Type;
 				Ret_Code	: out Boolean ) is
 		-- Procedure evaluate to the Bool_Parse. Descriptor is
 		-- a username.
 	begin
-		if To_String( Descriptor ) = User_Object. Username then
+		if To_String( Descriptor ) = User.Identity then
 			Ret_Code := True;
 		else
 			Ret_Code := False;
@@ -146,7 +149,7 @@ package body KOW_Sec.Authorization_Criterias is
 						Evaluate	=> Eval_Users); 
 	
 	function Create_Users_Criteria( Descriptor: in Criteria_Descriptor )
-		return Criteria'Class is
+		return Criteria_Interface'Class is
 		-- create a Users_Criteria to be matched
 		-- based on the given Descriptor.
 		
@@ -156,12 +159,12 @@ package body KOW_Sec.Authorization_Criterias is
 	end Create_Users_Criteria;
 
 
-	procedure Require(	User_Object: in out User'Class; 
+	procedure Require(	User: in out User_Type; 
 				Criteria_Object: in Users_Criteria ) is
 		use Users_Parse;
 		
 		Parser: Bool_Parser := (
-				User_Object	=> User_Object'Unchecked_Access,
+				User	=> User,
 				Descriptor	=> Criteria_Object.Descriptor,
 				Index		=> 0 );
 		Exp : Expression_Access;
@@ -178,14 +181,14 @@ package body KOW_Sec.Authorization_Criterias is
 	end Require;
 	
 	
-	function Get_Type( Criteria_Object: in Users_Criteria ) return String is
+	function Get_Name( Criteria_Object: in Users_Criteria ) return String is
 		-- return a String representing the criteria
 		-- it's the same string that will be used by the methods:
 		--      Register( Name, Factory )
-		--      Create_Criteria( Name, Patern ) return Criteria'Class;
+		--      Create_Criteria( Name, Patern ) return Criteria_Interface'Class;
 	begin
 		return ("USERS"); 
-	end Get_Type;
+	end Get_Name;
 
 
 	function Describe( Criteria_Object: in Users_Criteria ) return String is
@@ -201,7 +204,7 @@ package body KOW_Sec.Authorization_Criterias is
 	--------------------------
 
 	procedure Eval_Expressions(	Descriptor	: in Criteria_Descriptor;
-					User_Object	: in out User_Access;
+					User	: in out User_Type;
 					Ret_Code	: out Boolean ) is
 		-- Procedure evaluate to the Bool_Parse. Descriptor is a 
 		-- expression like 'criteria_name={criteria_descriptor}'. 
@@ -255,10 +258,10 @@ package body KOW_Sec.Authorization_Criterias is
 		end if;
 
 		declare 
-			My_Criteria: Criteria'Class := Criterias.Create_Criteria( My_Name, My_Descriptor );
+			My_Criteria: Criteria_Interface'Class := Criteria_Registry.Create_Criteria( My_Name, My_Descriptor );
 		begin
 			-- call require using dynamic dispatching
-			Require( User_Object.all, My_Criteria );
+			Require( User, My_Criteria );
 			Ret_Code := True;
 		exception
 			when ACCESS_DENIED => Ret_Code := False;	
@@ -271,7 +274,7 @@ package body KOW_Sec.Authorization_Criterias is
 							Evaluate	=> Eval_Expressions); 
 	
 	function Create_Expressions_Criteria( Descriptor: in Criteria_Descriptor )
-		return Criteria'Class is
+		return Criteria_Interface'Class is
 		-- create a Expressions_Criteria to be matched
 		-- based on the given Descriptor.
 		
@@ -281,12 +284,12 @@ package body KOW_Sec.Authorization_Criterias is
 	end Create_Expressions_Criteria;
 
 
-	procedure Require(	User_Object	: in out User'Class;
+	procedure Require(	User	: in out User_Type;
 				Criteria_Object	: in Expressions_Criteria ) is
 		use Expressions_Parse;
 	
 		Parser: Bool_Parser := (
-				User_Object	=> User_Object'Unchecked_Access,
+				User	=> User,
 				Descriptor	=> Criteria_Object.Descriptor,
 				Index		=> 0 );
 		Exp : Expression_Access;
@@ -302,14 +305,14 @@ package body KOW_Sec.Authorization_Criterias is
 	end Require;
 	
 	
-	function Get_Type( Criteria_Object: in Expressions_Criteria ) return String is
+	function Get_Name( Criteria_Object: in Expressions_Criteria ) return String is
 		-- return a String representing the criteria
 		-- it's the same string that will be used by the methods:
 		--      Register( Name, Factory )
-		--      Create_Criteria( Name, Patern ) return Criteria'Class;
+		--      Create_Criteria( Name, Patern ) return Criteria_Interface'Class;
 	begin
 		return ("EXPRESSIONS"); 
-	end Get_Type;
+	end Get_Name;
 
 
 	function Describe( Criteria_Object: in Expressions_Criteria ) return String is
@@ -321,8 +324,8 @@ package body KOW_Sec.Authorization_Criterias is
 
 
 begin
-	KOW_Sec.Criterias.Register( "GROUPS", Create_Groups_Criteria'Access );
-	KOW_Sec.Criterias.Register( "USERS", Create_Users_Criteria'Access );
-	KOW_Sec.Criterias.Register( "EXPRESSIONS", Create_Expressions_Criteria'Access );
+	KOW_Sec.Criteria_Registry.Register( Create_Groups_Criteria'Access );
+	KOW_Sec.Criteria_Registry.Register( Create_Users_Criteria'Access );
+	KOW_Sec.Criteria_Registry.Register( Create_Expressions_Criteria'Access );
 
 end KOW_Sec.Authorization_Criterias;

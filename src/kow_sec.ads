@@ -180,15 +180,7 @@ package KOW_Sec is
 	-----------------------
 	
 
-	type Group_Type is record
-		-- represent a group of user, such as in Unix systems
-
-
-		Name		: Unbounded_String;
-		-- the group name
-		Description	: Unbounded_String;
-		-- some extra, optional, info
-	end record;
+	type Group_Type is new Unbounded_String;
 
 
 	function Get_Roles( Group : in Group_Type ) return Role_Vectors.Vector;
@@ -198,6 +190,7 @@ package KOW_Sec is
 				Index_Type	=> Positive,
 				Element_Type	=> Group_Type
 			);
+	
 
 
 

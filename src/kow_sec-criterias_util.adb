@@ -75,7 +75,7 @@ package body KOW_Sec.Criterias_Util is
 			end if;
 		
 			-- calling the generic procedure
-			Evaluate( Term.Word, Parser.User_Object, Ret_Value );
+			Evaluate( Term.Word, Parser.User, Ret_Value );
 		end isTrue;
 
 
@@ -231,7 +231,7 @@ package body KOW_Sec.Criterias_Util is
 						declare
 							Desc : Pattern := To_Unbounded_String( 
 								Slice(Parser.Descriptor, Begin_Index + 1, Parser.Index-1 ) );
-							New_Parser : Bool_Parser := (	User_object	=> Parser.User_Object,
+							New_Parser : Bool_Parser := (	User		=> Parser.User,
 											Descriptor	=> Desc,
 											Index 		=> 0 ); 
 						begin	
