@@ -47,7 +47,6 @@ with Ada.Text_IO;		use Ada.Text_IO;
 -- Ada Works --
 ---------------
 with KOW_Sec;			use KOW_Sec;
-with KOW_Sec.Authentication.DB;	use KOW_Sec.Authentication.DB;
 with KOW_Sec.Criterias_Util;	use KOW_Sec.Criterias_Util;
 
 
