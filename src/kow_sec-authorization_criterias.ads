@@ -39,7 +39,7 @@ with APQ;	use APQ;
 package KOW_Sec.Authorization_Criterias is
 
 
-	type Groups_Criteria is new KOW_Sec.Criteria with private;
+	type Groups_Criteria is new KOW_Sec.Criteria_Interface with private;
 
 	function Create_Groups_Criteria( Descriptor: in Criteria_Descriptor )
 		return Criteria'Class;
@@ -62,7 +62,7 @@ package KOW_Sec.Authorization_Criterias is
 
 
 
-	type Users_Criteria is new KOW_Sec.Criteria with private;
+	type Users_Criteria is new KOW_Sec.Criteria_Interface with private;
 
 	function Create_Users_Criteria( Descriptor: in Criteria_Descriptor )
 		return Criteria'Class;
@@ -85,7 +85,7 @@ package KOW_Sec.Authorization_Criterias is
 
 	
 	
-	type Expressions_Criteria is new KOW_Sec.Criteria with private;
+	type Expressions_Criteria is new KOW_Sec.Criteria_Interface with private;
 
 	function Create_Expressions_Criteria( Descriptor: in Criteria_Descriptor )
 		return Criteria'Class;
@@ -109,23 +109,23 @@ package KOW_Sec.Authorization_Criterias is
 
 private
 
-	type Groups_Criteria is new KOW_Sec.Criteria with 
+	type Groups_Criteria is new KOW_Sec.Criteria_Interface with 
 	-- Criteria of authorization based in name of groups. 
 	record
-		Descriptor : KOW_Sec.Criteria_Descriptor;
+		Descriptor : KOW_Sec.Criteria_Interface_Descriptor;
 	end record;
 	
-	type Users_Criteria is new KOW_Sec.Criteria with 
+	type Users_Criteria is new KOW_Sec.Criteria_Interface with 
 	-- Criteria of authorization based in usernames. 
 	record
-		Descriptor : KOW_Sec.Criteria_Descriptor;
+		Descriptor : KOW_Sec.Criteria_Interface_Descriptor;
 	end record;
 	
-	type Expressions_Criteria is new KOW_Sec.Criteria with 
+	type Expressions_Criteria is new KOW_Sec.Criteria_Interface with 
 	-- Criteria of authorization associating others criterias.
 	-- Example: USERS={adele|OgRo}&GROUPS={!design&(dev|admin)} 
 	record
-		Descriptor : KOW_Sec.Criteria_Descriptor;
+		Descriptor : KOW_Sec.Criteria_Interface_Descriptor;
 	end record;
 
 end KOW_Sec.Authorization_Criterias;
