@@ -236,6 +236,11 @@ package KOW_Sec is
 	end record;
 
 
+	Anonymous_User : constant User_Type := (
+					Identity	=> Anonymous_User_Identity,
+					others	=> <>
+				);
+
 	function Identity( User : in User_Type ) return String;
 	-- Return a string identifying the current user. Usually it's the username
 	-- but one could implement other methods, such as a numeric id for this user
