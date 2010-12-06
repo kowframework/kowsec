@@ -237,11 +237,14 @@ package KOW_Sec is
 
 		Contact_Info	: Contact_Info_Type;
 
+	end record;
 
+	type Logged_User_Type is new User_Type with record
 		Current_Manager	: Authentication_Manager_Access;
 		-- the authentication manager used to authenticate this instance
 		-- if null, the user hasn't been logged in
 	end record;
+
 
 	package User_Vectors is new Ada.Containers.Vectors(
 				Index_Type	=> Positive,
