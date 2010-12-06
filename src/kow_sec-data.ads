@@ -22,11 +22,11 @@ with KOW_Lib.File_System;		use KOW_Lib.File_System;
 with KOW_Sec;
 
 generic
-	Storage_Name : constant String;
+	Storage_Name : String;
 	type Index_Type is private;
-	function To_String( Index : in Index_Type ) return String;
+	with function To_String( Index : in Index_Type ) return String;
 	type Element_Type is private;
-	package Element_Vectors is new Ada.Containers.Vectors(
+	with package Element_Vectors is new Ada.Containers.Vectors(
 					Index_Type	=> Positive,
 					Element_Type	=> Element_Type
 				);

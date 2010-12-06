@@ -201,8 +201,9 @@ package body KOW_Sec is
 	-- Groups Management --
 	-----------------------
 	package Group_Roles_Data is new KOW_Sec.Data(
-				Storage_Name	=> "kow_sec/group_roles",
-				Key_Type	=> Group_type,
+				Storage_Name	=> "group_roles",
+				Index_Type	=> Group_type,
+				To_String	=> To_String,
 				Element_Type	=> Role_Type,
 				Element_Vectors	=> Role_Vectors
 			);
@@ -220,15 +221,26 @@ package body KOW_Sec is
 
 
 	package User_Groups_Data is new KOW_Sec.Data(
-				Key_Type	=> User_Identity_Type,
+				Storage_Name	=> "user_groups",
+				Index_Type	=> User_Identity_Type,
+				To_String	=> To_String,
 				Element_Type	=> Group_Type,
 				Element_Vectors	=> Group_Vectors
 			);
 
 	package User_Roles_Data is new KOW_Sec.Data(
-				Key_Type	=> User_IDentity_Type,
+				Storage_Name	=> "user_roles",
+				Index_Type	=> User_Identity_Type,
+				To_String	=> To_String,
 				Element_Type	=> Role_Type,
-				Element_Vectoes	=> Role_Vectors
+				Element_Vectors	=> Role_Vectors
+			);
+	package User_Data is new KOW_Sec.Data(
+				Storage_Name	=> "users",
+				Index_Type	=> User_Identity_type,
+				To_String	=> To_String,
+				Element_Type	=> User_Type,
+				Element_Vectors	=> User_Vectors
 			);
 
 	function Identity( User : in User_Type ) return String is
@@ -269,20 +281,49 @@ package body KOW_Sec is
 	end Gravatar_URL;
 
 	function Get_Groups( User : in User_Type ) return Group_Vectors.Vector is
-		-- TODO Get the groups for this user.
-		V : Group_Vectors.Vector;
 	begin
-		raise CONSTRAINT_ERROR with "not implemented yet";
-		return V;
+		return User_Groups_Data.Get_All( User.Identity );
 	end Get_Groups;
 
 
-	function Get_Roles( User : in User_Type; Combine_Group_Roles : in Boolean := False) return Role_Vectors.Vector is
-		-- TODO get all roles by a given user
+	function Get_Roles(
+				User			: in User_Type;
+				Combine_Group_Roles	: in Boolean := False
+			) return Role_Vectors.Vector is
 		-- if combine group roles is true, does exactly that given that only one instance of each role is returned
-		V : Role_Vectors.Vector;
+
+		use Role_Vectors;
+
+		V : Vector;
+
+
+		procedure Append_Once( Role : Role_Type ) is
+		begin
+			if not Contains( V, Role ) then
+				Append( V, Role );
+			end if;
+		end Append_Once;
+
+		procedure Append( From_Vector : in Vector ) is
+			procedure Iterator( C: in Cursor ) is
+			begin
+				Append_once( Element( C ) );
+			end Iterator;
+		begin
+			Iterate( From_Vector, Iterator'Access );
+		end Append;
+
+		procedure Groups_Iterator( C : Group_Vectors.Cursor ) is
+		begin
+			Append( Group_Roles_Data.Get_All( Group_Vectors.Element( C ) ) );
+		end Groups_Iterator;
+
 	begin
-		raise CONSTRAINT_ERROR with "not implemented yet";
+		V := User_Roles_Data.Get_All( User.Identity );
+		if Combine_Group_Roles then
+			Group_Vectors.Iterate( User_Groups_Data.Get_all( User.Identity ), Groups_Iterator'Access );
+		end if;
+
 		return V;
 	end Get_Roles;
 
@@ -293,11 +334,13 @@ package body KOW_Sec is
 	end Is_Anonymous;
 
 	function Get_User( User_Identity: in String ) return User_Type is
-		-- TODO get the user using the data backend
-		U : User_Type;
 	begin
-		raise CONSTRAINT_ERROR with "not implemented yet";
-		return U;
+		return Get_User( To_Identity( User_Identity ) );
+	end Get_User;
+
+	function Get_User( User_Identity: in User_Identity_Type ) return User_Type is
+	begin
+		return User_Data.Get_First( User_Identity, True );
 	end Get_User;
 
 

@@ -22,15 +22,29 @@ package body KOW_Sec.Data is
 	procedure Store(
 				Index	: in Index_Type;
 				Element	: in Element_Type
-			);
+			) is
+	begin
+		-- TODO :: store
+		null;
+	end Store;
 
 
 	function Get_First(
 				Index	: in Index_Type;
 				Uniduqe	: in Boolean := False
-			) return Element_Type;
+			) return Element_Type is
+		E : Element_Type;
+	begin
+		-- TODO :: Get_First
+		return E;
+	end Get_First;
 
 	
-	function Get_All( Index : in Index_Type ) return Element_Vectors.Vector;
+	function Get_All( Index : in Index_Type ) return Element_Vectors.Vector is
+		V: Element_Vectors.Vector;
+	begin
+		-- TODO :: get_All
+		return V;
+	end Get_All;
 
 end KOW_Sec.Data;

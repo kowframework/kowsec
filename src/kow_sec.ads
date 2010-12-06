@@ -241,6 +241,11 @@ package KOW_Sec is
 		-- if null, the user hasn't been logged in
 	end record;
 
+	package User_Vectors is new Ada.Containers.Vectors(
+				Index_Type	=> Positive,
+				Element_Type	=> User_Type
+			);
+
 
 	Anonymous_User : constant User_Type := (
 					Identity	=> Anonymous_User_Identity,
@@ -264,7 +269,10 @@ package KOW_Sec is
 	function Get_Groups( User : in User_Type ) return Group_Vectors.Vector;
 	-- Get the groups for this user.
 
-	function Get_Roles( User : in User_Type; Combine_Group_Roles : in Boolean := False) return Role_Vectors.Vector;
+	function Get_Roles(
+				User			: in User_Type;
+				Combine_Group_Roles	: in Boolean := False
+			) return Role_Vectors.Vector;
 	-- get all roles by a given user
 	-- if combine group roles is true, does exactly that given that only one instance of each role is returned
 
@@ -274,6 +282,8 @@ package KOW_Sec is
 	function Get_User( User_Identity: in String ) return User_Type;
 	-- get the user using the data backend
 
+	function Get_User( User_Identity: in User_Identity_Type ) return User_Type;
+	-- get the user using the data backend
 
 
 
