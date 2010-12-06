@@ -42,6 +42,7 @@ with Ada.Containers.Vectors;
 with Ada.Containers.Hashed_Maps;
 with Ada.Containers.Ordered_Maps;
 with Ada.Finalization;
+with Ada.Strings;
 with Ada.Strings.Fixed;
 with Ada.Strings.Unbounded;	use Ada.Strings.Unbounded;
 with Ada.Strings.Unbounded.Hash;
@@ -73,6 +74,16 @@ package body KOW_Sec is
 	-- The User Identity Type --
 	----------------------------
 	
+	----------------------------
+	-- The User Identity Type --
+	----------------------------
+	
+	function To_Identity( Str : in String ) return User_Identity_Type is
+		-- calculates the hash of this identity
+	begin
+		return User_Identity_Type( MD5.Calculate( Str ) );
+	end To_Identity;
+
 	function New_User_Identity return User_Identity_Type is
 		-- this will generate a brand new user identity
 		
@@ -113,7 +124,7 @@ package body KOW_Sec is
 		end The_Key;
 
 	begin
-		return To_Identity( MD5.Calculate( The_Key ) );
+		return To_Identity( The_Key );
 	end New_User_Identity;
 
 
@@ -219,6 +230,10 @@ package body KOW_Sec is
 	-- User Management --
 	---------------------
 
+	function To_String( Identity : in User_IDentity_Type ) return String is
+	begin
+		return String( Identity );
+	end to_String;
 
 	package User_Groups_Data is new KOW_Sec.Data(
 				Storage_Name	=> "user_groups",
@@ -266,8 +281,8 @@ package body KOW_Sec is
 		else
 			return KOW_Lib.Locales.Get_Formated_Full_Name(
 					L		=> Locale,
-					First_Name	=> To_String( User.First_Name ),
-					Last_Name	=> To_String( User.Last_Name )
+					First_Name	=> Ada.Strings.Fixed.Trim( User.First_Name, Ada.Strings.Both ),
+					Last_Name	=> Ada.Strings.Fixed.Trim( User.Last_Name, Ada.Strings.Both )
 				);
 		end if;
 	end Full_Name;
@@ -277,7 +292,7 @@ package body KOW_Sec is
 		-- return the gravatar URL for the given user
 		S : constant String := Ada.Strings.Fixed.Trim( Positive'Image( Size ), Ada.Strings.Both );
 	begin
-		return "http://www.gravatar.com/avatar/" & MD5.Calculate( To_String( User.Primary_Email ) ) & ".jpg?s=" & S;
+		return "http://www.gravatar.com/avatar/" & MD5.Calculate( Ada.Strings.Fixed.Trim( User.Primary_Email, Ada.Strings.Both ) ) & ".jpg?s=" & S;
 	end Gravatar_URL;
 
 	function Get_Groups( User : in User_Type ) return Group_Vectors.Vector is
@@ -330,7 +345,7 @@ package body KOW_Sec is
 	function Is_Anonymous( User : in User_type ) return Boolean is
 		-- Return true if this user isn't logged in.
 	begin
-		return Length( User.Identity ) = 0 or else User.Identity = Anonymous_User_Identity;
+		return User.Identity = ( 1 .. 32 => ' ' ) or else User.Identity = Anonymous_User_Identity;
 	end Is_Anonymous;
 
 	function Get_User( User_Identity: in String ) return User_Type is

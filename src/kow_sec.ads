@@ -64,9 +64,11 @@ package KOW_Sec is
 	-- The User Identity Type --
 	----------------------------
 	
-	type User_Identity_Type is new Unbounded_String;
+	type User_Identity_Type is new String( 1 .. 32 );
+	-- the user identity is a MD5 hash
 
-	function To_Identity( Str : in String ) return User_Identity_Type renames To_Unbounded_String;
+	function To_Identity( Str : in String ) return User_Identity_Type;
+	-- calculates the hash of this identity
 
 
 	function New_User_Identity return User_Identity_Type;
@@ -211,7 +213,7 @@ package KOW_Sec is
 
 	type Contact_Info_Type is record
 		Kind	: Info_Kind_Type;
-		Value	: Unbounded_String;
+		Value	: String( 1 .. 100 );
 	end record;
 
 	package Contact_Info_Vectors is new Ada.Containers.Vectors(
@@ -224,14 +226,14 @@ package KOW_Sec is
 
 
 		-- formal first and last names:
-		First_Name	: Unbounded_String;
-		Last_Name	: Unbounded_String;
+		First_Name	: String( 1 .. 50 );
+		Last_Name	: String( 1 .. 150 );
 
 
-		Nickname	: Unbounded_String;
+		Nickname	: String( 1 .. 50 );
 		-- how the user would like to be called
 
-		Primary_Email	: Unbounded_String;
+		Primary_Email	: String( 1 .. 100 );
 
 		Contact_Info	: Contact_Info_Type;
 

@@ -137,7 +137,7 @@ package body KOW_Sec.Authorization_Criterias is
 		-- Procedure evaluate to the Bool_Parse. Descriptor is
 		-- a username.
 	begin
-		if To_String( Descriptor ) = User.Identity then
+		if User_Identity_Type( To_String( Descriptor ) ) = User.Identity then
 			Ret_Code := True;
 		else
 			Ret_Code := False;

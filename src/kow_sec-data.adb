@@ -8,10 +8,16 @@
 -- this package works by storing and indexing private types
 
 
+--------------
+-- Ada 2005 --
+--------------
 with Ada.Containers.Vectors;
+with Ada.Sequential_IO;
 
 
 package body KOW_Sec.Data is
+
+	package Element_IO is new Ada.Sequential_IO( Element_Type );
 
 	function Storage_Path( Index : in Index_Type ) return String is
 	begin
