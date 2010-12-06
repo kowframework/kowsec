@@ -310,6 +310,11 @@ package body KOW_Sec is
 		return User_Groups_Data.Get_All( User.Identity );
 	end Get_Groups;
 
+	procedure Set_Groups( User : in User_Type; Groups : in Group_Vectors.Vector ) is
+	begin
+		User_Groups_Data.Store( User.Identity, Groups );
+	end Set_Groups;
+
 
 	function Get_Roles(
 				User			: in User_Type;

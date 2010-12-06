@@ -281,6 +281,8 @@ package KOW_Sec is
 	function Get_Groups( User : in User_Type ) return Group_Vectors.Vector;
 	-- Get the groups for this user.
 
+	procedure Set_Groups( User : in User_Type; Groups : in Group_Vectors.Vector );
+
 	function Get_Roles(
 				User			: in User_Type;
 				Combine_Group_Roles	: in Boolean := False

@@ -25,6 +25,15 @@ package body KOW_Sec.Data is
 	package Element_IO is new Ada.Sequential_IO( Element_Type );
 
 
+	procedure Delete( Key : in Key_Type ) is
+		use Ada.Directories;
+		Path : constant String := Storage_Path( Key );
+	begin
+		if Exists( Path ) then
+			Delete_File( Path );
+		end if;
+	end Delete;
+
 
 	procedure Do_Open(
 				File	: in out Element_IO.File_Type;
@@ -41,7 +50,7 @@ package body KOW_Sec.Data is
 	end Do_Open;
 
 
-	procedure Store(
+	procedure Append(
 				Key	: in Key_Type;
 				Element	: in Element_Type
 			) is
@@ -64,6 +73,35 @@ package body KOW_Sec.Data is
 		Do_Open( File, Append_File, Key );
 		Write( File, Element );
 		Close( File );
+	end Append;
+
+
+	procedure Store(
+				Key	: in Key_Type;
+				Elements: in Element_Vectors.Vector 
+			) is
+		use Element_IO;
+		File : File_Type;
+		procedure Iterator( C : Element_Vectors.Cursor ) is
+		begin
+			Write( File, Element_Vectors.Element( C ) );
+		end Iterator;
+	begin
+		Delete( Key );
+		Do_Open( File, Out_File, Key );
+		Element_Vectors.Iterate( Elements, Iterator'Access );
+		Close( File );
+	end Store;
+
+
+	procedure Store(
+				Key	: in Key_Type;
+				Element	: in Element_Type
+			) is
+		V : Element_Vectors.Vector;
+	begin
+		Element_Vectors.Append( V, Element );
+		Store( Key, V );
 	end Store;
 
 

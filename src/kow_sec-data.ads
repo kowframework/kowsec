@@ -44,10 +44,21 @@ package KOW_Sec.Data is
 	function Storage_Path( Key : in Key_Type ) return String;
 	
 
+	procedure Append(
+				Key	: in Key_Type;
+				Element	: in Element_Type
+			);
+
 	procedure Store(
 				Key	: in Key_Type;
 				Element	: in Element_Type
 			);
+
+	procedure Store(
+				Key	: in Key_Type;
+				Elements: in Element_Vectors.Vector 
+			);
+
 
 	function Get_First(
 				Key	: in Key_Type;
