@@ -235,6 +235,11 @@ package body KOW_Sec is
 		return Group_Roles_Data.Get_All( Group );
 	end Get_Roles;
 
+	procedure Set_Roles( Group : in Group_Type; Roles : in Role_Vectors.Vector ) is
+	begin
+		Group_Roles_Data.Store( Group, Roles );
+	end Set_Roles;
+
 
 	---------------------
 	-- User Management --
@@ -357,6 +362,12 @@ package body KOW_Sec is
 		return V;
 	end Get_Roles;
 
+
+	procedure Set_Roles( User : in User_Type; Roles : in Role_Vectors.Vector ) is
+	begin
+		User_Roles_Data.Store( User.Identity, Roles );
+	end Set_Roles;
+
 	function Is_Anonymous( User : in User_type ) return Boolean is
 		-- Return true if this user isn't logged in.
 	begin
@@ -375,14 +386,11 @@ package body KOW_Sec is
 
 
 
-
-
-
-
-
-
-
-
+	procedure Store_User( User : in User_Type ) is
+		-- store the user using the backend
+	begin
+		User_Data.Store( User.Identity, User );
+	end Store_User;
 
 
 

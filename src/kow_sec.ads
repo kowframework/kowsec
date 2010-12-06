@@ -299,6 +299,8 @@ package KOW_Sec is
 	function Get_User( User_Identity: in User_Identity_Type ) return User_Type;
 	-- get the user using the data backend
 
+	procedure Store_User( User : in User_Type );
+	-- store the user using the backend
 
 
 	----------------------------------------
