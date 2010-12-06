@@ -48,6 +48,12 @@ with Ada.Strings.Unbounded;	use Ada.Strings.Unbounded;
 with Ada.Strings.Unbounded.Hash;
 with Ada.Numerics.Discrete_Random;
 
+----------
+-- GNAT --
+----------
+with GNAT.MD5;
+
+
 -------------------
 -- KOW Framework --
 -------------------
@@ -62,7 +68,6 @@ with KOW_Sec.Data;
 -------------
 -- Contrib --
 -------------
-with MD5;
 
 
 
@@ -78,10 +83,20 @@ package body KOW_Sec is
 	-- The User Identity Type --
 	----------------------------
 	
-	function To_Identity( Str : in String ) return User_Identity_Type is
+
+	function MD5_Sign( Str : in String ) return String is
+
 		-- calculates the hash of this identity
+		use GNAT.MD5;
+		C : Context;
 	begin
-		return User_Identity_Type( MD5.Calculate( Str ) );
+		Update( C, Str );
+		return Digest( C );
+	end MD5_Sign;
+
+	function To_Identity( Str : in String ) return User_Identity_Type is
+	begin
+		return User_Identity_Type( MD5_Sign( Str ) );
 	end To_Identity;
 
 	function New_User_Identity return User_Identity_Type is
@@ -307,7 +322,7 @@ package body KOW_Sec is
 		-- return the gravatar URL for the given user
 		S : constant String := Ada.Strings.Fixed.Trim( Positive'Image( Size ), Ada.Strings.Both );
 	begin
-		return "http://www.gravatar.com/avatar/" & MD5.Calculate( Ada.Strings.Fixed.Trim( User.Primary_Email, Ada.Strings.Both ) ) & ".jpg?s=" & S;
+		return "http://www.gravatar.com/avatar/" & MD5_Sign( Ada.Strings.Fixed.Trim( User.Primary_Email, Ada.Strings.Both ) ) & ".jpg?s=" & S;
 	end Gravatar_URL;
 
 	function Get_Groups( User : in User_Type ) return Group_Vectors.Vector is
@@ -472,4 +487,7 @@ package body KOW_Sec is
 
 	end Criteria_Registry;
 
+begin
+
+	Anonymous_User_Identity := To_Identity( "anonymous" );
 end KOW_Sec;

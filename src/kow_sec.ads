@@ -53,10 +53,6 @@ with KOW_Lib.File_System;		use KOW_Lib.File_System;
 with KOW_Lib.UString_Ordered_Maps;
 
 
--------------
--- Contrib --
--------------
-with MD5;
 
 package KOW_Sec is
 
@@ -81,7 +77,8 @@ package KOW_Sec is
 	-- this will generate a brand new user identity
 
 
-	Anonymous_User_Identity : constant User_Identity_Type := User_Identity_Type( MD5.Calculate( "anonymous" ) );
+	Anonymous_User_Identity : User_Identity_Type := ( others => ' ' );
+	-- it is initialized in the elaboration
 
 
 	-------------------------------
@@ -112,7 +109,7 @@ package KOW_Sec is
 
 	function Has_User(
 				Manager		: in Authentication_Manager_Interface;
-				User_Identity	: in String
+				User_Identity	: in User_Identity_Type
 			) return Boolean is abstract;
 	-- check if a given user can be authenticated by the given manager
 
