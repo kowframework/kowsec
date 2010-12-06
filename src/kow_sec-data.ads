@@ -12,6 +12,7 @@
 -- Ada 2005 --
 --------------
 with Ada.Containers.Vectors;
+with Ada.Sequential_IO;
 
 
 -------------------
@@ -38,6 +39,8 @@ package KOW_Sec.Data is
 	Storage_Root : constant String := KOW_Sec.Storage_Root / Storage_Name;
 
 
+
+
 	function Storage_Path( Index : in Index_Type ) return String;
 	
 
@@ -48,9 +51,12 @@ package KOW_Sec.Data is
 
 	function Get_First(
 				Index	: in Index_Type;
-				Uniduqe	: in Boolean := False
+				Unique	: in Boolean := False
 			) return Element_Type;
 	
 	function Get_All( Index : in Index_Type ) return Element_Vectors.Vector;
+
+private
+	package Element_IO is new Ada.Sequential_IO( Element_Type );
 
 end KOW_Sec.Data;
