@@ -5,7 +5,7 @@
 
 -- Data backend for KOW Sec --
 
--- this package works by storing and indexing private types
+-- this package works by storing and Keying private types
 
 
 --------------
@@ -17,32 +17,32 @@ with Ada.Directories;
 package body KOW_Sec.Data is
 
 
-	function Storage_Path( Index : in Index_Type ) return String is
+	function Storage_Path( Key : in Key_Type ) return String is
 	begin
-		return Storage_Root / To_String( Index );
+		return Storage_Root / To_String( Key );
 	end Storage_Path;
 
+	package Element_IO is new Ada.Sequential_IO( Element_Type );
 
 
 
 	procedure Do_Open(
-				Index	: in     Index_type;
 				File	: in out Element_IO.File_Type;
-				Mode	: in     Element_IO.File_Mode
+				Mode	: in     Element_IO.File_Mode;
+				Key	: in     Key_type
 			) is
-		use Element_IO;
-		Path : constant String := Storage_Path( Index );
+		Path : constant String := Storage_Path( Key );
 	begin
 		if Ada.Directories.Exists( Path ) then
-			Open( Mode, File, Path );
+			Element_IO.Open( File, Mode, Path );
 		else
-			Create( Mode, File, Path );
+			Element_IO.Create( File, Mode, Path );
 		end if;
 	end Do_Open;
 
 
 	procedure Store(
-				Index	: in Index_Type;
+				Key	: in Key_Type;
 				Element	: in Element_Type
 			) is
 		use Element_IO;
@@ -50,7 +50,7 @@ package body KOW_Sec.Data is
 
 		Item : Element_Type;
 	begin
-		Do_Open( Index, File, In_File );
+		Do_Open( File, In_File, Key );
 
 		while not End_Of_File( File ) loop
 			Read( File, Item );
@@ -61,14 +61,14 @@ package body KOW_Sec.Data is
 		end loop;
 
 		Close( File );
-		Do_Open( Index, File, Append_File );
+		Do_Open( File, Append_File, Key );
 		Write( File, Element );
 		Close( File );
 	end Store;
 
 
 	function Get_First(
-				Index	: in Index_Type;
+				Key	: in Key_Type;
 				Unique	: in Boolean := False
 			) return Element_Type is
 		use Element_IO;
@@ -76,12 +76,12 @@ package body KOW_Sec.Data is
 		File : File_Type;
 	begin
 
-		Do_Open( Index, File, In_File );
+		Do_Open( File, In_File, Key );
 		Read( File, item );
 		
 		if Unique and then not End_Of_File( File ) then
 			Close( File );
-			raise CONSTRAINT_ERROR with "more than one item at [" & Storage_Name & "::" & To_String( Index ) & "]";
+			raise CONSTRAINT_ERROR with "more than one item at [" & Storage_Name & "::" & To_String( Key ) & "]";
 		else
 			Close( File );
 		end if;
@@ -90,13 +90,13 @@ package body KOW_Sec.Data is
 	end Get_First;
 
 	
-	function Get_All( Index : in Index_Type ) return Element_Vectors.Vector is
+	function Get_All( Key : in Key_Type ) return Element_Vectors.Vector is
 		use Element_IO;
 		V : Element_Vectors.Vector;
 		File : File_Type;
 		Item : Element_Type;
 	begin
-		Do_Open( Index, File, In_File );
+		Do_Open( File, In_File, Key );
 
 		while not End_Of_File( File ) loop
 			Read( File, Item );

@@ -24,8 +24,8 @@ with KOW_Sec;
 
 generic
 	Storage_Name : String;
-	type Index_Type is private;
-	with function To_String( Index : in Index_Type ) return String;
+	type Key_Type is private;
+	with function To_String( Key : in Key_Type ) return String;
 	type Element_Type is private;
 	with package Element_Vectors is new Ada.Containers.Vectors(
 					Index_Type	=> Positive,
@@ -41,22 +41,19 @@ package KOW_Sec.Data is
 
 
 
-	function Storage_Path( Index : in Index_Type ) return String;
+	function Storage_Path( Key : in Key_Type ) return String;
 	
 
 	procedure Store(
-				Index	: in Index_Type;
+				Key	: in Key_Type;
 				Element	: in Element_Type
 			);
 
 	function Get_First(
-				Index	: in Index_Type;
+				Key	: in Key_Type;
 				Unique	: in Boolean := False
 			) return Element_Type;
 	
-	function Get_All( Index : in Index_Type ) return Element_Vectors.Vector;
-
-private
-	package Element_IO is new Ada.Sequential_IO( Element_Type );
+	function Get_All( Key : in Key_Type ) return Element_Vectors.Vector;
 
 end KOW_Sec.Data;
