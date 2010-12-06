@@ -56,6 +56,7 @@ with KOW_Lib.UString_Ordered_Maps;
 
 with KOW_Sec.Authorization_Criterias;
 pragma Elaborate( KOW_Sec.Authorization_Criterias );
+with KOW_Sec.Data;
 
 -------------
 -- Contrib --
@@ -163,10 +164,11 @@ package body KOW_Sec is
 	-- Roles Management --
 	----------------------
 
+
 	function Identity( Role : in Role_type ) return Role_Identity_Type is
 		-- returns Application::Role
 	begin
-		return Role_Identity_Type( Role.Application ) & "::" & Role_IDentity_Type( Role.Role );
+		return Role_Identity_Type( Role.Application ) & "::" & Role_Identity_Type( Role.Role );
 	end Identity;
 
 
@@ -198,14 +200,17 @@ package body KOW_Sec is
 	-----------------------
 	-- Groups Management --
 	-----------------------
-	
+	package Group_Roles_Data is new KOW_Sec.Data(
+				Storage_Name	=> "kow_sec/group_roles",
+				Key_Type	=> Group_type,
+				Element_Type	=> Role_Type,
+				Element_Vectors	=> Role_Vectors
+			);
+
 
 	function Get_Roles( Group : in Group_Type ) return Role_Vectors.Vector is
-		-- TODO return the roles assigned to a given group
-		V : Role_Vectors.Vector;
 	begin
-		raise CONSTRAINT_ERROR with "not implemented yet";
-		return V;
+		return Group_Roles_Data.Get_All( Group );
 	end Get_Roles;
 
 
@@ -213,6 +218,18 @@ package body KOW_Sec is
 	-- User Management --
 	---------------------
 
+
+	package User_Groups_Data is new KOW_Sec.Data(
+				Key_Type	=> User_Identity_Type,
+				Element_Type	=> Group_Type,
+				Element_Vectors	=> Group_Vectors
+			);
+
+	package User_Roles_Data is new KOW_Sec.Data(
+				Key_Type	=> User_IDentity_Type,
+				Element_Type	=> Role_Type,
+				Element_Vectoes	=> Role_Vectors
+			);
 
 	function Identity( User : in User_Type ) return String is
 		-- Return a string identifying the current user. Usually it's the username
@@ -276,7 +293,7 @@ package body KOW_Sec is
 	end Is_Anonymous;
 
 	function Get_User( User_Identity: in String ) return User_Type is
-		-- get the user using the data backend
+		-- TODO get the user using the data backend
 		U : User_Type;
 	begin
 		raise CONSTRAINT_ERROR with "not implemented yet";

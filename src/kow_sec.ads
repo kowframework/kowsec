@@ -37,11 +37,11 @@
 --------------
 -- Ada 2005 --
 --------------
-with Ada.Calendar;		use Ada.Calendar;
+with Ada.Calendar;			use Ada.Calendar;
 with Ada.Containers.Vectors;
 with Ada.Containers.Ordered_Maps;
 with Ada.Finalization;
-with Ada.Strings.Unbounded;	use Ada.Strings.Unbounded;
+with Ada.Strings.Unbounded;		use Ada.Strings.Unbounded;
 with Ada.Containers.Hashed_Maps;
 with Ada.Strings.Unbounded.Hash;
 
@@ -49,10 +49,16 @@ with Ada.Strings.Unbounded.Hash;
 -- KOW Framework --
 -------------------
 with KOW_Lib.Locales;
+with KOW_Lib.File_System;		use KOW_Lib.File_System;
 with KOW_Lib.UString_Ordered_Maps;
 
 package KOW_Sec is
 
+	--------------------------
+	-- Constant Deffinition --
+	--------------------------
+	Storage_Root : constant String := Get_Working_Dir / "appdata" / "kow_sec";
+	-- where the KOW_Sec.Data will store their files
 	
 	----------------------------
 	-- The User Identity Type --
