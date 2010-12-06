@@ -69,7 +69,7 @@ package body KOW_Sec.Authorization_Criterias is
 	begin
 		Groups := KOW_Sec.Get_Groups( User );
 	
-		if Group_Vectors.Contains(Groups, Group_Type( Descriptor ) ) then
+		if Group_Vectors.Contains(Groups, Group_Type( To_String( Descriptor ) ) ) then
 			Ret_Code := True;
 		else
 			Ret_Code := False;

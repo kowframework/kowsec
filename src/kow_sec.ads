@@ -52,6 +52,12 @@ with KOW_Lib.Locales;
 with KOW_Lib.File_System;		use KOW_Lib.File_System;
 with KOW_Lib.UString_Ordered_Maps;
 
+
+-------------
+-- Contrib --
+-------------
+with MD5;
+
 package KOW_Sec is
 
 	--------------------------
@@ -75,7 +81,7 @@ package KOW_Sec is
 	-- this will generate a brand new user identity
 
 
-	Anonymous_User_Identity : constant User_Identity_Type := To_Identity( "anonymous" );
+	Anonymous_User_Identity : constant User_Identity_Type := User_Identity_Type( MD5.Calculate( "anonymous" ) );
 
 
 	-------------------------------
@@ -141,9 +147,9 @@ package KOW_Sec is
 	-- Roles Management --
 	----------------------
 
-	type Role_Identity_Type is new Unbounded_String;
+	type Role_Identity_Type is new String( 1 .. 102 );
 
-	function To_Identity( Str : in String ) return Role_Identity_Type renames To_Unbounded_String;
+	function To_Identity( Str : in String ) return Role_Identity_Type;
 
 	type Role_Type is record
 		-- represent some sort of action a user can perform.
@@ -151,8 +157,8 @@ package KOW_Sec is
 		-- each available role must be registered by the application declaring it
 		-- so it can become available for testing.
 		
-		Application	: Unbounded_String;
-		Role		: Unbounded_String;
+		Application	: String( 1 .. 50 );
+		Role		: String( 1 .. 50 );
 	end record;
 
 
@@ -172,7 +178,6 @@ package KOW_Sec is
 
 	protected Roles_Registry is
 		procedure Register( Application, Role : in String );
-		procedure Register( Application, Role : in Unbounded_String );
 		procedure Register( Role : in Role_Type );
 		
 
@@ -188,7 +193,10 @@ package KOW_Sec is
 	-----------------------
 	
 
-	type Group_Type is new Unbounded_String;
+	type Group_Type is new String( 1 .. 50 );
+
+	function To_String( Group : Group_Type ) return String;
+	-- get the trimmed version of group_type
 
 
 	function Get_Roles( Group : in Group_Type ) return Role_Vectors.Vector;
@@ -216,10 +224,8 @@ package KOW_Sec is
 		Value	: String( 1 .. 100 );
 	end record;
 
-	package Contact_Info_Vectors is new Ada.Containers.Vectors(
-					Index_Type	=> Positive,
-					Element_Type	=> Contact_Info_Type
-				);
+
+	type Contact_Info_Array is array ( Positive range <> ) of Contact_Info_Type;
 
 	type User_Type is record
 		Identity	: User_Identity_Type := Anonymous_User_Identity;
@@ -235,11 +241,12 @@ package KOW_Sec is
 
 		Primary_Email	: String( 1 .. 100 );
 
-		Contact_Info	: Contact_Info_Type;
-
+		Contact_Info	: Contact_Info_Array( 1 .. 10 );
 	end record;
 
-	type Logged_User_Type is new User_Type with record
+	type Logged_User_Type is record
+		User		: User_Type;
+
 		Current_Manager	: Authentication_Manager_Access;
 		-- the authentication manager used to authenticate this instance
 		-- if null, the user hasn't been logged in

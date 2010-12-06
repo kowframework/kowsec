@@ -175,21 +175,23 @@ package body KOW_Sec is
 	-- Roles Management --
 	----------------------
 
+	function To_Identity( Str : in String ) return Role_Identity_Type is
+	begin
+		return Role_Identity_Type( Str );
+	end To_Identity;
 
 	function Identity( Role : in Role_type ) return Role_Identity_Type is
+		use Ada.Strings;
 		-- returns Application::Role
 	begin
-		return Role_Identity_Type( Role.Application ) & "::" & Role_Identity_Type( Role.Role );
+		return Role_Identity_Type(
+					Fixed.Trim( Role.Application, Both ) & "::" & Fixed.Trim( Role.Role, Both )
+				);
 	end Identity;
 
 
 	protected body Roles_Registry is
 		procedure Register( Application, Role : in String ) is
-		begin
-			Register( To_Unbounded_String( Application ), To_Unbounded_String( Role ) );
-		end Register;
-
-		procedure Register( Application, Role : in Unbounded_String ) is
 		begin
 			Register( Role_Type'( Application => Application, Role => Role ) );
 		end Register;
@@ -211,6 +213,14 @@ package body KOW_Sec is
 	-----------------------
 	-- Groups Management --
 	-----------------------
+
+
+	function To_String( Group : Group_Type ) return String is
+		-- get the trimmed version of group_type
+	begin
+		return Ada.Strings.Fixed.Trim( String( Group ), Ada.Strings.Both );
+	end To_String;
+
 	package Group_Roles_Data is new KOW_Sec.Data(
 				Storage_Name	=> "group_roles",
 				Index_Type	=> Group_type,
@@ -448,11 +458,5 @@ package body KOW_Sec is
 		end Create_Criteria;
 
 	end Criteria_Registry;
-
-
-
-
-
-
 
 end KOW_Sec;
