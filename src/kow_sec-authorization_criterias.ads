@@ -31,7 +31,7 @@
 
 
 ------------------------------------------------------------------------------
--- This is the KOW_Sec.Authorization_Criterias package                      --
+-- This is the KOW_Sec.Authorization_Criteria_Types package                      --
 ------------------------------------------------------------------------------
 
 
@@ -41,106 +41,118 @@
 ------------------------------------------------------------------------------
 
 
-package KOW_Sec.Authorization_Criterias is
-	pragma Elaborate_Body( KOW_Sec.Authorization_Criterias );
+package KOW_Sec.Authorization_Criteria_Types is
+	pragma Elaborate_Body( KOW_Sec.Authorization_Criteria_Types );
 
 
-	type Groups_Criteria is new KOW_Sec.Criteria_Interface with private;
 
-	function Create_Groups_Criteria( Descriptor: in Criteria_Descriptor ) return Criteria_Interface'Class;
-		-- create a GROUPS criteria to be matched
-		-- based on the given Descriptor.
+	--------------------
+	-- ROLES CRITERIA --
+	--------------------
 
-	overriding
-	function Get_Name( Criteria_Object: in Groups_Criteria ) return String;
-		-- return a String representing the criteria
-		-- it's the same string that will be used by the methods:
-		--      Register( Name, Factory )
-		--      Create_Criteria( Name, Patern ) return Criteria_Interface'Class;
+	type Roles_Criteria_Type is new KOW_Sec.Criteria_Interface with private;
+	-- matches user roles (including the group roles)
+
+	function Create_Roles_Criteria( Descriptor : in Criteria_Descriptor ) return Criteria_Interface'Class;
 
 	overriding
-	function Describe( Criteria_Object: in Groups_Criteria ) return String;
-	-- return a string describing the current criteria
+	function Get_Name( Criteria : Roles_Criteria_Type ) return String;
+	-- return ROLE
+
+
+	overriding
+	function Describe( Criteria : Roles_Criteria_Type ) return String;
+
+	overriding
+	procedure Require(
+				User	: in out User_Type;
+				Criteria: in     Roles_Criteria_Type
+			);
+
+
+	---------------------
+	-- GROUPS CRITERIA --
+	---------------------
+
+	type Group_Criteria_Type is new KOW_Sec.Criteria_Interface with private;
+	-- matches group names
+
+	function Create_Group_Criteria( Descriptor: in Criteria_Descriptor ) return Criteria_Interface'Class;
+	-- return GROUP
+
+	overriding
+	function Get_Name( Criteria: in Group_Criteria_Type ) return String;
+
+	overriding
+	function Describe( Criteria: in Group_Criteria_Type ) return String;
 	
 	overriding
 	procedure Require(
 				User	: in out User_Type; 
-				Criteria_Object	: in Groups_Criteria
+				Criteria: in     Group_Criteria_Type
 			);
-	-- matches the user against some criteria.
-	-- raise ACCESS_DENIED if the user fails this criteria.
 
 
 
-	type Users_Criteria is new KOW_Sec.Criteria_Interface with private;
+	-------------------
+	-- USER CRITERIA --
+	-------------------
 
-	function Create_Users_Criteria( Descriptor: in Criteria_Descriptor ) return Criteria_Interface'Class;
-	-- create a USERS criteria to be matched
-	-- based on the given Descriptor.
+	type User_Criteria_Type is new KOW_Sec.Criteria_Interface with private;
+	-- matches the user identity
 
-	overriding
-	function Get_Name( Criteria_Object: in Users_Criteria ) return String;
-	-- return a String representing the criteria
-	-- it's the same string that will be used by the methods:
-	--      Register( Name, Factory )
-	--      Create_Criteria( Name, Patern ) return Criteria_Interface'Class;
+	function Create_User_Criteria( Descriptor: in Criteria_Descriptor ) return Criteria_Interface'Class;
 
 	overriding
-	function Describe( Criteria_Object: in Users_Criteria ) return String;
-	-- return a string describing the current criteria
+	function Get_Name( Criteria: in User_Criteria_Type ) return String;
+	-- return USER
+
+	overriding
+	function Describe( Criteria: in User_Criteria_Type ) return String;
 	
 	overriding
-	procedure Require(	User	: in out User_Type;
-				Criteria_Object	: in Users_Criteria );
-	-- matches the user against some criteria.
-	-- raise ACCESS_DENIED if the user fails this criteria.
+	procedure Require(
+				User	: in out User_Type;
+				Criteria: in     User_Criteria_Type
+			);
 
+
+
+	-------------------------
+	-- EXPRESSION CRITERIA --
+	-------------------------
 	
 	
-	type Expressions_Criteria is new KOW_Sec.Criteria_Interface with private;
+	type Expression_Criteria_Type is new KOW_Sec.Criteria_Interface with private;
+	-- Criteria of authorization associating others criterias.
+	-- Example: USERS={adele|OgRo}&GROUPS={!design&(dev|admin)} 
 
-	function Create_Expressions_Criteria( Descriptor: in Criteria_Descriptor )
-		return Criteria_Interface'Class;
-	-- create a EXPRESSIONS criteria to be matched
-	-- based on the given Descriptor.
-
-	overriding
-	function Get_Name( Criteria_Object: in Expressions_Criteria ) return String;
-	-- return a String representing the criteria
-	-- it's the same string that will be used by the methods:
-	--      Register( Name, Factory )
-	--      Create_Criteria( Name, Patern ) return Criteria_Interface'Class;
+	function Create_Expression_Criteria( Descriptor: in Criteria_Descriptor ) return Criteria_Interface'Class;
 
 	overriding
-	function Describe( Criteria_Object: in Expressions_Criteria ) return String;
-	-- return a string describing the current criteria
+	function Get_Name( Criteria: in Expression_Criteria_Type ) return String;
+	-- return EXPRESSION
+
+	overriding
+	function Describe( Criteria: in Expression_Criteria_Type ) return String;
 	
 	overriding
 	procedure Require(	User	: in out User_Type; 
-				Criteria_Object	: in Expressions_Criteria );
-	-- matches the user against some criteria.
-	-- raise ACCESS_DENIED if the user fails this criteria.
+				Criteria	: in Expression_Criteria_Type );
 
 
 private
 
-	type Groups_Criteria is new KOW_Sec.Criteria_Interface with 
-	-- Criteria of authorization based in name of groups. 
-	record
+	type Group_Criteria_Type is new KOW_Sec.Criteria_Interface with record
 		Descriptor : KOW_Sec.Criteria_Descriptor;
 	end record;
 	
-	type Users_Criteria is new KOW_Sec.Criteria_Interface with 
-	-- Criteria of authorization based in usernames. 
-	record
+	type User_Criteria_Type is new KOW_Sec.Criteria_Interface with record
 		Descriptor : KOW_Sec.Criteria_Descriptor;
 	end record;
 	
-	type Expressions_Criteria is new KOW_Sec.Criteria_Interface with 
-	-- Criteria of authorization associating others criterias.
-	-- Example: USERS={adele|OgRo}&GROUPS={!design&(dev|admin)} 
-	record
+	type Expression_Criteria_Type is new KOW_Sec.Criteria_Interface with record
 		Descriptor : KOW_Sec.Criteria_Descriptor;
 	end record;
 
-end KOW_Sec.Authorization_Criterias;
+end KOW_Sec.Authorization_Criteria_Types;

@@ -52,6 +52,29 @@ with KOW_Sec.Criterias_Util;	use KOW_Sec.Criterias_Util;
 
 package body KOW_Sec.Authorization_Criterias is
 
+
+	-----------
+	-- Roles --
+	-----------
+
+	type Roles_Criteria_Type is new KOW_Sec.Criteria_Interface with private;
+
+	function Create_Roles_Criteria( Descriptor : in Criteria_Descriptor ) return Criteria_Interface'Class;
+
+	overriding
+	function Get_Name( Criteria : Roles_Criteria_Type ) return String;
+
+
+	overriding
+	function Describe( Criteria : Roles_Criteria_Type ) return String;
+
+	overriding
+	procedure Require(
+				User	: in out User_Type;
+				Criteria: in     Roles_Criteria_Type
+			);
+
+
 	---------------------
 	-- GROUPS CRITERIA --
 	---------------------
@@ -79,23 +102,23 @@ package body KOW_Sec.Authorization_Criterias is
 	package Groups_Parse is new Bool_Parse( Pattern		=> Criteria_Descriptor,
 						Evaluate	=> Eval_Groups); 
 	
-	function Create_Groups_Criteria( Descriptor: in Criteria_Descriptor )
+	function Create_Group_Criteria( Descriptor: in Criteria_Descriptor )
 		return Criteria_Interface'Class is
 		-- create a GROUPS criteria to be matched
 		-- based on the given Descriptor.
-		My_Criteria: Groups_Criteria := ( Descriptor => Descriptor );
+		My_Criteria: Group_Criteria_Type := ( Descriptor => Descriptor );
 	begin		
 		return My_Criteria;
-	end Create_Groups_Criteria;
+	end Create_Group_Criteria;
 
 
 	procedure Require(	User	: in out User_Type;
-				Criteria_Object	: in Groups_Criteria ) is
+				Criteria	: in Group_Criteria_Type ) is
 		use Groups_Parse;
 
 		Parser : Bool_Parser := (
 					User		=> User,
-					Descriptor	=> Criteria_Object.Descriptor,
+					Descriptor	=> Criteria.Descriptor,
 					Index		=> 0
 				);
 		Exp : Expression_Access;
@@ -106,12 +129,12 @@ package body KOW_Sec.Authorization_Criterias is
 
 		if not Ret_Value then
 			raise ACCESS_DENIED with "Reason: " &
-			To_String( Criteria_Object.Descriptor );
+			To_String( Criteria.Descriptor );
 		end if;
 	end Require;
 	
 
-	function Get_Name( Criteria_Object: in Groups_Criteria ) return String is
+	function Get_Name( Criteria: in Group_Criteria_Type ) return String is
 		-- return a String representing the criteria
 		-- it's the same string that will be used by the methods:
 		--      Register( Name, Factory )
@@ -121,10 +144,10 @@ package body KOW_Sec.Authorization_Criterias is
 	end Get_Name;
 
 
-	function Describe( Criteria_Object: in Groups_Criteria ) return String is
+	function Describe( Criteria: in Group_Criteria_Type ) return String is
 		-- return a string describing the current criteria
 	begin
-		return To_String( Criteria_Object.Descriptor );
+		return To_String( Criteria.Descriptor );
 	end Describe;
 
 	--------------------
@@ -147,24 +170,24 @@ package body KOW_Sec.Authorization_Criterias is
 	package Users_Parse is new Bool_Parse(	Pattern		=> Criteria_Descriptor,
 						Evaluate	=> Eval_Users); 
 	
-	function Create_Users_Criteria( Descriptor: in Criteria_Descriptor )
+	function Create_User_Criteria( Descriptor: in Criteria_Descriptor )
 		return Criteria_Interface'Class is
-		-- create a Users_Criteria to be matched
+		-- create a User_Criteria_Type to be matched
 		-- based on the given Descriptor.
 		
-		My_Criteria: Users_Criteria := ( Descriptor => Descriptor );
+		My_Criteria: User_Criteria_Type := ( Descriptor => Descriptor );
 	begin
 		return My_Criteria;
-	end Create_Users_Criteria;
+	end Create_User_Criteria;
 
 
 	procedure Require(	User: in out User_Type; 
-				Criteria_Object: in Users_Criteria ) is
+				Criteria: in User_Criteria_Type ) is
 		use Users_Parse;
 		
 		Parser: Bool_Parser := (
 				User	=> User,
-				Descriptor	=> Criteria_Object.Descriptor,
+				Descriptor	=> Criteria.Descriptor,
 				Index		=> 0 );
 		Exp : Expression_Access;
 		Ret_Value : Boolean := False;
@@ -175,12 +198,12 @@ package body KOW_Sec.Authorization_Criterias is
 
 		if not Ret_Value then
 			raise ACCESS_DENIED with "Reason: " &
-			To_String( Criteria_Object.Descriptor );
+			To_String( Criteria.Descriptor );
 		end if;
 	end Require;
 	
 	
-	function Get_Name( Criteria_Object: in Users_Criteria ) return String is
+	function Get_Name( Criteria: in User_Criteria_Type ) return String is
 		-- return a String representing the criteria
 		-- it's the same string that will be used by the methods:
 		--      Register( Name, Factory )
@@ -190,10 +213,10 @@ package body KOW_Sec.Authorization_Criterias is
 	end Get_Name;
 
 
-	function Describe( Criteria_Object: in Users_Criteria ) return String is
+	function Describe( Criteria: in User_Criteria_Type ) return String is
 		-- return a string describing the current criteria
 	begin
-		return To_String( Criteria_Object.Descriptor );
+		return To_String( Criteria.Descriptor );
 	end Describe;
 
 
@@ -272,24 +295,24 @@ package body KOW_Sec.Authorization_Criterias is
 	package Expressions_Parse is new Bool_Parse(	Pattern		=> Criteria_Descriptor,
 							Evaluate	=> Eval_Expressions); 
 	
-	function Create_Expressions_Criteria( Descriptor: in Criteria_Descriptor )
+	function Create_Expression_Criteria( Descriptor: in Criteria_Descriptor )
 		return Criteria_Interface'Class is
-		-- create a Expressions_Criteria to be matched
+		-- create a Expression_Criteria_Type to be matched
 		-- based on the given Descriptor.
 		
-		My_Criteria: Expressions_Criteria := (Descriptor => Descriptor );
+		My_Criteria: Expression_Criteria_Type := (Descriptor => Descriptor );
 	begin
 		return My_Criteria;
-	end Create_Expressions_Criteria;
+	end Create_Expression_Criteria;
 
 
 	procedure Require(	User	: in out User_Type;
-				Criteria_Object	: in Expressions_Criteria ) is
+				Criteria	: in Expression_Criteria_Type ) is
 		use Expressions_Parse;
 	
 		Parser: Bool_Parser := (
 				User	=> User,
-				Descriptor	=> Criteria_Object.Descriptor,
+				Descriptor	=> Criteria.Descriptor,
 				Index		=> 0 );
 		Exp : Expression_Access;
 		Ret_Value : Boolean := False;
@@ -299,12 +322,12 @@ package body KOW_Sec.Authorization_Criterias is
 
 		if not Ret_Value then
 			raise ACCESS_DENIED with "Reason: " &
-			To_String( Criteria_Object.Descriptor );
+			To_String( Criteria.Descriptor );
 		end if;
 	end Require;
 	
 	
-	function Get_Name( Criteria_Object: in Expressions_Criteria ) return String is
+	function Get_Name( Criteria: in Expression_Criteria_Type ) return String is
 		-- return a String representing the criteria
 		-- it's the same string that will be used by the methods:
 		--      Register( Name, Factory )
@@ -314,17 +337,18 @@ package body KOW_Sec.Authorization_Criterias is
 	end Get_Name;
 
 
-	function Describe( Criteria_Object: in Expressions_Criteria ) return String is
+	function Describe( Criteria: in Expression_Criteria_Type ) return String is
 		-- return a string describing the current criteria
 	begin
-		return To_String( Criteria_Object.Descriptor );
+		return To_String( Criteria.Descriptor );
 	end Describe;
 
 
 
 begin
-	KOW_Sec.Criteria_Registry.Register( Create_Groups_Criteria'Access );
-	KOW_Sec.Criteria_Registry.Register( Create_Users_Criteria'Access );
-	KOW_Sec.Criteria_Registry.Register( Create_Expressions_Criteria'Access );
+	KOW_Sec.Criteria_Registry.Register( Create_Roles_Criteria'Access );
+	KOW_Sec.Criteria_Registry.Register( Create_Group_Criteria'Access );
+	KOW_Sec.Criteria_Registry.Register( Create_User_Criteria'Access );
+	KOW_Sec.Criteria_Registry.Register( Create_Expression_Criteria'Access );
 
 end KOW_Sec.Authorization_Criterias;
