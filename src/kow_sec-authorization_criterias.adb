@@ -86,10 +86,10 @@ package body KOW_Sec.Authorization_Criterias is
 					Criteria	: in out Role_Criteria_Type;
 					Descriptor	: in     Criteria_Descriptor;
 					User		: in     User_Type;
-					Return_Value	:    out Boolean
+					Is_Allowed	:    out Boolean
 				) is
 	begin
-		Return_Value := Role_Vectors.Contains( Criteria.Roles, To_Role( To_Identity( To_String( Descriptor ) ) ) );
+		Is_Allowed := Role_Vectors.Contains( Criteria.Roles, To_Role( To_Identity( To_String( Descriptor ) ) ) );
 	end Require_Specific;
 
 	overriding
@@ -131,10 +131,10 @@ package body KOW_Sec.Authorization_Criterias is
 					Criteria	: in out Group_Criteria_Type;
 					Descriptor	: in     Criteria_Descriptor;
 					User		: in     User_Type;
-					Return_Value	:    out Boolean
+					Is_Allowed	:    out Boolean
 				) is
 	begin
-		Return_Value := Group_Vectors.Contains(Groups, Group_Type( To_String( Descriptor ) ) );
+		Is_Allowed := Group_Vectors.Contains(Groups, Group_Type( To_String( Descriptor ) ) );
 	end Require_Specific;
 
 	overriding
@@ -177,10 +177,10 @@ package body KOW_Sec.Authorization_Criterias is
 	procedure Require_Specific(
 					Criteria	: in out User_Criteria_Type;
 					Descriptor	: in     Criteria_Descriptor;
-					Return_Value	:    out Boolean
+					Is_Allowed	:    out Boolean
 				) is
 	begin
-		Return_Value := User_Identity_Type( To_String( Descriptor ) ) = Criteria.User_Identity;
+		Is_Allowed := User_Identity_Type( To_String( Descriptor ) ) = Criteria.User_Identity;
 	end Require_Specific;
 
 	overriding
@@ -228,7 +228,7 @@ package body KOW_Sec.Authorization_Criterias is
 	procedure Require_Specific(
 					Criteria	: in out Expression_Criteria_Type;
 					Descriptor	: in     Criteria_Descriptor;
-					Return_Value	:    out Boolean
+					Is_Allowed	:    out Boolean
 				);
 
 		Index		: Integer		:= 1;		
@@ -285,9 +285,9 @@ package body KOW_Sec.Authorization_Criterias is
 		begin
 			-- call require using dynamic dispatching
 			Require( My_Criteria, Criteria.User);
-			Return_Value := True;
+			Is_Allowed := True;
 		exception
-			when ACCESS_DENIED => Return_Value := False;	
+			when ACCESS_DENIED => Is_Allowed := False;	
 		end;		
 
 	end Require_Specific;

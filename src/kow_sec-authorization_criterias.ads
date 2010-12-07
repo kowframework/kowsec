@@ -68,7 +68,7 @@ package KOW_Sec.Authorization_Criterias is
 	procedure Require_Specific(
 					Criteria	: in out Role_Criteria_Type;
 					Descriptor	: in     Criteria_Descriptor;
-					Return_Value	:    out Boolean
+					Is_Allowed	:    out Boolean
 				);
 
 	overriding
@@ -107,7 +107,7 @@ package KOW_Sec.Authorization_Criterias is
 					Criteria	: in out Group_Criteria_Type;
 					Descriptor	: in     Criteria_Descriptor;
 					User		: in     User_Type;
-					Return_Value	:    out Boolean
+					Is_Allowed	:    out Boolean
 				);
 	overriding
 	procedure Initialize(
@@ -143,7 +143,7 @@ package KOW_Sec.Authorization_Criterias is
 	procedure Require_Specific(
 					Criteria	: in out User_Criteria_Type;
 					Descriptor	: in     Criteria_Descriptor;
-					Return_Value	:    out Boolean
+					Is_Allowed	:    out Boolean
 				);
 	overriding
 	procedure Initialize(
@@ -182,7 +182,7 @@ package KOW_Sec.Authorization_Criterias is
 	procedure Require_Specific(
 					Criteria	: in out Expression_Criteria_Type;
 					Descriptor	: in     Criteria_Descriptor;
-					Return_Value	:    out Boolean
+					Is_Allowed	:    out Boolean
 				);
 	overriding
 	procedure Initialize(

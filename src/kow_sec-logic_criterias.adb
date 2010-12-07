@@ -52,25 +52,25 @@ package body KOW_Sec.Logic_Parsers is
 				Criteria: in out Logic_Criteria_Type;
 				User	: in out User_Type
 			) is
-		Parser : Logic_Parser;
-		
-		Exp : Expression_Access;
-		Ret_Value : Boolean := False;
+		Exp		: Expression_Access;
+		Is_Allowed	: Boolean := False;
 	begin
+		Exp := Parsers.Parse( Criteria );
+
 		Initialize( Criteria, User );
+		Evaluate( Exp.all, Criteria, Is_Allowed );
 
-		Parser := (
-					User		=> User,
-					Descriptor	=> Criteria.Descriptor,
-					Index		=> 0
-				);
-		Parse( Parser, Exp );
-
-		Is_True( Exp.all, Parser, Ret_Value );
-
-		if not Ret_Value then
-			raise ACCESS_DENIED with Describe( Criteria );
+		if not Is_Allowed then
+			declare
+				Description : constant String := Descripe( Criteria );
+			begin
+				Finalize( Criteria );
+				raise ACCESS_DENIED with Description;
+			end;
+		else
+			Finalize( Criteria );
 		end if;
+
 	end Requires;
 
 
@@ -81,266 +81,307 @@ package body KOW_Sec.Logic_Parsers is
 		return Criteria_Type'( Criteria_Interface with Descriptor => Descriptor );
 	end Generic_Logic_Criteria_Factory;
 
+
+
+
 -- private
-	procedure Is_True(	Term		: Terminal; 
-				Parser		: in out Parser_Type;
-				Ret_Value	: out Boolean ) is 	
-	-- Verifies if the terminal's word is true according to generic
-	-- 'evaluate' procedure and set the boolean value in Ret_Value.
-	begin 
-		if Length( Term.Word ) = 0 then
-			raise INVALID_CRITERIA_DESCRIPTOR with 
-				"Terminal has length 0. Oops.";
-		end if;
+
+
+
+
+
+
+
+	-------------------------
+	-- The Expression Type --
+	-------------------------
+
+	----------------------------------
+	-- The Criteria Expression Type --
+	----------------------------------
+
+	type Criteria_Expression_Type is new Expression_Type with record
+		-- the final expression represents a direct call to a criteria's require_specific method
+		Specific_Descriptor : Criteria_Descriptor_Type;
+	end record;
+
+	procedure Evaluate(
+			Exp		: in     Criteria_Expression_Type;
+			Criteria	: in out Logic_Criteria_Type
+			Is_Allowed	:    out Boolean
+		) is
+		-- Verifies if the terminal's word is true according to generic
+		-- 'Evaluateuate' procedure and set the boolean value in Is_Allowed.
+	begin
+		Require_Specific( Criteria, Exp.Specific_Descriptor, Is_Allowed );
+	end Evaluate;
+
+	-------------------------
+	-- Not Expression Type --
+	-------------------------
 	
-		-- calling the generic procedure
-		Evaluate( Term.Word, Parser.User, Ret_Value );
-	end Is_True;
-
-
-	procedure Is_True(	Op		: Not_Operator;
-				Parser		: in out Parser_Type;
-				Ret_Value	: out Boolean ) is
-		Value1 : Boolean;
-	-- Ret_Value indicates if a condition !Exp is true or false.
+	procedure Evaluate(
+				Exp	 	: in     Not_Expression_Type;
+				Criteria	: in out Logic_Criteria_Type'Class;
+				Is_Allowed	:    out Boolean
+			) is
+		-- Is_Allowed indicates if a condition !Exp is true or false.
+		Tmp: Boolean;
 	begin
-		Is_True( Op.Exp.all, Parser, Value1 );
-		Ret_Value := not Value1;
-	end Is_True;
-
-
-	procedure Is_True(	Op		: Or_Operator;
-				Parser		: in out Parser_Type;
-				Ret_Value	: out Boolean) is
-		Value1, Value2 : Boolean;
-	-- Ret_Value indicates if a condition Exp1|Exp2 is true or false.
-	begin
-		Is_True( Op.Exp1.all, Parser, Value1 );
-		Is_True( Op.Exp2.all, Parser, Value2 );	
-		Ret_Value := Value1 or else Value2;
-	end Is_True;
-
-	procedure Is_True(	Op : And_Operator;
-				Parser : in out Parser_Type;
-				Ret_Value : out Boolean) is
-		Value1, Value2 : Boolean;
-	-- Ret_Value indicates if a condition Exp1&Exp2 is true or false.
-	begin
-		Is_True( Op.Exp1.all, Parser, Value1 );
-		if Value1 = False then
-			Ret_Value := False;
-		else			
-			Is_True( Op.Exp2.all, Parser, Value2 );	
-			Ret_Value := Value1 and then  Value2;
-		end if;
-	end Is_True;
-
-
-	procedure Match_Not_Or_Block_Or_Terminal(	Parser : in out Parser_Type;
-							Exp : out Expression_Access) is
-		
-	-- Searches for a Not_Operator or a 
-	-- Block (Expression within a pair of brackets) or a
-	-- Terminal (Expression with one word).
-		
-		Next_Char : Character := Element(Parser.Descriptor, Parser.Index); 
+		Evaluate( Exp.Exp.all, Criteria, Tmp );
+		Is_Allowed := not Tmp;
+	end Evaluate;
 	
-	begin
-		if Next_Char = '!' then
-			-- Matches a Not_Operator.	
-			Parser.Index := Parser.Index + 1;
-			Match_Block_Or_Terminal(Parser, Exp);
-			Exp := new Not_Operator'(Expression with Exp => Exp); 
-		else
-			-- Searches for a Block or Terminal.
-			Match_Block_Or_Terminal(Parser, Exp);
-		end if;
-	end Match_Not_Or_Block_Or_Terminal;
 
-
-	procedure Match_Block_Or_Terminal(	Parser : in out Parser_Type;
-						Exp : out Expression_Access) is
-	-- Searches for Block (Expression within a pair of brackets) or a
-	-- Terminal (Expression with one word).
-	begin
-		Match_Block( Parser, Exp );
+	------------------------
+	-- OR Expression Type --
+	------------------------
 	
-		if Exp = Null then
-			-- Didn't match a block. Trying to match a terminal.
-			Match_Terminal (Parser, Exp);
-		end if;
-
-		if Exp = Null then
-			raise INVALID_CRITERIA_DESCRIPTOR with
-				"Block or terminal expected in at: " & 
-				Integer'Image( Parser.Index );
-		end if;
-	end Match_Block_Or_Terminal;
-
-
-	procedure Match_Terminal(	Parser : in out Parser_Type;
-					Exp : out Expression_Access) is
-	-- Searches for a Terminal (Expression with one word).
-
-		Next_Char : Character := Element( Parser.Descriptor, Parser.Index );
-		Op_Buffer : Criteria_Descriptor_Type := To_Unbounded_String("") ;
+	procedure Evaluate(
+				Exp		: in     Or_Expression_Type;
+				Criteria	: in out Logic_Criteria_Type'Class;
+				Is_Allowed	:        out Boolean
+			) is
+		Tmp: Boolean;
 	begin
-		if Is_Valid_Character( Next_Char ) then
+		Evaluate( Exp.Exp1.all, Criteria, Tmp );
+
+		if not tmp then
+			Evaluate( Exp.Exp2.all, Criteria, Tmp );
+		end if;
+
+		Is_Allowed := Tmp;
+	end Evaluate;
+	
+	------------------------
+	-- AND Expresion Type --
+	------------------------
+	
+	procedure Evaluate(	
+				Exp		: in     And_Expression_Type;
+				Criteria	: in out Logic_Criteria_Type'Class;
+				Is_Allowed	: out    Boolean
+			) is
+		-- Is_Allowed indicates if a condition Exp1&Exp2 is true or false.
+ 		Tmp: Boolean;
+	begin
+		Evaluate( Exp.Exp1.All, Criteria, Tmp );
+		if Tmp then
+			Evaluate( Exp.Exp2.All, Criteria, Tmp );
+		end if;
+		Is_Allowed := Tmp;
+	end Evaluate;
+
+
+
+
+
+	package body Parsers is
+
+		function Is_Valid_Character ( Char : Character ) 
+			return Boolean is
+			-- Returns a Boolean that defines if a character
+			-- can be used in Criteria_Descriptor_Type or not.
+		begin
+			if Is_Alphanumeric( Char )
+				or else  Char = '_'
+				or else	Char = '.'
+				or else Char = '-'
+				or else Char = ':' then
+				
+				return True;
+			else
+				return False;
+			end if;
+		end Is_Valid_Character;
+
+
+
+
+		procedure Match_Not_Or_Block_Or_Criteria(	Parser : in out Parser_Type;
+								Exp : out Expression_Access) is
 			
-			while Is_Valid_Character( Next_Char ) or else Next_Char = '='
-			loop
-				Op_Buffer := Op_Buffer & Next_Char;
-				Parser.Index := Parser.Index + 1;
+		-- Searches for a Not_Operator or a 
+		-- Block (Expression within a pair of brackets) or a
+		-- Terminal (Expression with one word).
+			
+			Next_Char : Character := Element(Parser.Descriptor, Parser.Index); 
 		
-				exit when Length( Parser.Descriptor ) <= Parser.Index - 1;
+		begin
+			if Next_Char = '!' then
+				-- Matches a Not_Operator.	
+				Parser.Index := Parser.Index + 1;
+				Match_Block_Or_Criteria(Parser, Exp);
+				Exp := new Not_Operator'(Expression with Exp => Exp); 
+			else
+				-- Searches for a Block or Terminal.
+				Match_Block_Or_Criteria(Parser, Exp);
+			end if;
+		end Match_Not_Or_Block_Or_Criteria;
+
+
+		procedure Match_Block_Or_Criteria(	Parser : in out Parser_Type;
+							Exp : out Expression_Access) is
+		-- Searches for Block (Expression within a pair of brackets) or a
+		-- Terminal (Expression with one word).
+		begin
+			Match_Block( Parser, Exp );
+		
+			if Exp = Null then
+				-- Didn't match a block. Trying to match a terminal.
+				Match_Criteria (Parser, Exp);
+			end if;
+
+			if Exp = Null then
+				raise INVALID_CRITERIA_DESCRIPTOR with
+					"Block or terminal expected in at: " & 
+					Integer'Image( Parser.Index );
+			end if;
+		end Match_Block_Or_Criteria;
+
+
+		procedure Match_Criteria(	Parser : in out Parser_Type;
+						Exp : out Expression_Access) is
+		-- Searches for a Terminal (Expression with one word).
+
+			Next_Char : Character := Element( Parser.Descriptor, Parser.Index );
+			Op_Buffer : Criteria_Descriptor_Type := To_Unbounded_String("") ;
+		begin
+			if Is_Valid_Character( Next_Char ) then
 				
-				Next_Char := Element( Parser.Descriptor, Parser.Index );
-				
-				-- add all characters encloses in curly brackets
-				if Next_Char = '{' then
+				while Is_Valid_Character( Next_Char ) or else Next_Char = '='
+				loop
+					Op_Buffer := Op_Buffer & Next_Char;
+					Parser.Index := Parser.Index + 1;
+			
+					exit when Length( Parser.Descriptor ) <= Parser.Index - 1;
+					
+					Next_Char := Element( Parser.Descriptor, Parser.Index );
+					
+					-- add all characters encloses in curly brackets
+					if Next_Char = '{' then
+						loop
+							Op_Buffer := Op_Buffer & Next_Char;
+							Parser.Index := Parser.Index + 1;
+							
+							exit when Next_Char = '}' or else
+								Length( Parser.Descriptor ) <= Parser.Index - 1;
+					
+							Next_Char := Element( Parser.Descriptor, Parser.Index );
+						end loop;
+					
+					exit when Length( Parser.Descriptor ) <= Parser.Index - 1;
+					
+					end if;
+				end loop;
+
+				Exp := new Terminal'( Word => Op_Buffer );
+			else
+				Exp := null;
+			end if;
+
+		end Match_Criteria;
+
+
+		procedure Match_Block(	Parser : in out Parser_Type;
+					Exp : out Expression_Access ) is
+		-- Searches for a Block (Expression within a pair of brackets).
+		
+			Next_Char : Character := Element( Parser.Descriptor, Parser.Index );
+		begin
+			if Next_Char = '(' then
+				declare
+					Begin_Index : Integer := Parser.Index;
+					Level : Integer := 1; -- bracket level
+				begin
+					while Parser.Index <= Length( Parser.Descriptor ) and then Level > 0
 					loop
-						Op_Buffer := Op_Buffer & Next_Char;
 						Parser.Index := Parser.Index + 1;
-						
-						exit when Next_Char = '}' or else
-							Length( Parser.Descriptor ) <= Parser.Index - 1;
-				
-						Next_Char := Element( Parser.Descriptor, Parser.Index );
+						Next_Char := Element ( Parser.Descriptor, Parser.Index );
+
+						if Next_Char = '(' then 
+							Level := Level + 1; -- found a nested bracket.
+						elsif Next_Char = ')' then
+							-- found a closing bracket, so decrease a level. 
+							Level := Level - 1; 
+						end if;		
 					end loop;
-				
-				exit when Length( Parser.Descriptor ) <= Parser.Index - 1;
-				
+					
+					if Level = 0 then
+						-- all opening brackets have corresponding closing brackets.
+						-- call recursively the parse to the expression within of
+						-- the brackets. 
+						Exp := Parse( Slice( Parser.Descriptor, Begin_Index + 1, Parser.Index-1 ) );	
+						Parser.Index := Parser.Index + 1;
+					else
+						raise INVALID_CRITERIA_DESCRIPTOR with
+							"Unmatched '(' at " & Integer'Image(Parser.Index);		
+					end if;
+				end;
+			else
+				Exp := null;
+			end if;
+		end Match_Block;
+		
+
+
+		function Parse( Descriptor : in Criteria_Descriptor_Type ) return Expression_Access is
+		-- parse the descriptor returning an expression Evaluateuator
+		--  Reads the whole Parser.Descriptor identifying Not_Operators,
+		--  And_Operators and Or_Operators. 
+		--  Exp is the expression with  all operators and expression.
+			
+			OpBuffer	: String := "";
+			Exp1,Exp2	: Expression_Access;		
+			Next_Char 	: Character;
+
+			Parser		: Parser_Type := (
+								Descriptor	=> Descriptor,
+								Index		=> 1
+							);
+		begin
+			
+			while Parser.Index <= Length( Parser.Descriptor ) loop
+				Next_Char := Element( Parser.Descriptor, Parser.Index );
+			
+				if Exp1 = Null then
+					-- Initialize the Exp with a Not_Operator and/or
+					-- the left expression of the Or_Operator
+					-- or And_Opertator.
+					Match_Not_Or_Block_Or_Criteria( Parser, Exp1 );
+
+				elsif Next_Char = '|' then
+					-- The parse found a '|', so it will initialize
+					-- a Or_Operator.
+					
+					Parser.Index := Parser.Index + 1;
+					
+					-- Searches for a Block or Terminal and initializes
+					-- the right expression of the Or_Operator.
+					Match_Not_Or_Block_Or_Criteria( Parser, Exp2 );
+					
+					Exp1 := new Or_Expression_Type'( Exp1 => Exp1, Exp2 => Exp2 );
+
+				elsif Next_Char = '&' then
+					-- The parse found a '|', so it will initialize
+					-- a Or_Operator.
+					
+					Parser.Index := Parser.Index + 1;
+					
+					-- Searches for a Block or Terminal and initializes
+					-- the right expression of the Or_Operator.
+					Match_Not_Or_Block_Or_Criteria( Parser, Exp2 );
+					
+					Exp1 := new And_Expression_Type'( Exp1 => Exp1, Exp2 => Exp2 );
+				else
+					raise INVALID_CRITERIA_DESCRIPTOR with To_String( Parser.Descriptor );  
 				end if;
 			end loop;
 
-			Exp := new Terminal'( Word => Op_Buffer );
-		else
-			Exp := null;
-		end if;
+			return Exp1;
+		end Parse;
 
-	end Match_Terminal;
-
-
-	procedure Match_Block(	Parser : in out Parser_Type;
-				Exp : out Expression_Access ) is
-	-- Searches for a Block (Expression within a pair of brackets).
-	
-		Next_Char : Character := Element( Parser.Descriptor, Parser.Index );
-	begin
-		if Next_Char = '(' then
-			declare
-				Begin_Index : Integer := Parser.Index;
-				Level : Integer := 1; -- bracket level
-			begin
-				while Parser.Index <= Length( Parser.Descriptor ) and then Level > 0
-				loop
-					Parser.Index := Parser.Index + 1;
-					Next_Char := Element ( Parser.Descriptor, Parser.Index );
-
-					if Next_Char = '(' then 
-						Level := Level + 1; -- found a nested bracket.
-					elsif Next_Char = ')' then
-						-- found a closing bracket, so decrease a level. 
-						Level := Level - 1; 
-					end if;		
-				end loop;
-				
-				if Level = 0 then
-					-- all opening brackets have corresponding closing brackets.
-					declare
-						Desc : Criteria_Descriptor_Type := To_Unbounded_String( 
-							Slice(Parser.Descriptor, Begin_Index + 1, Parser.Index-1 ) );
-						New_Parser : Parser_Type := (	User		=> Parser.User,
-										Descriptor	=> Desc,
-										Index 		=> 0 ); 
-					begin	
-						-- call recursively the parse to the expression within of
-						-- the brackets. 
-						Parse( New_Parser, Exp );	
-					
-						Parser.Index := Parser.Index + 1;
-					end;
-				else
-					raise INVALID_CRITERIA_DESCRIPTOR with
-						"Unmatched '(' at " & Integer'Image(Parser.Index);		
-				end if;
-			end;
-		else
-			Exp := null;
-		end if;
-	end Match_Block;
-	
-
-	procedure Parse(Parser : in out Parser_Type; Exp : out Expression_Access) is
-	--  Reads the whole Parser.Descriptor identifying Not_Operators,
-	--  And_Operators and Or_Operators. 
-	--  Exp is the expression with  all operators and expression.
-		
-		OpBuffer	: String := "";
-		Term1		: Terminal;  
-		Term2		: Expression_Access;		
-		Next_Char 	: Character;
-	begin
-		
-		Parser.Index := 1;
-
-		while Parser.Index <= Length( Parser.Descriptor ) 
-		loop
-			Next_Char := Element( Parser.Descriptor, Parser.Index );
-		
-			if Exp = Null then
-				-- Initialize the Exp with a Not_Operator and/or
-				-- the left expression of the Or_Operator
-				-- or And_Opertator.
-				Match_Not_Or_Block_Or_Terminal( Parser, Exp );
-
-			elsif Next_Char = '|' then
-				-- The parse found a '|', so it will initialize
-				-- a Or_Operator.
-				
-				Parser.Index := Parser.Index + 1;
-				
-				-- Searches for a Block or Terminal and initializes
-				-- the right expression of the Or_Operator.
-				Match_Not_Or_Block_Or_Terminal( Parser, Term2 );
-				
-				Exp := new Or_Operator'(Exp, Term2);
-
-			elsif Next_Char = '&' then
-				-- The parse found a '|', so it will initialize
-				-- a Or_Operator.
-				
-				Parser.Index := Parser.Index + 1;
-				
-				-- Searches for a Block or Terminal and initializes
-				-- the right expression of the Or_Operator.
-				Match_Not_Or_Block_Or_Terminal( Parser, Term2 );
-				
-				Exp := new And_Operator'( Exp, Term2 );
-			else
-				raise INVALID_CRITERIA_DESCRIPTOR with To_String( Parser.Descriptor );  
-			end if;
-		end loop;
-	end Parse;
-
-
-	function Is_Valid_Character ( Char : Character ) 
-		return Boolean is
-		-- Returns a Boolean that defines if a character
-		-- can be used in Criteria_Descriptor_Type or not.
-	begin
-		if Is_Alphanumeric( Char )
-			or else  Char = '_'
-			or else	Char = '.'
-			or else Char = '-'
-			or else Char = ':' then
-			
-			return True;
-		else
-			return False;
-		end if;
-	end Is_Valid_Character;
-
+	end Parsers;
 
 end KOW_Sec.Logic_Criterias;
 
