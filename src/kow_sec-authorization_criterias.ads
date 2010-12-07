@@ -41,7 +41,7 @@
 ------------------------------------------------------------------------------
 
 
-use KOW_Sec.Logic_Criterias;		use KOW_Sec.Logic_Criterias;
+with KOW_Sec.Logic_Criterias;		use KOW_Sec.Logic_Criterias;
 
 package KOW_Sec.Authorization_Criterias is
 	pragma Elaborate_Body( KOW_Sec.Authorization_Criterias );
