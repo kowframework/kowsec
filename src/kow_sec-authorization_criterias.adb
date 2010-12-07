@@ -58,75 +58,13 @@ package body KOW_Sec.Authorization_Criterias is
 	-----------
 
 
-	procedure Generic_Require(
-				User		: in out User_Type;
-				Descriptor	: in     Criteria_Descriptor;
-				Eval_Procedure	: not null access procedure (
-								Descriptor	: in     Criteria_Descriptor;
-								User		: in out User_Type;
-								Ret_Code	:    out Boolean
-							)
-			) is
-		procedure Generic_Eval(
-					Descriptor	: in     Criteria_Descriptor;
-					User		: in out User_Type;
-					Ret_Code	:    out Boolean
-				) is
-		begin
-			Eval_Procedure.all( Descriptor, User, Ret_Code );
-		end Generic_Eval;
-	
-		package Generic_Parse is new Bool_Parse(
-						Pattern		=> Criteria_Descriptor,
-						Evaluate	=> Generic_Eval
-				); 
 
-
-		use Generic_Parse;
-
-		Parser : Bool_Parser := (
-					User		=> User,
-					Descriptor	=> Descriptor,
-					Index		=> 0
-				);
-		Exp : Expression_Access;
-		Ret_Value : Boolean := False;
-	begin
-		Parse( Parser, Exp );
-		IsTrue( Exp.all, Parser, Ret_Value );
-
-		if not Ret_Value then
-			raise ACCESS_DENIED with To_String( Descriptor );
-		end if;
-	end Generic_Require;
-
-
-
-	procedure Eval_Role(
-				Descriptor	: in     Criteria_Descriptor;
-				User		: in out User_Type;
-				Ret_Code	:    out Boolean
-			) is
-
-		Role	: Role_Vectors.Vector := KOW_Sec.Get_Roles( User );
-	begin
-		if Role_Vectors.Contains( Role, To_Role( To_Identity( To_String( Descriptor ) ) ) ) then
-			Ret_Code := True;
-		else
-			Ret_Code := False;
-		end if;
-	end Eval_Role;
 
 	package Roles_Parse is new Bool_Parse(
 					Pattern		=> Criteria_Descriptor,
 					Evaluate	=> Eval_Role
 				); 
 
-
-	function Create_Role_Criteria( Descriptor : in Criteria_Descriptor ) return Criteria_Interface'Class is
-	begin
-		return Role_Criteria_Type'( Criteria_interface with Descriptor => Descriptor );
-	end Create_Role_Criteria;
 
 	overriding
 	function Get_Name( Criteria : Role_Criteria_Type ) return String is
@@ -141,106 +79,41 @@ package body KOW_Sec.Authorization_Criterias is
 		return "Matches roles based on :: " & To_String( Criteria.Descriptor );
 	end Describe;
 
+
+
+  	overriding
+	procedure Require_Specific(
+					Criteria	: in out Role_Criteria_Type;
+					Descriptor	: in     Criteria_Descriptor;
+					User		: in     User_Type;
+					Return_Value	:    out Boolean
+				) is
+	begin
+		Return_Value := Role_Vectors.Contains( Criteria.Roles, To_Role( To_Identity( To_String( Descriptor ) ) ) );
+	end Require_Specific;
+
 	overriding
-	procedure Require(
-				User		: in out User_Type;
-				Criteria	: in     Role_Criteria_Type
+	procedure Initialize(
+				Criteria	: in out Role_Criteria_Type;
+				User		: in     User_Type
 			) is
 	begin
+		Criteria.Roles := KOW_Sec.Get_Roles( User, True );
+	end initialize;
 
-		Generic_Require(
-					User		=> User,
-					Descriptor	=> Criteria.Descriptor,
-					Eval_Procedure	=> Eval_role'Access
-				);
-	end Require;
-
-	-- todo :: remove the following procedure :D
-	procedure Requires(
-				User	: in out User_Type;
-				Criteria: in     Role_Criteria_Type
+	overriding
+	procedure Finalize(
+				Criteria	: in out Role_Criteria_Type
 			) is
-		use Roles_Parse;
-
-		Parser : Bool_Parser := (
-					User		=> User,
-					Descriptor	=> Criteria.Descriptor,
-					Index		=> 0
-				);
-		Exp : Expression_Access;
-		Ret_Value : Boolean := False;
 	begin
-		Parse( Parser, Exp );
-		IsTrue( Exp.all, Parser, Ret_Value );
-
-		if not Ret_Value then
-			raise ACCESS_DENIED with Describe( Criteria );
-		end if;
-	end Requires;
+		Role_Vectors.Clear( Criteria.Roles );
+	end Finalize;
 
 
-	---------------------
-	-- GROUPS CRITERIA --
-	---------------------
+	--------------------
+	-- GROUP CRITERIA --
+	--------------------
 	
-	procedure Eval_Group(	
-				Descriptor	: in     Criteria_Descriptor;
-				User		: in out User_Type;
-				Ret_Code	: out    Boolean
-			) is
-		-- Procedure evaluate to the Bool_Parse. Descriptor is
-		-- a group name.
-
-		Groups	: Group_Vectors.Vector;
-		C	: Group_Vectors.Cursor;
-	begin
-		Groups := KOW_Sec.Get_Groups( User );
-	
-		if Group_Vectors.Contains(Groups, Group_Type( To_String( Descriptor ) ) ) then
-			Ret_Code := True;
-		else
-			Ret_Code := False;
-		end if;
-	end Eval_Group;
-
-	package Groups_Parse is new Bool_Parse(
-				Pattern		=> Criteria_Descriptor,
-				Evaluate	=> Eval_Group
-			);
-	
-	function Create_Group_Criteria( Descriptor: in Criteria_Descriptor ) return Criteria_Interface'Class is
-		-- create a GROUPS criteria to be matched
-		-- based on the given Descriptor.
-		My_Criteria: Group_Criteria_Type := ( Descriptor => Descriptor );
-	begin
-		return My_Criteria;
-	end Create_Group_Criteria;
-
-
-	procedure Require(
-				User	: in out User_Type;
-				Criteria: in     Group_Criteria_Type
-			) is
-		use Groups_Parse;
-
-		Parser : Bool_Parser := (
-					User		=> User,
-					Descriptor	=> Criteria.Descriptor,
-					Index		=> 0
-				);
-		Exp : Expression_Access;
-		Ret_Value : Boolean := False;
-	begin
-		Parse(Parser, Exp); 
-		IsTrue(Exp.all, Parser, Ret_Value); 
-
-		if not Ret_Value then
-			raise ACCESS_DENIED with "Reason: " &
-			To_String( Criteria.Descriptor );
-		end if;
-	end Require;
-	
-
 	function Get_Name( Criteria: in Group_Criteria_Type ) return String is
 	begin
 		return ("GROUP"); 
@@ -252,62 +125,41 @@ package body KOW_Sec.Authorization_Criterias is
 		return "Matches groups based on :: " & To_String( Criteria.Descriptor );
 	end Describe;
 
+
+  	overriding
+	procedure Require_Specific(
+					Criteria	: in out Group_Criteria_Type;
+					Descriptor	: in     Criteria_Descriptor;
+					User		: in     User_Type;
+					Return_Value	:    out Boolean
+				) is
+	begin
+		Return_Value := Group_Vectors.Contains(Groups, Group_Type( To_String( Descriptor ) ) );
+	end Require_Specific;
+
+	overriding
+	procedure Initialize(
+				Criteria	: in out Group_Criteria_Type;
+				User		: in     User_Type
+			) is
+	begin
+		Criteria.Groups := KOW_Sec.Get_Groups( User );
+	end Initialize;
+
+	overriding
+	procedure Finalize(
+				Criteria	: in out Group_Criteria_Type
+			) is
+	begin
+		Group_Vectors.Clear( Criteria.Groups );
+	end Finalize;
+
+
 	--------------------
 	-- USERS CRITERIA --
 	--------------------
 	
-	procedure Eval_User(
-				Descriptor	: in     Criteria_Descriptor;
-				User		: in out User_Type;
-				Ret_Code	:    out Boolean
-			) is
-	begin
-		if User_Identity_Type( To_String( Descriptor ) ) = User.Identity then
-			Ret_Code := True;
-		else
-			Ret_Code := False;
-		end if;
-	end Eval_User;
 
-	package Users_Parse is new Bool_Parse(
-				Pattern		=> Criteria_Descriptor,
-				Evaluate	=> Eval_User
-			);
-	
-	function Create_User_Criteria( Descriptor: in Criteria_Descriptor ) return Criteria_Interface'Class is
-		-- create a User_Criteria_Type to be matched
-		-- based on the given Descriptor.
-		
-		My_Criteria: User_Criteria_Type := ( Descriptor => Descriptor );
-	begin
-		return My_Criteria;
-	end Create_User_Criteria;
-
-
-	procedure Require(
-				User	: in out User_Type; 
-				Criteria: in     User_Criteria_Type
-			) is
-		use Users_Parse;
-		
-		Parser: Bool_Parser := (
-					User		=> User,
-					Descriptor	=> Criteria.Descriptor,
-					Index		=> 0
-				);
-		Exp : Expression_Access;
-		Ret_Value : Boolean := False;
-	begin
-		Parse( Parser, Exp ); 
-		IsTrue( Exp.all, Parser, Ret_Value ); 
-
-
-		if not Ret_Value then
-			raise ACCESS_DENIED with "Reason: " &
-			To_String( Criteria.Descriptor );
-		end if;
-	end Require;
-	
 	
 	function Get_Name( Criteria: in User_Criteria_Type ) return String is
 	begin
@@ -321,21 +173,71 @@ package body KOW_Sec.Authorization_Criterias is
 		return "Matches user identity based on :: " & To_String( Criteria.Descriptor );
 	end Describe;
 
+	overriding
+	procedure Require_Specific(
+					Criteria	: in out User_Criteria_Type;
+					Descriptor	: in     Criteria_Descriptor;
+					Return_Value	:    out Boolean
+				) is
+	begin
+		Return_Value := User_Identity_Type( To_String( Descriptor ) ) = Criteria.User_Identity;
+	end Require_Specific;
+
+	overriding
+	procedure Initialize(
+				Criteria	: in out User_Criteria_Type;
+				User		: in     User_Type
+			) is
+	begin
+		Criteria.User_Identity := User.Identity;
+	end Criteria;
+
+	overriding
+	procedure Finalize(
+				Criteria	: in out User_Criteria_Type
+			) is
+	begin
+		Criteria.User_Identity := KOW_Sec.Anonymous_User_Identity;
+	end Criteria;
+
 
 
 	--------------------------
 	-- EXPRESSIONS CRITERIA --
 	--------------------------
 
-	procedure Eval_Expression(
-				Descriptor	: in Criteria_Descriptor;
-				User		: in out User_Type;
-				Ret_Code	: out Boolean
-			) is
+
+
+	function Get_Name( Criteria: in Expression_Criteria_Type ) return String is
+		-- return a String representing the criteria
+		-- it's the same string that will be used by the methods:
+		--      Register( Name, Factory )
+		--      Create_Criteria( Name, Patern ) return Criteria_Interface'Class;
+	begin
+		return ("EXPRESSION"); 
+	end Get_Name;
+
+
+	function Describe( Criteria: in Expression_Criteria_Type ) return String is
+		-- return a string describing the current criteria
+	begin
+		return To_String( Criteria.Descriptor );
+	end Describe;
+
+  	overriding
+	procedure Require_Specific(
+					Criteria	: in out Expression_Criteria_Type;
+					Descriptor	: in     Criteria_Descriptor;
+					Return_Value	:    out Boolean
+				);
+
 		Index		: Integer		:= 1;		
 		Next_Char	: Character		:= Element( Descriptor, Index );
 		My_Name		: Unbounded_String	:= To_Unbounded_String("") ;
 		My_Descriptor	: Criteria_Descriptor	:= Null_Unbounded_String;
+
+
+		-- TODO :: require_specific for expression criteria needs a refactoring so it can be easier to read
 	begin
 		if Is_Valid_Character( Next_Char ) then
 			while Next_Char /= '=' and then Index <= Length( Descriptor ) loop
@@ -382,67 +284,33 @@ package body KOW_Sec.Authorization_Criterias is
 			My_Criteria: Criteria_Interface'Class := Criteria_Registry.Create_Criteria( My_Name, My_Descriptor );
 		begin
 			-- call require using dynamic dispatching
-			Require( User, My_Criteria );
-			Ret_Code := True;
+			Require( My_Criteria, Criteria.User);
+			Return_Value := True;
 		exception
-			when ACCESS_DENIED => Ret_Code := False;	
+			when ACCESS_DENIED => Return_Value := False;	
 		end;		
 
-	end Eval_Expression;
+	end Require_Specific;
 
 
-	package Expressions_Parse is new Bool_Parse(
-				Pattern		=> Criteria_Descriptor,
-				Evaluate	=> Eval_Expression
-			);
-	
-	function Create_Expression_Criteria( Descriptor: in Criteria_Descriptor ) return Criteria_Interface'Class is
-		My_Criteria: Expression_Criteria_Type := (Descriptor => Descriptor );
-	begin
-		return My_Criteria;
-	end Create_Expression_Criteria;
 
 
-	procedure Require(
-				User	: in out User_Type;
-				Criteria: in     Expression_Criteria_Type
+	overriding
+	procedure Initialize(
+				Criteria	: in out Expression_Criteria_Type;
+				User		: in     User_Type
 			) is
-		use Expressions_Parse;
-	
-		Parser		: Bool_Parser := (
-						User		=> User,
-						Descriptor	=> Criteria.Descriptor,
-						Index		=> 0
-					);
-		Exp		: Expression_Access;
-		Ret_Value	: Boolean := False;
 	begin
-		Parse(Parser, Exp); 
-		IsTrue(Exp.all, Parser, Ret_Value); 
+		Criteria.User := User;
+	end Initialize;
 
-		if not Ret_Value then
-			raise ACCESS_DENIED with "Reason: " &
-			To_String( Criteria.Descriptor );
-		end if;
-	end Require;
-	
-	
-	function Get_Name( Criteria: in Expression_Criteria_Type ) return String is
-		-- return a String representing the criteria
-		-- it's the same string that will be used by the methods:
-		--      Register( Name, Factory )
-		--      Create_Criteria( Name, Patern ) return Criteria_Interface'Class;
+	overriding
+	procedure Finalize(
+				Criteria	: in out Expression_Criteria_Type
+			) is
 	begin
-		return ("EXPRESSION"); 
-	end Get_Name;
-
-
-	function Describe( Criteria: in Expression_Criteria_Type ) return String is
-		-- return a string describing the current criteria
-	begin
-		return To_String( Criteria.Descriptor );
-	end Describe;
-
+		Criteria.User := KOW_Sec.Anonymous_User;
+	end Finalize;
 
 
 begin

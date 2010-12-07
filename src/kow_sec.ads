@@ -372,17 +372,17 @@ package KOW_Sec is
 
 
 	procedure Require(	
-				User		:	 in out User_Type;
-				Criteria	:	 in     Criteria_Interface
+				Criteria	:	 in out Criteria_Interface;
+				User		:	 in     User_Type
 			) is abstract;
 	-- matches the user against some criteria.
 	-- raise ACCESS_DENIED if the user fails this criteria.
 
 
 	procedure Require(	
-				User		: in out User_Type;
 				Name		: in     Criteria_Name;
-				Descriptor	: in     Criteria_Descriptor
+				Descriptor	: in     Criteria_Descriptor;
+				User		: in     User_Type
 			);
 	-- Create and matches against a criteria using the criteria registry
 	

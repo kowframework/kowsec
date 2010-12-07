@@ -507,13 +507,13 @@ package body KOW_Sec is
 	
 
 	procedure Require(	
-				User		: in out User_Type;
 				Name		: in     Criteria_Name;
-				Descriptor	: in     Criteria_Descriptor
+				Descriptor	: in     Criteria_Descriptor;
+				User		: in     User_Type
 			) is
 		-- Create and matches against a criteria using the criteria registry
 	begin
-		Require( User, Criteria_Registry.Create_Criteria( Name, Descriptor ) );
+		Require( Criteria_Registry.Create_Criteria( Name, Descriptor ), User );
 	end Require;
 
 	-----------------------
