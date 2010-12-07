@@ -512,8 +512,9 @@ package body KOW_Sec is
 				User		: in     User_Type
 			) is
 		-- Create and matches against a criteria using the criteria registry
+		Criteria : Criteria_Interface'Class := Criteria_Registry.Create_Criteria( Name, Descriptor );
 	begin
-		Require( Criteria_Registry.Create_Criteria( Name, Descriptor ), User );
+		Require( Criteria, User );
 	end Require;
 
 	-----------------------

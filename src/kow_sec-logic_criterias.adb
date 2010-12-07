@@ -105,9 +105,10 @@ package body KOW_Sec.Logic_Parsers is
 		Specific_Descriptor : Criteria_Descriptor_Type;
 	end record;
 
+	overriding
 	procedure Evaluate(
 			Exp		: in     Criteria_Expression_Type;
-			Criteria	: in out Logic_Criteria_Type
+			Criteria	: in out Logic_Criteria_Type'Class;
 			Is_Allowed	:    out Boolean
 		) is
 		-- Verifies if the terminal's word is true according to generic
@@ -120,6 +121,7 @@ package body KOW_Sec.Logic_Parsers is
 	-- Not Expression Type --
 	-------------------------
 	
+	overriding
 	procedure Evaluate(
 				Exp	 	: in     Not_Expression_Type;
 				Criteria	: in out Logic_Criteria_Type'Class;
@@ -137,6 +139,7 @@ package body KOW_Sec.Logic_Parsers is
 	-- OR Expression Type --
 	------------------------
 	
+	overriding
 	procedure Evaluate(
 				Exp		: in     Or_Expression_Type;
 				Criteria	: in out Logic_Criteria_Type'Class;
@@ -157,6 +160,7 @@ package body KOW_Sec.Logic_Parsers is
 	-- AND Expresion Type --
 	------------------------
 	
+	overriding
 	procedure Evaluate(	
 				Exp		: in     And_Expression_Type;
 				Criteria	: in out Logic_Criteria_Type'Class;

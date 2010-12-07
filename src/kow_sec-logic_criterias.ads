@@ -58,7 +58,7 @@ package KOW_Sec.Logic_Criterias is
 	overriding
 	procedure Require(
 				Criteria: in out Logic_Criteria_Type;
-				User	: in out User_Type
+				User	: in     User_Type
 			);
 
 
@@ -100,7 +100,7 @@ private
 			Is_Allowed 	:    out Boolean
 		)  is abstract;
 
-	type Expression_Access is access all Expression'Class;
+	type Expression_Access is access all Expression_Type'Class;
 
 	
 	----------------------------------
@@ -109,12 +109,13 @@ private
 
 	type Criteria_Expression_Type is new Expression_Type with record
 		-- the final expression represents a direct call to a criteria's require_specific method
-		Specific_Descriptor : Criteria_Descriptor_Type;
+		Specific_Descriptor : Criteria_Descriptor;
 	end record;
 
+	overriding
 	procedure Evaluate(
 			Exp		: in     Criteria_Expression_Type;
-			Criteria	: in out Logic_Criteria_Type
+			Criteria	: in out Logic_Criteria_Type'Class;
 			Is_Allowed	:    out Boolean
 		);
 	-- Verifies if the terminal's word is true according to generic
@@ -133,6 +134,7 @@ private
 		Exp : Expression_Access;
 	end record;
 
+	overriding
 	procedure Evaluate(
 				Exp	 	: in     Not_Expression_Type;
 				Criteria	: in out Logic_Criteria_Type'Class;
@@ -155,6 +157,7 @@ private
 		Exp1, Exp2 : Expression_Access;
 	end record;
 
+	overriding
 	procedure Evaluate(
 				Exp		: in     Or_Expression_Type;
 				Criteria	: in out Logic_Criteria_Type'Class;
@@ -174,6 +177,7 @@ private
 		Exp1, Exp2 : Expression_Access;
 	end record;
 
+	overriding
 	procedure Evaluate(	
 				Exp		: in     And_Expression_Type;
 				Criteria	: in out Logic_Criteria_Type'Class;
@@ -198,7 +202,7 @@ private
 			-- this type is so it's a lot easier for us to control the parameters
 			-- it's never used directly by the final user
 
-			Descriptor	: Criteria_Descriptor_Type; -- the full expression.
+			Descriptor	: Criteria_Descriptor; -- the full expression.
 			Index		: Integer := 1; -- the index to start the parse from.	
 		end record;
 
@@ -231,7 +235,7 @@ private
 				);
 		-- Searches for a Block (Expression within a pair of brackets).
 	
-		function Parse( Descriptor : in Criteria_Descriptor_Type ) return Expression_Access;
+		function Parse( Descriptor : in Criteria_Descriptor ) return Expression_Access;
 		-- parse the descriptor returning an expression Evaluateuator
 
 
