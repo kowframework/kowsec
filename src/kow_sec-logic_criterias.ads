@@ -37,7 +37,20 @@
 package KOW_Sec.Logic_Criterias is
 
 	type Logic_Criteria_Type is abstract new kOW_Sec.Criteria_Interface with record
-		-- this represents the interface we will use for parsing our criterias..
+		-- A logic criteria is a criteria that allow the user to write logical expressions using
+		-- the operators:
+		-- 	&	=> and
+		-- 	|	=> or
+		-- and grouping with ( and )
+		--
+		-- such as
+		--
+		-- a_group&(other_group|another_group)
+		--
+		-- This will alow when
+		-- 	a_group&other_group
+		-- or when
+		-- 	a_group&another_group
 		Descriptor : KOW_Sec.Criteria_Descriptor;
 		-- the descriptor has got to be intialized by the element
 	end record;
