@@ -223,11 +223,11 @@ package KOW_Sec is
 					Account_Suspended
 				);
 
-	type Info_Kind_Type is ( Email_Contact, Phone_Contact );
+	type Info_Kind_Type is ( Email_Contact, Phone_Contact, Address_Contact );
 
 	type Contact_Info_Type is record
 		Kind	: Info_Kind_Type;
-		Value	: String( 1 .. 100 );
+		Value	: String( 1 .. 150 );
 	end record;
 
 
