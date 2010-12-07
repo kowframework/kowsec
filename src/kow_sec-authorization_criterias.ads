@@ -41,8 +41,8 @@
 ------------------------------------------------------------------------------
 
 
-package KOW_Sec.Authorization_Criteria_Types is
-	pragma Elaborate_Body( KOW_Sec.Authorization_Criteria_Types );
+package KOW_Sec.Authorization_Criterias is
+	pragma Elaborate_Body( KOW_Sec.Authorization_Criterias );
 
 
 
@@ -143,6 +143,10 @@ package KOW_Sec.Authorization_Criteria_Types is
 
 private
 
+	type Roles_Criteria_Type is new KOW_Sec.Criteria_Interface with record
+		Descriptor : KOW_Sec.Criteria_Descriptor;
+	end record;
+
 	type Group_Criteria_Type is new KOW_Sec.Criteria_Interface with record
 		Descriptor : KOW_Sec.Criteria_Descriptor;
 	end record;
@@ -155,4 +159,4 @@ private
 		Descriptor : KOW_Sec.Criteria_Descriptor;
 	end record;
 
-end KOW_Sec.Authorization_Criteria_Types;
+end KOW_Sec.Authorization_Criterias;
