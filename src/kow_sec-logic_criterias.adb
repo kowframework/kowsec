@@ -36,49 +36,73 @@
 with Ada.Text_IO;		use Ada.Text_IO;	
 with Ada.Characters.Handling; 	use Ada.Characters.Handling;
 
-package body KOW_Sec.Logic_Parsers is
+package body KOW_Sec.Logic_Criterias is
+
+
+
+	----------------------
+	-- Helper Functions --
+	----------------------
+
+	function Is_Valid_Character ( Char : Character ) return Boolean is
+		-- Returns a Boolean that defines if a character
+		-- can be used in a call to Require_Specific in the Criteria_Descriptor or not.
+	begin
+		if Is_Alphanumeric( Char )
+			or else  Char = '_'
+			or else	Char = '.'
+			or else Char = '-'
+			or else Char = ':' then
+			
+			return True;
+		else
+			return False;
+		end if;
+	end Is_Valid_Character;
 
 
 
 
-
-
-
+	-----------------------------
+	-- The Logic Criteria Type --
+	-----------------------------
 
 
 
 	overriding
 	procedure Require(
 				Criteria: in out Logic_Criteria_Type;
-				User	: in out User_Type
+				User	: in     User_Type
 			) is
 		Exp		: Expression_Access;
 		Is_Allowed	: Boolean := False;
 	begin
-		Exp := Parsers.Parse( Criteria );
+		Exp := Parsers.Parse( Criteria.Descriptor );
 
-		Initialize( Criteria, User );
-		Evaluate( Exp.all, Criteria, Is_Allowed );
+		Initialize( Logic_Criteria_type'Class( Criteria ), User );
+		Evaluate( Exp.all, Logic_Criteria_type'Class( Criteria ), Is_Allowed );
 
 		if not Is_Allowed then
 			declare
-				Description : constant String := Descripe( Criteria );
+				Description : constant String := Describe( Logic_Criteria_type'Class( Criteria ) );
 			begin
-				Finalize( Criteria );
+				Finalize( Logic_Criteria_type'Class( Criteria ) );
 				raise ACCESS_DENIED with Description;
 			end;
 		else
-			Finalize( Criteria );
+			Finalize( Logic_Criteria_type'Class( Criteria ) );
 		end if;
 
-	end Requires;
+	end Require;
 
 
 
 
 	function Generic_Logic_Criteria_Factory( Descriptor : in Criteria_Descriptor ) return Criteria_interface'Class is
+		C: Criteria_Type;
 	begin
-		return Criteria_Type'( Criteria_Interface with Descriptor => Descriptor );
+		C.Descriptor := Descriptor;
+		return Criteria_interface'Class( C );
 	end Generic_Logic_Criteria_Factory;
 
 
@@ -90,20 +114,9 @@ package body KOW_Sec.Logic_Parsers is
 
 
 
-
-
-	-------------------------
-	-- The Expression Type --
-	-------------------------
-
 	----------------------------------
 	-- The Criteria Expression Type --
 	----------------------------------
-
-	type Criteria_Expression_Type is new Expression_Type with record
-		-- the final expression represents a direct call to a criteria's require_specific method
-		Specific_Descriptor : Criteria_Descriptor_Type;
-	end record;
 
 	overriding
 	procedure Evaluate(
@@ -182,24 +195,6 @@ package body KOW_Sec.Logic_Parsers is
 
 	package body Parsers is
 
-		function Is_Valid_Character ( Char : Character ) 
-			return Boolean is
-			-- Returns a Boolean that defines if a character
-			-- can be used in Criteria_Descriptor_Type or not.
-		begin
-			if Is_Alphanumeric( Char )
-				or else  Char = '_'
-				or else	Char = '.'
-				or else Char = '-'
-				or else Char = ':' then
-				
-				return True;
-			else
-				return False;
-			end if;
-		end Is_Valid_Character;
-
-
 
 
 		procedure Match_Not_Or_Block_Or_Criteria(	Parser : in out Parser_Type;
@@ -216,7 +211,7 @@ package body KOW_Sec.Logic_Parsers is
 				-- Matches a Not_Operator.	
 				Parser.Index := Parser.Index + 1;
 				Match_Block_Or_Criteria(Parser, Exp);
-				Exp := new Not_Operator'(Expression with Exp => Exp); 
+				Exp := new Not_Expression_Type'(Expression_Type with Exp => Exp); 
 			else
 				-- Searches for a Block or Terminal.
 				Match_Block_Or_Criteria(Parser, Exp);
@@ -249,7 +244,7 @@ package body KOW_Sec.Logic_Parsers is
 		-- Searches for a Terminal (Expression with one word).
 
 			Next_Char : Character := Element( Parser.Descriptor, Parser.Index );
-			Op_Buffer : Criteria_Descriptor_Type := To_Unbounded_String("") ;
+			Op_Buffer : Criteria_Descriptor;
 		begin
 			if Is_Valid_Character( Next_Char ) then
 				
@@ -279,7 +274,7 @@ package body KOW_Sec.Logic_Parsers is
 					end if;
 				end loop;
 
-				Exp := new Terminal'( Word => Op_Buffer );
+				Exp := new Criteria_Expression_Type'( Specific_Descriptor => Op_Buffer );
 			else
 				Exp := null;
 			end if;
@@ -315,7 +310,7 @@ package body KOW_Sec.Logic_Parsers is
 						-- all opening brackets have corresponding closing brackets.
 						-- call recursively the parse to the expression within of
 						-- the brackets. 
-						Exp := Parse( Slice( Parser.Descriptor, Begin_Index + 1, Parser.Index-1 ) );	
+						Exp := Parse( To_Unbounded_String( Slice( Parser.Descriptor, Begin_Index + 1, Parser.Index-1 ) ) );
 						Parser.Index := Parser.Index + 1;
 					else
 						raise INVALID_CRITERIA_DESCRIPTOR with
@@ -329,7 +324,7 @@ package body KOW_Sec.Logic_Parsers is
 		
 
 
-		function Parse( Descriptor : in Criteria_Descriptor_Type ) return Expression_Access is
+		function Parse( Descriptor : in Criteria_Descriptor ) return Expression_Access is
 		-- parse the descriptor returning an expression Evaluateuator
 		--  Reads the whole Parser.Descriptor identifying Not_Operators,
 		--  And_Operators and Or_Operators. 

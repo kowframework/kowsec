@@ -36,6 +36,21 @@
 
 package KOW_Sec.Logic_Criterias is
 
+
+
+	----------------------
+	-- Helper Functions --
+	----------------------
+
+	function Is_Valid_Character ( Char : Character ) return Boolean;
+	-- Returns a Boolean that defines if a character
+	-- can be used in a call to Require_Specific in the Criteria_Descriptor or not.
+
+
+	-----------------------------
+	-- The Logic Criteria Type --
+	-----------------------------
+
 	type Logic_Criteria_Type is abstract new kOW_Sec.Criteria_Interface with record
 		-- A logic criteria is a criteria that allow the user to write Logic expressions using
 		-- the operators:
@@ -190,9 +205,6 @@ private
  	package Parsers is
 
 
-		function Is_Valid_Character ( Char : Character ) return Boolean;
-		-- Returns a Boolean that defines if a character
-		-- can be used in a call to Require_Specific in the Criteria_Descriptor or not.
 
 		---------------------
 		-- The Parser Type --

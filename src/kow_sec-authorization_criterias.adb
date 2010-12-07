@@ -47,7 +47,6 @@ with Ada.Text_IO;		use Ada.Text_IO;
 -- Ada Works --
 ---------------
 with KOW_Sec;			use KOW_Sec;
-with KOW_Sec.Criterias_Util;	use KOW_Sec.Criterias_Util;
 
 
 package body KOW_Sec.Authorization_Criterias is
@@ -56,15 +55,6 @@ package body KOW_Sec.Authorization_Criterias is
 	-----------
 	-- Role --
 	-----------
-
-
-
-
-	package Roles_Parse is new Bool_Parse(
-					Pattern		=> Criteria_Descriptor,
-					Evaluate	=> Eval_Role
-				); 
-
 
 	overriding
 	function Get_Name( Criteria : Role_Criteria_Type ) return String is
@@ -85,7 +75,6 @@ package body KOW_Sec.Authorization_Criterias is
 	procedure Require_Specific(
 					Criteria	: in out Role_Criteria_Type;
 					Descriptor	: in     Criteria_Descriptor;
-					User		: in     User_Type;
 					Is_Allowed	:    out Boolean
 				) is
 	begin
@@ -130,11 +119,10 @@ package body KOW_Sec.Authorization_Criterias is
 	procedure Require_Specific(
 					Criteria	: in out Group_Criteria_Type;
 					Descriptor	: in     Criteria_Descriptor;
-					User		: in     User_Type;
 					Is_Allowed	:    out Boolean
 				) is
 	begin
-		Is_Allowed := Group_Vectors.Contains(Groups, Group_Type( To_String( Descriptor ) ) );
+		Is_Allowed := Group_Vectors.Contains( Criteria.Groups, Group_Type( To_String( Descriptor ) ) );
 	end Require_Specific;
 
 	overriding
@@ -190,7 +178,7 @@ package body KOW_Sec.Authorization_Criterias is
 			) is
 	begin
 		Criteria.User_Identity := User.Identity;
-	end Criteria;
+	end Initialize;
 
 	overriding
 	procedure Finalize(
@@ -198,7 +186,7 @@ package body KOW_Sec.Authorization_Criterias is
 			) is
 	begin
 		Criteria.User_Identity := KOW_Sec.Anonymous_User_Identity;
-	end Criteria;
+	end Finalize;
 
 
 
@@ -229,7 +217,7 @@ package body KOW_Sec.Authorization_Criterias is
 					Criteria	: in out Expression_Criteria_Type;
 					Descriptor	: in     Criteria_Descriptor;
 					Is_Allowed	:    out Boolean
-				);
+				) is
 
 		Index		: Integer		:= 1;		
 		Next_Char	: Character		:= Element( Descriptor, Index );
