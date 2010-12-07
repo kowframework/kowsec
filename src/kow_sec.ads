@@ -212,6 +212,13 @@ package KOW_Sec is
 	---------------------
 
 
+	type Account_Status_Type is (
+					Account_Pending,
+					Account_Enabled,
+					Account_Disabled,
+					Account_Suspended
+				);
+
 	type Info_Kind_Type is ( Email_Contact, Phone_Contact );
 
 	type Contact_Info_Type is record
@@ -225,6 +232,9 @@ package KOW_Sec is
 	type User_Type is record
 		Identity	: User_Identity_Type := Anonymous_User_Identity;
 
+		Account_Status	: Account_Status_Type := Account_Pending;
+		Account_Status_Message : String ( 1 .. 200 );
+		-- an aditional message to the user status; usefull when suspended, disabled or pending
 
 		-- formal first and last names:
 		First_Name	: String( 1 .. 50 );

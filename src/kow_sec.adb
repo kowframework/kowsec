@@ -165,15 +165,26 @@ package body KOW_Sec is
 		use Authentication_Manager_Vectors;
 
 		C: Authentication_Manager_Vectors.Cursor := First( Managers_Registry );
+
+		User_Identity	: User_Identity_Type;
+		User		: User_Type;
 	begin
 		while Has_Element( C )
 		loop
 			begin
-				return Do_Login(
-						Element( C ).all,
-						Username,
-						Password
-					);
+				User_Identity :=  Do_Login(
+							Element( C ).all,
+							Username,
+							Password
+						);
+				-- now we check the user status... we only allow enabled users..
+				User := Get_User( User_Identity );
+
+				if User.Account_Status /= Account_Enabled then
+					raise ACCESS_DENIED with "The user is not enabled right now. The current status is: " & Account_Status_Type'Image( User.Account_Status );
+				end if;
+
+				return User_Identity;
 			exception
 				when INVALID_CREDENTIALS | UNKNOWN_USER => null;
 			end;
@@ -436,11 +447,17 @@ package body KOW_Sec is
 										Username,
 										Password
 									);
+					User 	: Logged_User_Type := (
+									User		=> Get_User( Identity ),
+									Current_Manager => Element( C )
+								);
 				begin
-					return Logged_User_Type'(
-								User		=> Get_User( Identity ),
-								Current_Manager => Element( C )
-							);
+
+
+					if User.User.Account_Status /= Account_Enabled then
+						raise ACCESS_DENIED with "The user is not enabled right now. The current status is: " & Account_Status_Type'Image( User.User.Account_Status );
+					end if;
+					return User;
 				end;
 
 			exception
