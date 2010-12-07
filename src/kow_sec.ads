@@ -145,7 +145,7 @@ package KOW_Sec is
 	type Role_Identity_Type is new String( 1 .. 102 );
 
 	function To_Identity( Str : in String ) return Role_Identity_Type;
-
+	
 	type Role_Type is record
 		-- represent some sort of action a user can perform.
 		--
@@ -160,6 +160,10 @@ package KOW_Sec is
 	function Identity( Role : in Role_type ) return Role_Identity_Type;
 	-- returns Application::Role
 	
+	function To_Role( Identity : in Role_Identity_Type ) return Role_Type;
+	-- parse the role identity into a role
+
+
 	package Role_Maps is new Ada.Containers.Ordered_Maps(
 				Key_Type	=> Role_Identity_Type,
 				Element_Type	=> Role_Type

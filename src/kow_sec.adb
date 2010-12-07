@@ -203,19 +203,45 @@ package body KOW_Sec is
 	----------------------
 
 	function To_Identity( Str : in String ) return Role_Identity_Type is
+		Id : Role_Identity_Type;
 	begin
-		return Role_Identity_Type( Str );
+		Id( 1 .. Str'Length ) :=  Role_Identity_Type( Str );
+		Id( Str'Length + 1 .. Id'Last ) := ( others => ' ' );
+		return Id;
 	end To_Identity;
 
 	function Identity( Role : in Role_type ) return Role_Identity_Type is
 		use Ada.Strings;
 		-- returns Application::Role
 	begin
-		return Role_Identity_Type(
-					Fixed.Trim( Role.Application, Both ) & "::" & Fixed.Trim( Role.Role, Both )
-				);
+		return To_Identity( Fixed.Trim( Role.Application, Both ) & "::" & Fixed.Trim( Role.Role, Both ) );
 	end Identity;
 
+
+	function To_Role( Identity : in Role_Identity_Type ) return Role_Type is
+		-- parse the role identity into a role
+
+		Id_Str	: String := Ada.Strings.Fixed.Trim( String( Identity ), Ada.Strings.Both );
+		Index	: Natural := Ada.Strings.Fixed.Index( Id_Str, "::" );
+		Role	: Role_Type;
+		Role_Len: Positive;
+	begin
+		if Index <= 1 OR ELSE Index >= 101 then
+			raise CONSTRAINT_ERROR with "Not a valid role identity: " & Id_Str;
+		end if;
+
+		Role.Application( 1 .. Index - 1 ) := Id_Str( 1 .. Index - 1 );
+		Role.Application( Index .. Role.Application'Last ) := ( others => ' ' );
+
+		Role_Len := Id_Str'Last - Index - 2;
+
+		Role.Role( 1 .. Role_Len ) := Id_Str( Index + 2 .. Id_Str'Last );
+		Role.Role( Role_Len + 1 .. Role.Role'Last ) := ( others => ' ' );
+
+
+		return Role;
+
+	end To_Role;
 
 	protected body Roles_Registry is
 		procedure Register( Application, Role : in String ) is
