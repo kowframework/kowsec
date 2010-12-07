@@ -82,8 +82,6 @@ package KOW_Sec.Authorization_Criterias is
 			);
 
 
-	function Create_Role_Criteria is new Generic_Logic_Criteria_Factory( Criteria_Type => Role_Criteria_Type );
-
 
 
 	--------------------
@@ -93,8 +91,6 @@ package KOW_Sec.Authorization_Criterias is
 	type Group_Criteria_Type is new Logic_Criteria_Type with private;
 	-- matches group names
 
-	function Create_Group_Criteria( Descriptor: in Criteria_Descriptor ) return Criteria_Interface'Class;
-	-- return GROUP
 
 	overriding
 	function Get_Name( Criteria: in Group_Criteria_Type ) return String;
@@ -106,7 +102,6 @@ package KOW_Sec.Authorization_Criterias is
 	procedure Require_Specific(
 					Criteria	: in out Group_Criteria_Type;
 					Descriptor	: in     Criteria_Descriptor;
-					User		: in     User_Type;
 					Is_Allowed	:    out Boolean
 				);
 	overriding
@@ -120,7 +115,6 @@ package KOW_Sec.Authorization_Criterias is
 			);
 
 
-	function Create_Group_Criteria is new Generic_Logic_Criteria_Factory( Criteria_Type => Group_Criteria_Type );
 
 
 	-------------------
@@ -130,7 +124,6 @@ package KOW_Sec.Authorization_Criterias is
 	type User_Criteria_Type is new Logic_Criteria_Type with private;
 	-- matches the user identity
 
-	function Create_User_Criteria( Descriptor: in Criteria_Descriptor ) return Criteria_Interface'Class;
 
 	overriding
 	function Get_Name( Criteria: in User_Criteria_Type ) return String;
@@ -156,7 +149,6 @@ package KOW_Sec.Authorization_Criterias is
 			);
 
 
-	function Create_User_Criteria is new Generic_Logic_Criteria_Factory( Criteria_Type => User_Criteria_Type );
 
 
 
@@ -169,7 +161,6 @@ package KOW_Sec.Authorization_Criterias is
 	-- Criteria of authorization associating others criterias.
 	-- Example: USERS={adele|OgRo}&GROUPS={!design&(dev|admin)} 
 
-	function Create_Expression_Criteria( Descriptor: in Criteria_Descriptor ) return Criteria_Interface'Class;
 
 	overriding
 	function Get_Name( Criteria: in Expression_Criteria_Type ) return String;
@@ -195,25 +186,30 @@ package KOW_Sec.Authorization_Criterias is
 			);
 
 
-	function Create_Expression_Criteria is new Generic_Logic_Criteria_Factory( Criteria_Type => Expression_Criteria_Type );
-
 
 private
 
 	type Role_Criteria_Type is new Logic_Criteria_Type with record
 		Roles		: Role_Vectors.Vector;
 	end record;
+	function Create_Role_Criteria is new Generic_Logic_Criteria_Factory( Criteria_Type => Role_Criteria_Type );
+
 
 	type Group_Criteria_Type is new Logic_Criteria_Type with record
 		Groups		: Group_Vectors.Vector;
 	end record;
+	function Create_Group_Criteria is new Generic_Logic_Criteria_Factory( Criteria_Type => Group_Criteria_Type );
+
 	
 	type User_Criteria_Type is new Logic_Criteria_Type with record
 		User_Identity	: User_Identity_Type;
 	end record;
+	function Create_User_Criteria is new Generic_Logic_Criteria_Factory( Criteria_Type => User_Criteria_Type );
+
 	
 	type Expression_Criteria_Type is new Logic_Criteria_Type with record
 		User		: User_Type;
 	end record;
+	function Create_Expression_Criteria is new Generic_Logic_Criteria_Factory( Criteria_Type => Expression_Criteria_Type );
 
 end KOW_Sec.Authorization_Criterias;

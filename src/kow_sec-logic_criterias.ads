@@ -57,8 +57,8 @@ package KOW_Sec.Logic_Criterias is
 
 	overriding
 	procedure Require(
-				User	: in out User_Type;
-				Criteria: in     Logic_Criteria_Type
+				Criteria: in out Logic_Criteria_Type;
+				User	: in out User_Type
 			);
 
 
@@ -71,7 +71,7 @@ package KOW_Sec.Logic_Criterias is
 
 	procedure Initialize(
 				Criteria	: in out Logic_Criteria_Type;
-				User		: in out User_Type
+				User		: in     User_Type
 			) is null;
 	-- optional procedure, when initializing the require procedure
 
