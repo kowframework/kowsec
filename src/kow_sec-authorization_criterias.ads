@@ -46,27 +46,27 @@ package KOW_Sec.Authorization_Criterias is
 
 
 
-	--------------------
-	-- ROLES CRITERIA --
-	--------------------
+	-------------------
+	-- ROLE CRITERIA --
+	-------------------
 
-	type Roles_Criteria_Type is new KOW_Sec.Criteria_Interface with private;
-	-- matches user roles (including the group roles)
+	type Role_Criteria_Type is new KOW_Sec.Criteria_Interface with private;
+	-- matches user Role (including the group Role)
 
-	function Create_Roles_Criteria( Descriptor : in Criteria_Descriptor ) return Criteria_Interface'Class;
+	function Create_Role_Criteria( Descriptor : in Criteria_Descriptor ) return Criteria_Interface'Class;
 
 	overriding
-	function Get_Name( Criteria : Roles_Criteria_Type ) return String;
+	function Get_Name( Criteria : Role_Criteria_Type ) return String;
 	-- return ROLE
 
 
 	overriding
-	function Describe( Criteria : Roles_Criteria_Type ) return String;
+	function Describe( Criteria : Role_Criteria_Type ) return String;
 
 	overriding
 	procedure Require(
 				User	: in out User_Type;
-				Criteria: in     Roles_Criteria_Type
+				Criteria: in     Role_Criteria_Type
 			);
 
 
@@ -143,7 +143,7 @@ package KOW_Sec.Authorization_Criterias is
 
 private
 
-	type Roles_Criteria_Type is new KOW_Sec.Criteria_Interface with record
+	type Role_Criteria_Type is new KOW_Sec.Criteria_Interface with record
 		Descriptor : KOW_Sec.Criteria_Descriptor;
 	end record;
 

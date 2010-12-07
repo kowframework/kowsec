@@ -58,16 +58,59 @@ package body KOW_Sec.Authorization_Criterias is
 	-----------
 
 
+	procedure Generic_Require(
+				User		: in out User_Type;
+				Descriptor	: in     Criteria_Descriptor;
+				Eval_Procedure	: not null access procedure (
+								Descriptor	: in     Criteria_Descriptor;
+								User		: in out User_Type;
+								Ret_Code	:    out Boolean
+							)
+			) is
+		procedure Generic_Eval(
+					Descriptor	: in     Criteria_Descriptor;
+					User		: in out User_Type;
+					Ret_Code	:    out Boolean
+				) is
+		begin
+			Eval_Procedure.all( Descriptor, User, Ret_Code );
+		end Generic_Eval;
+	
+		package Generic_Parse is new Bool_Parse(
+						Pattern		=> Criteria_Descriptor,
+						Evaluate	=> Generic_Eval
+				); 
+
+
+		use Generic_Parse;
+
+		Parser : Bool_Parser := (
+					User		=> User,
+					Descriptor	=> Descriptor,
+					Index		=> 0
+				);
+		Exp : Expression_Access;
+		Ret_Value : Boolean := False;
+	begin
+		Parse( Parser, Exp );
+		IsTrue( Exp.all, Parser, Ret_Value );
+
+		if not Ret_Value then
+			raise ACCESS_DENIED with To_String( Descriptor );
+		end if;
+	end Generic_Require;
+
+
 
 	procedure Eval_Role(
 				Descriptor	: in     Criteria_Descriptor;
 				User		: in out User_Type;
-				Ret_Code	: in     Boolean
+				Ret_Code	:    out Boolean
 			) is
 
-		Role	: Role_Vectors.Vector := KOW_Sec.Get_Role( User );
+		Role	: Role_Vectors.Vector := KOW_Sec.Get_Roles( User );
 	begin
-		if Role_Vectors.Contains( Role, To_Role( To_String( Descriptor ) ) ) then
+		if Role_Vectors.Contains( Role, To_Role( To_Identity( To_String( Descriptor ) ) ) ) then
 			Ret_Code := True;
 		else
 			Ret_Code := False;
@@ -100,10 +143,23 @@ package body KOW_Sec.Authorization_Criterias is
 
 	overriding
 	procedure Require(
+				User		: in out User_Type;
+				Criteria	: in     Role_Criteria_Type
+			) is
+	begin
+
+		Generic_Require(
+					User		=> User,
+					Descriptor	=> Criteria.Descriptor,
+					Eval_Procedure	=> Eval_role'Access
+				);
+	end Require;
+
+	-- todo :: remove the following procedure :D
+	procedure Requires(
 				User	: in out User_Type;
 				Criteria: in     Role_Criteria_Type
 			) is
-	begin
 		use Roles_Parse;
 
 		Parser : Bool_Parser := (
@@ -112,15 +168,15 @@ package body KOW_Sec.Authorization_Criterias is
 					Index		=> 0
 				);
 		Exp : Expression_Access;
-		Rewt_Value : Boolean := False;
+		Ret_Value : Boolean := False;
 	begin
 		Parse( Parser, Exp );
 		IsTrue( Exp.all, Parser, Ret_Value );
 
-		if not Ret_Code then
+		if not Ret_Value then
 			raise ACCESS_DENIED with Describe( Criteria );
 		end if;
-	end Require;
+	end Requires;
 
 
 	---------------------
