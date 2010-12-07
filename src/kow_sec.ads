@@ -258,6 +258,10 @@ package KOW_Sec is
 					Identity	=> Anonymous_User_Identity,
 					others	=> <>
 				);
+	Logged_Anonymous_User : constant Logged_User_Type := (
+					User		=> Anonymous_User,
+					Current_Manager	=> null
+				);
 
 	function Identity( User : in User_Type ) return String;
 	-- Return a string identifying the current user. Usually it's the username
@@ -286,6 +290,9 @@ package KOW_Sec is
 	-- if combine group roles is true, does exactly that given that only one instance of each role is returned
 
 	function Is_Anonymous( User : in User_type ) return Boolean;
+	-- Return true if this user isn't logged in.
+
+	function Is_Anonymous( User : in Logged_User_type ) return Boolean;
 	-- Return true if this user isn't logged in.
 
 	function Get_User( User_Identity: in String ) return User_Type;

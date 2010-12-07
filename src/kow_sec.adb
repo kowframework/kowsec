@@ -390,6 +390,14 @@ package body KOW_Sec is
 		return User.Identity = ( 1 .. 32 => ' ' ) or else User.Identity = Anonymous_User_Identity;
 	end Is_Anonymous;
 
+
+
+	function Is_Anonymous( User : in Logged_User_type ) return Boolean is
+		-- Return true if this user isn't logged in.
+	begin
+		return Is_Anonymous( User.User );
+	end Is_Anonymous;
+
 	function Get_User( User_Identity: in String ) return User_Type is
 	begin
 		return Get_User( To_Identity( User_Identity ) );
