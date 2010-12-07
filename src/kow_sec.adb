@@ -186,6 +186,7 @@ package body KOW_Sec is
 
 
 
+
 	----------------------
 	-- Roles Management --
 	----------------------
@@ -406,6 +407,44 @@ package body KOW_Sec is
 	begin
 		User_Data.Store( User.Identity, User );
 	end Store_User;
+
+
+
+	function Do_Login(
+				Username : in String;
+				Password : in String
+			) return Logged_User_Type is
+		-- do login and initialize the logged_user_type variable
+		use Authentication_Manager_Vectors;
+
+		C: Authentication_Manager_Vectors.Cursor := First( Managers_Registry );
+	begin
+		while Has_Element( C )
+		loop
+			begin
+				declare
+					Identity : User_Identity_Type := Do_Login(
+										Element( C ).all,
+										Username,
+										Password
+									);
+				begin
+					return Logged_User_Type'(
+								User		=> Get_User( Identity ),
+								Current_Manager => Element( C )
+							);
+				end;
+
+			exception
+				when INVALID_CREDENTIALS | UNKNOWN_USER => null;
+			end;
+			C := Next( C );
+		end loop;
+
+		raise INVALID_CREDENTIALS with "for username """ & Username & """";
+
+	end Do_Login;
+
 
 
 

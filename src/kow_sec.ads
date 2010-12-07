@@ -138,8 +138,6 @@ package KOW_Sec is
 	-- this function giving different meanings to the data received
 
 
-
-
 	----------------------
 	-- Roles Management --
 	----------------------
@@ -298,6 +296,13 @@ package KOW_Sec is
 
 	procedure Store_User( User : in User_Type );
 	-- store the user using the backend
+
+
+	function Do_Login(
+				Username : in String;
+				Password : in String
+			) return Logged_User_Type;
+	-- do login and initialize the logged_user_type variable
 
 
 	----------------------------------------
