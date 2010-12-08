@@ -52,7 +52,7 @@ package body KOW_Sec.Accounting is
 	function New_Action(
 				Name		: in String;
 				Root_Accountant	: in Accountant_Access;
-				User		: in User_Type 
+				User		: in User_Data_Type 
 			) return Action_Type is
 	begin
 		return ( Ada.Finalization.Limited_Controlled with
@@ -322,7 +322,7 @@ package body KOW_Sec.Accounting is
 
 	procedure Require(
 				Criteria	: in out Criteria_Interface'Class; 
-				User		: in     Logged_User_Type;
+				User		: in     User_Type;
 				Root_Accountant	: in out Accountant_Access
 			) is
 		-- matches the user against some criteria.
@@ -332,7 +332,7 @@ package body KOW_Sec.Accounting is
 		My_Action : Base_Action_Type'Class := New_Action(
 					Name		=> "Require",
 					Root_Accountant	=> Root_Accountant,
-					User		=> User.User
+					User		=> User.Data
 				);
 	begin
 		Require(
@@ -360,7 +360,7 @@ package body KOW_Sec.Accounting is
 	procedure Require(
 				Name		: in     Criteria_Name;
 				Descriptor	: in     Criteria_Descriptor;
-				User		: in     Logged_User_Type;
+				User		: in     User_Type;
 				Root_Accountant	: in out Accountant_Access) is
 		-- matches the user against some criteria that's created at run time.
 		-- raises 
@@ -373,7 +373,7 @@ package body KOW_Sec.Accounting is
 		My_Action : Base_Action_Type'Class := New_Action(
 						Name		=> "Require",
 						Root_Accountant	=> Root_Accountant,
-						User		=> User.User
+						User		=> User.Data
 					);
 	begin
 		Require(

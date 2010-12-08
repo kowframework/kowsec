@@ -83,7 +83,7 @@ package KOW_Sec.Accounting is
 	function New_Action(
 				Name		: in String;
 				Root_Accountant	: in Accountant_Access;
-				User	: in User_Type
+				User	: in User_Data_Type
 			) return Base_Action_Type'Class is abstract;
 	-- This method should be used by the constructor and never be overrided.
 	-- It will initialize the common attributes to all action types.
@@ -132,7 +132,7 @@ package KOW_Sec.Accounting is
 	function New_Action(
 				Name		: in String;
 				Root_Accountant : in Accountant_Access;
-				User		: in User_Type
+				User		: in User_Data_Type
 			) return Action_Type;
 	-- Used to create a new action which's root is Root_Accountant
 	-- Should be used as a constructor.
@@ -226,7 +226,7 @@ package KOW_Sec.Accounting is
 
 	procedure Require(
 				Criteria 	: in out Criteria_Interface'Class; 
-				User		: in     Logged_User_Type;
+				User		: in     User_Type;
 				Root_Accountant : in out Accountant_Access
 			);
 	-- matches the user against some criteria.
@@ -237,7 +237,7 @@ package KOW_Sec.Accounting is
 	procedure Require(
 				Name		: in     Criteria_Name;
 				Descriptor	: in     Criteria_Descriptor;
-				User		: in     Logged_User_Type;
+				User		: in     User_Type;
 				Root_Accountant	: in out Accountant_Access
 			);
 	-- matches the user against some criteria that's created at run time.
@@ -258,7 +258,7 @@ private
 	type Base_Action_Type is new Ada.Finalization.Limited_Controlled with record
 		Name		: Unbounded_String;
 		Creation_Time	: Time;
-		User		: User_Type;
+		User		: User_Data_Type;
 		Status		: Exit_Status;
 		Message		: Unbounded_String;
 		Root_Accountant	: Accountant_Access;
