@@ -76,7 +76,7 @@ package body KOW_Sec.Authorization_Criterias is
 	overriding
 	procedure Initialize(
 				Criteria	: in out Current_Manager_Criteria_Type;
-				User		: in     Logged_User_Type
+				User		: in     User_Type
 			) is
 	begin
 		Criteria.Current_Manager := User.Current_Manager;
@@ -119,10 +119,10 @@ package body KOW_Sec.Authorization_Criterias is
 	overriding
 	procedure Initialize(
 				Criteria	: in out In_Manager_Criteria_Type;
-				User		: in     Logged_User_Type
+				User		: in     User_Type
 			) is
 	begin
-		Criteria.User_Identity := User.User.Identity;
+		Criteria.User_Identity := User.Data.Identity;
 	end Initialize;
 
 	overriding
@@ -231,7 +231,7 @@ package body KOW_Sec.Authorization_Criterias is
 	overriding
 	procedure Initialize(
 				Criteria	: in out Expression_Criteria_Type;
-				User		: in     Logged_User_Type
+				User		: in     User_Type
 			) is
 	begin
 		Criteria.User := User;
@@ -242,7 +242,7 @@ package body KOW_Sec.Authorization_Criterias is
 				Criteria	: in out Expression_Criteria_Type
 			) is
 	begin
-		Criteria.User.User := KOW_Sec.Anonymous_User;
+		Criteria.User.Data := KOW_Sec.Anonymous_User;
 		Criteria.User.Current_manager := null;
 	end Finalize;
 
@@ -278,7 +278,7 @@ package body KOW_Sec.Authorization_Criterias is
 	overriding
 	procedure Initialize(
 				Criteria	: in out Group_Criteria_Type;
-				User		: in     Logged_User_Type
+				User		: in     User_Type
 			) is
 	begin
 		Criteria.Groups := KOW_Sec.Get_Groups( User );
@@ -324,7 +324,7 @@ package body KOW_Sec.Authorization_Criterias is
 	overriding
 	procedure Initialize(
 				Criteria	: in out Role_Criteria_Type;
-				User		: in     Logged_User_Type
+				User		: in     User_Type
 			) is
 	begin
 		Criteria.Roles := KOW_Sec.Get_Roles( User, True );
@@ -371,10 +371,10 @@ package body KOW_Sec.Authorization_Criterias is
 	overriding
 	procedure Initialize(
 				Criteria	: in out User_Criteria_Type;
-				User		: in     Logged_User_Type
+				User		: in     User_Type
 			) is
 	begin
-		Criteria.User_Identity := User.User.Identity;
+		Criteria.User_Identity := User.Data.Identity;
 	end Initialize;
 
 	overriding

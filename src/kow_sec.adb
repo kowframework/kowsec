@@ -183,7 +183,7 @@ package body KOW_Sec is
 		C: Authentication_Manager_Maps.Cursor := First( Managers_Registry );
 
 		User_Identity	: User_Identity_Type;
-		User		: User_Type;
+		User		: User_Data_Type;
 	begin
 		while Has_Element( C )
 		loop
@@ -338,11 +338,11 @@ package body KOW_Sec is
 				Storage_Name	=> "users",
 				Key_Type	=> User_Identity_type,
 				To_String	=> To_String,
-				Element_Type	=> User_Type,
+				Element_Type	=> User_Data_Type,
 				Element_Vectors	=> User_Vectors
 			);
 
-	function Identity( User : in User_Type ) return String is
+	function Identity( User : in User_Data_Type ) return String is
 		-- Return a string identifying the current user. Usually it's the username
 		-- but one could implement other methods, such as a numeric id for this user
 	begin
@@ -350,7 +350,7 @@ package body KOW_Sec is
 	end Identity;
 
 	function Full_Name(
-				User	: in User_Type;
+				User	: in User_Data_Type;
 				Locale	: in KOW_Lib.Locales.Locale := KOW_Lib.Locales.Default_Locale
 		) return String is
 	-- return the full name for this user, respecting the locale's conventions
@@ -372,32 +372,32 @@ package body KOW_Sec is
 	end Full_Name;
 
 
-	function Gravatar_URL( User : in User_Type; Size : Positive := 69 ) return String is
+	function Gravatar_URL( User : in User_Data_Type; Size : Positive := 69 ) return String is
 		-- return the gravatar URL for the given user
 		S : constant String := Ada.Strings.Fixed.Trim( Positive'Image( Size ), Ada.Strings.Both );
 	begin
 		return "http://www.gravatar.com/avatar/" & MD5_Sign( Ada.Strings.Fixed.Trim( User.Primary_Email, Ada.Strings.Both ) ) & ".jpg?s=" & S;
 	end Gravatar_URL;
 
-	function Get_Groups( User : in User_Type ) return Group_Vectors.Vector is
+	function Get_Groups( User : in User_Data_Type ) return Group_Vectors.Vector is
 	begin
 		return User_Groups_Data.Get_All( User.Identity );
 	end Get_Groups;
 
-	function Get_Groups( User : in Logged_User_Type ) return Group_Vectors.Vector is
+	function Get_Groups( User : in User_Type ) return Group_Vectors.Vector is
 		pragma Inline( Get_Groups );
 	begin
-		return Get_Groups( User.User );
+		return Get_Groups( User.Data );
 	end Get_Groups;
 
-	procedure Set_Groups( User : in User_Type; Groups : in Group_Vectors.Vector ) is
+	procedure Set_Groups( User : in User_Data_Type; Groups : in Group_Vectors.Vector ) is
 	begin
 		User_Groups_Data.Store( User.Identity, Groups );
 	end Set_Groups;
 
 
 	function Get_Roles(
-				User			: in User_Type;
+				User			: in User_Data_Type;
 				Combine_Group_Roles	: in Boolean := False
 			) return Role_Vectors.Vector is
 		-- if combine group roles is true, does exactly that given that only one instance of each role is returned
@@ -439,22 +439,22 @@ package body KOW_Sec is
 
 
 	function Get_Roles(
-				User			: in Logged_User_Type;
+				User			: in User_Type;
 				Combine_Group_Roles	: in Boolean := False
 			) return Role_Vectors.Vector is
 		pragma Inline( Get_Roles );
 	begin
-		return Get_Roles( User.User, Combine_Group_Roles );
+		return Get_Roles( User.Data, Combine_Group_Roles );
 	end Get_Roles;
 
 
 
-	procedure Set_Roles( User : in User_Type; Roles : in Role_Vectors.Vector ) is
+	procedure Set_Roles( User : in User_Data_Type; Roles : in Role_Vectors.Vector ) is
 	begin
 		User_Roles_Data.Store( User.Identity, Roles );
 	end Set_Roles;
 
-	function Is_Anonymous( User : in User_type ) return Boolean is
+	function Is_Anonymous( User : in User_Data_Type ) return Boolean is
 		-- Return true if this user isn't logged in.
 	begin
 		return User.Identity = ( 1 .. 32 => ' ' ) or else User.Identity = Anonymous_User_Identity;
@@ -462,25 +462,28 @@ package body KOW_Sec is
 
 
 
-	function Is_Anonymous( User : in Logged_User_type ) return Boolean is
+	function Is_Anonymous( User : in User_Type ) return Boolean is
 		-- Return true if this user isn't logged in.
 	begin
-		return Is_Anonymous( User.User );
+		return Is_Anonymous( User.Data );
 	end Is_Anonymous;
 
-	function Get_User( User_Identity: in String ) return User_Type is
+	function Get_User( User_Identity: in String ) return User_Data_Type is
 	begin
 		return Get_User( To_Identity( User_Identity ) );
 	end Get_User;
 
-	function Get_User( User_Identity: in User_Identity_Type ) return User_Type is
+	function Get_User( User_Identity: in User_Identity_Type ) return User_Data_Type is
+		Data : User_Data_Type;
 	begin
-		return User_Data.Get_First( User_Identity, True );
+		Data := User_Data.Get_First( User_Identity, True );
+		pragma Assert( Data.Identity = User_Identity, "Stored user identity doesnt match" );
+		return Data;
 	end Get_User;
 
 
 
-	procedure Store_User( User : in User_Type ) is
+	procedure Store_User( User : in User_Data_Type ) is
 		-- store the user using the backend
 	begin
 		User_Data.Store( User.Identity, User );
@@ -491,8 +494,8 @@ package body KOW_Sec is
 	function Do_Login(
 				Username : in String;
 				Password : in String
-			) return Logged_User_Type is
-		-- do login and initialize the logged_user_type variable
+			) return User_Type is
+		-- do login and initialize the User_Type variable
 		use Authentication_Manager_Maps;
 
 		C: Authentication_Manager_Maps.Cursor := First( Managers_Registry );
@@ -506,15 +509,15 @@ package body KOW_Sec is
 										Username,
 										Password
 									);
-					User 	: Logged_User_Type := (
-									User		=> Get_User( Identity ),
+					User 	: User_Type := (
+									Data		=> Get_User( Identity ),
 									Current_Manager => Element( C )
 								);
 				begin
 
 
-					if User.User.Account_Status /= Account_Enabled then
-						raise ACCESS_DENIED with "The user is not enabled right now. The current status is: " & Account_Status_Type'Image( User.User.Account_Status );
+					if User.Data.Account_Status /= Account_Enabled then
+						raise ACCESS_DENIED with "The user is not enabled right now. The current status is: " & Account_Status_Type'Image( User.Data.Account_Status );
 					end if;
 					return User;
 				end;
@@ -542,7 +545,7 @@ package body KOW_Sec is
 	procedure Require(	
 				Name		: in     Criteria_Name;
 				Descriptor	: in     Criteria_Descriptor;
-				User		: in     Logged_User_Type
+				User		: in     User_Type
 			) is
 		-- Create and matches against a criteria using the criteria registry
 		Criteria : Criteria_Interface'Class := Criteria_Registry.Create_Criteria( Name, Descriptor );

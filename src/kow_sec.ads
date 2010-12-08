@@ -238,7 +238,7 @@ package KOW_Sec is
 
 	type Contact_Info_Array is array ( Positive range <> ) of Contact_Info_Type;
 
-	type User_Type is record
+	type User_Data_Type is record
 		Identity	: User_Identity_Type := Anonymous_User_Identity;
 
 		Account_Status	: Account_Status_Type := Account_Pending;
@@ -258,8 +258,8 @@ package KOW_Sec is
 		Contact_Info	: Contact_Info_Array( 1 .. 10 );
 	end record;
 
-	type Logged_User_Type is record
-		User		: User_Type;
+	type User_Type is record
+		Data		: User_Data_Type;
 
 		Current_Manager	: Authentication_Manager_Access;
 		-- the authentication manager used to authenticate this instance
@@ -269,73 +269,73 @@ package KOW_Sec is
 
 	package User_Vectors is new Ada.Containers.Vectors(
 				Index_Type	=> Positive,
-				Element_Type	=> User_Type
+				Element_Type	=> User_Data_Type
 			);
 
 
-	Anonymous_User : constant User_Type := (
+	Anonymous_User : constant User_Data_Type := (
 					Identity	=> Anonymous_User_Identity,
 					others	=> <>
 				);
-	Logged_Anonymous_User : constant Logged_User_Type := (
-					User		=> Anonymous_User,
+	Logged_Anonymous_User : constant User_Type := (
+					Data		=> Anonymous_User,
 					Current_Manager	=> null
 				);
 
-	function Identity( User : in User_Type ) return String;
+	function Identity( User : in User_Data_Type ) return String;
 	-- Return a string identifying the current user. Usually it's the username
 	-- but one could implement other methods, such as a numeric id for this user
 
 
 	function Full_Name(
-				User	: in User_Type;
+				User	: in User_Data_Type;
 				Locale	: in KOW_Lib.Locales.Locale := KOW_Lib.Locales.Default_Locale
 		) return String;
 	-- return the full name for this user, respecting the locale's conventions
 
-	function Gravatar_URL( User : in User_Type; Size : Positive := 69 ) return String;
+	function Gravatar_URL( User : in User_Data_Type; Size : Positive := 69 ) return String;
 	-- return the gravatar URL for the given user
 	
-	function Get_Groups( User : in User_Type ) return Group_Vectors.Vector;
+	function Get_Groups( User : in User_Data_Type ) return Group_Vectors.Vector;
 	-- Get the groups for this user.
 	
-	function Get_Groups( User : in Logged_User_Type ) return Group_Vectors.Vector;
+	function Get_Groups( User : in User_Type ) return Group_Vectors.Vector;
 
-	procedure Set_Groups( User : in User_Type; Groups : in Group_Vectors.Vector );
+	procedure Set_Groups( User : in User_Data_Type; Groups : in Group_Vectors.Vector );
 
 	function Get_Roles(
-				User			: in User_Type;
+				User			: in User_Data_Type;
 				Combine_Group_Roles	: in Boolean := False
 			) return Role_Vectors.Vector;
 	-- get all roles by a given user
 	-- if combine group roles is true, does exactly that given that only one instance of each role is returned
 	function Get_Roles(
-				User			: in Logged_User_Type;
+				User			: in User_Type;
 				Combine_Group_Roles	: in Boolean := False
 			) return Role_Vectors.Vector;
 
 
-	function Is_Anonymous( User : in User_type ) return Boolean;
+	function Is_Anonymous( User : in User_Data_Type ) return Boolean;
 	-- Return true if this user isn't logged in.
 
-	function Is_Anonymous( User : in Logged_User_type ) return Boolean;
+	function Is_Anonymous( User : in User_Type ) return Boolean;
 	-- Return true if this user isn't logged in.
 
-	function Get_User( User_Identity: in String ) return User_Type;
+	function Get_User( User_Identity: in String ) return User_Data_Type;
 	-- get the user using the data backend
 
-	function Get_User( User_Identity: in User_Identity_Type ) return User_Type;
+	function Get_User( User_Identity: in User_Identity_Type ) return User_Data_Type;
 	-- get the user using the data backend
 
-	procedure Store_User( User : in User_Type );
+	procedure Store_User( User : in User_Data_Type );
 	-- store the user using the backend
 
 
 	function Do_Login(
 				Username : in String;
 				Password : in String
-			) return Logged_User_Type;
-	-- do login and initialize the logged_user_type variable
+			) return User_Type;
+	-- do login and initialize the User_Type variable
 
 
 	----------------------------------------
@@ -385,7 +385,7 @@ package KOW_Sec is
 
 	procedure Require(	
 				Criteria	:	 in out Criteria_Interface;
-				User		:	 in     Logged_User_Type 
+				User		:	 in     User_Type 
 			) is abstract;
 	-- matches the user against some criteria.
 	-- raise ACCESS_DENIED if the user fails this criteria.
@@ -394,7 +394,7 @@ package KOW_Sec is
 	procedure Require(	
 				Name		: in     Criteria_Name;
 				Descriptor	: in     Criteria_Descriptor;
-				User		: in     Logged_User_Type
+				User		: in     User_Type
 			);
 	-- Create and matches against a criteria using the criteria registry
 	

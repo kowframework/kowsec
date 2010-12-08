@@ -68,7 +68,7 @@ package KOW_Sec.Authorization_Criterias is
 	overriding
 	procedure Initialize(
 				Criteria	: in out Current_Manager_Criteria_Type;
-				User		: in     Logged_User_Type
+				User		: in     User_Type
 			);
 	overriding
 	procedure Finalize(
@@ -96,7 +96,7 @@ package KOW_Sec.Authorization_Criterias is
 	overriding
 	procedure Initialize(
 				Criteria	: in out In_Manager_Criteria_Type;
-				User		: in     Logged_User_Type
+				User		: in     User_Type
 			);
 	overriding
 	procedure Finalize(
@@ -130,7 +130,7 @@ package KOW_Sec.Authorization_Criterias is
 	overriding
 	procedure Initialize(
 				Criteria	: in out Expression_Criteria_Type;
-				User		: in     Logged_User_Type
+				User		: in     User_Type
 			);
 	overriding
 	procedure Finalize(
@@ -162,7 +162,7 @@ package KOW_Sec.Authorization_Criterias is
 	overriding
 	procedure Initialize(
 				Criteria	: in out Group_Criteria_Type;
-				User		: in     Logged_User_Type
+				User		: in     User_Type
 			);
 	overriding
 	procedure Finalize(
@@ -198,7 +198,7 @@ package KOW_Sec.Authorization_Criterias is
 	overriding
 	procedure Initialize(
 				Criteria	: in out Role_Criteria_Type;
-				User		: in     Logged_User_Type
+				User		: in     User_Type
 			);
 	overriding
 	procedure Finalize(
@@ -232,7 +232,7 @@ package KOW_Sec.Authorization_Criterias is
 	overriding
 	procedure Initialize(
 				Criteria	: in out User_Criteria_Type;
-				User		: in     Logged_User_Type
+				User		: in     User_Type
 			);
 	overriding
 	procedure Finalize(
@@ -260,7 +260,7 @@ private
 
 
 	type Expression_Criteria_Type is new Logic_Criteria_Type with record
-		User		: Logged_User_Type;
+		User		: User_Type;
 	end record;
 	function Create_Expression_Criteria is new Generic_Logic_Criteria_Factory( Criteria_Type => Expression_Criteria_Type );
 
