@@ -52,144 +52,6 @@ with KOW_Sec;			use KOW_Sec;
 package body KOW_Sec.Authorization_Criterias is
 
 
-	-----------
-	-- Role --
-	-----------
-
-	overriding
-	function Get_Name( Criteria : Role_Criteria_Type ) return String is
-	begin
-		return "ROLE";
-	end Get_Name;
-
-
-	overriding
-	function Describe( Criteria : Role_Criteria_Type ) return String is
-	begin
-		return "Matches roles based on :: " & To_String( Criteria.Descriptor );
-	end Describe;
-
-
-
-  	overriding
-	procedure Require_Specific(
-					Criteria	: in out Role_Criteria_Type;
-					Descriptor	: in     Criteria_Descriptor;
-					Is_Allowed	:    out Boolean
-				) is
-	begin
-		Is_Allowed := Role_Vectors.Contains( Criteria.Roles, To_Role( To_Identity( To_String( Descriptor ) ) ) );
-	end Require_Specific;
-
-	overriding
-	procedure Initialize(
-				Criteria	: in out Role_Criteria_Type;
-				User		: in     Logged_User_Type
-			) is
-	begin
-		Criteria.Roles := KOW_Sec.Get_Roles( User, True );
-	end initialize;
-
-	overriding
-	procedure Finalize(
-				Criteria	: in out Role_Criteria_Type
-			) is
-	begin
-		Role_Vectors.Clear( Criteria.Roles );
-	end Finalize;
-
-
-	--------------------
-	-- GROUP CRITERIA --
-	--------------------
-	
-	function Get_Name( Criteria: in Group_Criteria_Type ) return String is
-	begin
-		return ("GROUP"); 
-	end Get_Name;
-
-
-	function Describe( Criteria: in Group_Criteria_Type ) return String is
-	begin
-		return "Matches groups based on :: " & To_String( Criteria.Descriptor );
-	end Describe;
-
-
-  	overriding
-	procedure Require_Specific(
-					Criteria	: in out Group_Criteria_Type;
-					Descriptor	: in     Criteria_Descriptor;
-					Is_Allowed	:    out Boolean
-				) is
-	begin
-		Is_Allowed := Group_Vectors.Contains( Criteria.Groups, Group_Type( To_String( Descriptor ) ) );
-	end Require_Specific;
-
-	overriding
-	procedure Initialize(
-				Criteria	: in out Group_Criteria_Type;
-				User		: in     Logged_User_Type
-			) is
-	begin
-		Criteria.Groups := KOW_Sec.Get_Groups( User );
-	end Initialize;
-
-	overriding
-	procedure Finalize(
-				Criteria	: in out Group_Criteria_Type
-			) is
-	begin
-		Group_Vectors.Clear( Criteria.Groups );
-	end Finalize;
-
-
-	--------------------
-	-- USERS CRITERIA --
-	--------------------
-	
-
-	
-	function Get_Name( Criteria: in User_Criteria_Type ) return String is
-	begin
-		return ("USER"); 
-	end Get_Name;
-
-
-	function Describe( Criteria: in User_Criteria_Type ) return String is
-		-- return a string describing the current criteria
-	begin
-		return "Matches user identity based on :: " & To_String( Criteria.Descriptor );
-	end Describe;
-
-	overriding
-	procedure Require_Specific(
-					Criteria	: in out User_Criteria_Type;
-					Descriptor	: in     Criteria_Descriptor;
-					Is_Allowed	:    out Boolean
-				) is
-	begin
-		Is_Allowed := User_Identity_Type( To_String( Descriptor ) ) = Criteria.User_Identity;
-	end Require_Specific;
-
-	overriding
-	procedure Initialize(
-				Criteria	: in out User_Criteria_Type;
-				User		: in     Logged_User_Type
-			) is
-	begin
-		Criteria.User_Identity := User.User.Identity;
-	end Initialize;
-
-	overriding
-	procedure Finalize(
-				Criteria	: in out User_Criteria_Type
-			) is
-	begin
-		Criteria.User_Identity := KOW_Sec.Anonymous_User_Identity;
-	end Finalize;
-
-
-
 	--------------------------
 	-- EXPRESSIONS CRITERIA --
 	--------------------------
@@ -302,10 +164,151 @@ package body KOW_Sec.Authorization_Criterias is
 	end Finalize;
 
 
+
+
+	--------------------
+	-- GROUP CRITERIA --
+	--------------------
+	
+	function Get_Name( Criteria: in Group_Criteria_Type ) return String is
+	begin
+		return ("GROUP"); 
+	end Get_Name;
+
+
+	function Describe( Criteria: in Group_Criteria_Type ) return String is
+	begin
+		return "Matches groups based on :: " & To_String( Criteria.Descriptor );
+	end Describe;
+
+
+  	overriding
+	procedure Require_Specific(
+					Criteria	: in out Group_Criteria_Type;
+					Descriptor	: in     Criteria_Descriptor;
+					Is_Allowed	:    out Boolean
+				) is
+	begin
+		Is_Allowed := Group_Vectors.Contains( Criteria.Groups, Group_Type( To_String( Descriptor ) ) );
+	end Require_Specific;
+
+	overriding
+	procedure Initialize(
+				Criteria	: in out Group_Criteria_Type;
+				User		: in     Logged_User_Type
+			) is
+	begin
+		Criteria.Groups := KOW_Sec.Get_Groups( User );
+	end Initialize;
+
+	overriding
+	procedure Finalize(
+				Criteria	: in out Group_Criteria_Type
+			) is
+	begin
+		Group_Vectors.Clear( Criteria.Groups );
+	end Finalize;
+
+	-------------------
+	-- ROLE CRITERIA --
+	-------------------
+
+	overriding
+	function Get_Name( Criteria : Role_Criteria_Type ) return String is
+	begin
+		return "ROLE";
+	end Get_Name;
+
+
+	overriding
+	function Describe( Criteria : Role_Criteria_Type ) return String is
+	begin
+		return "Matches roles based on :: " & To_String( Criteria.Descriptor );
+	end Describe;
+
+
+
+  	overriding
+	procedure Require_Specific(
+					Criteria	: in out Role_Criteria_Type;
+					Descriptor	: in     Criteria_Descriptor;
+					Is_Allowed	:    out Boolean
+				) is
+	begin
+		Is_Allowed := Role_Vectors.Contains( Criteria.Roles, To_Role( To_Identity( To_String( Descriptor ) ) ) );
+	end Require_Specific;
+
+	overriding
+	procedure Initialize(
+				Criteria	: in out Role_Criteria_Type;
+				User		: in     Logged_User_Type
+			) is
+	begin
+		Criteria.Roles := KOW_Sec.Get_Roles( User, True );
+	end initialize;
+
+	overriding
+	procedure Finalize(
+				Criteria	: in out Role_Criteria_Type
+			) is
+	begin
+		Role_Vectors.Clear( Criteria.Roles );
+	end Finalize;
+
+
+
+	--------------------
+	-- USERS CRITERIA --
+	--------------------
+	
+
+	
+	function Get_Name( Criteria: in User_Criteria_Type ) return String is
+	begin
+		return ("USER"); 
+	end Get_Name;
+
+
+	function Describe( Criteria: in User_Criteria_Type ) return String is
+		-- return a string describing the current criteria
+	begin
+		return "Matches user identity based on :: " & To_String( Criteria.Descriptor );
+	end Describe;
+
+	overriding
+	procedure Require_Specific(
+					Criteria	: in out User_Criteria_Type;
+					Descriptor	: in     Criteria_Descriptor;
+					Is_Allowed	:    out Boolean
+				) is
+	begin
+		Is_Allowed := User_Identity_Type( To_String( Descriptor ) ) = Criteria.User_Identity;
+	end Require_Specific;
+
+	overriding
+	procedure Initialize(
+				Criteria	: in out User_Criteria_Type;
+				User		: in     Logged_User_Type
+			) is
+	begin
+		Criteria.User_Identity := User.User.Identity;
+	end Initialize;
+
+	overriding
+	procedure Finalize(
+				Criteria	: in out User_Criteria_Type
+			) is
+	begin
+		Criteria.User_Identity := KOW_Sec.Anonymous_User_Identity;
+	end Finalize;
+
+
+
+
 begin
-	KOW_Sec.Criteria_Registry.Register( Create_Role_Criteria'Access );
-	KOW_Sec.Criteria_Registry.Register( Create_Group_Criteria'Access );
-	KOW_Sec.Criteria_Registry.Register( Create_User_Criteria'Access );
 	KOW_Sec.Criteria_Registry.Register( Create_Expression_Criteria'Access );
+	KOW_Sec.Criteria_Registry.Register( Create_Group_Criteria'Access );
+	KOW_Sec.Criteria_Registry.Register( Create_Role_Criteria'Access );
+	KOW_Sec.Criteria_Registry.Register( Create_User_Criteria'Access );
 
 end KOW_Sec.Authorization_Criterias;

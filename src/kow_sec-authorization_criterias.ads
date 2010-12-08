@@ -48,39 +48,38 @@ package KOW_Sec.Authorization_Criterias is
 
 
 
-	-------------------
-	-- ROLE CRITERIA --
-	-------------------
-
-	type Role_Criteria_Type is new Logic_Criteria_Type with private;
-	-- matches user Role (including the group Role)
-
-	overriding
-	function Get_Name( Criteria : Role_Criteria_Type ) return String;
-	-- return ROLE
+	-------------------------
+	-- EXPRESSION CRITERIA --
+	-------------------------
+	
+	
+	type Expression_Criteria_Type is new Logic_Criteria_Type with private;
+	-- Criteria of authorization associating others criterias.
+	-- Example: USERS={adele|OgRo}&GROUPS={!design&(dev|admin)} 
 
 
 	overriding
-	function Describe( Criteria : Role_Criteria_Type ) return String;
+	function Get_Name( Criteria: in Expression_Criteria_Type ) return String;
+	-- return EXPRESSION
 
-  
+	overriding
+	function Describe( Criteria: in Expression_Criteria_Type ) return String;
+	
   	overriding
 	procedure Require_Specific(
-					Criteria	: in out Role_Criteria_Type;
+					Criteria	: in out Expression_Criteria_Type;
 					Descriptor	: in     Criteria_Descriptor;
 					Is_Allowed	:    out Boolean
 				);
-
 	overriding
 	procedure Initialize(
-				Criteria	: in out Role_Criteria_Type;
+				Criteria	: in out Expression_Criteria_Type;
 				User		: in     Logged_User_Type
 			);
 	overriding
 	procedure Finalize(
-				Criteria	: in out Role_Criteria_Type
+				Criteria	: in out Expression_Criteria_Type
 			);
-
 
 
 
@@ -112,6 +111,42 @@ package KOW_Sec.Authorization_Criterias is
 	overriding
 	procedure Finalize(
 				Criteria	: in out Group_Criteria_Type
+			);
+
+
+
+
+	-------------------
+	-- ROLE CRITERIA --
+	-------------------
+
+	type Role_Criteria_Type is new Logic_Criteria_Type with private;
+	-- matches user Role (including the group Role)
+
+	overriding
+	function Get_Name( Criteria : Role_Criteria_Type ) return String;
+	-- return ROLE
+
+
+	overriding
+	function Describe( Criteria : Role_Criteria_Type ) return String;
+
+  
+  	overriding
+	procedure Require_Specific(
+					Criteria	: in out Role_Criteria_Type;
+					Descriptor	: in     Criteria_Descriptor;
+					Is_Allowed	:    out Boolean
+				);
+
+	overriding
+	procedure Initialize(
+				Criteria	: in out Role_Criteria_Type;
+				User		: in     Logged_User_Type
+			);
+	overriding
+	procedure Finalize(
+				Criteria	: in out Role_Criteria_Type
 			);
 
 
@@ -152,53 +187,26 @@ package KOW_Sec.Authorization_Criterias is
 
 
 
-	-------------------------
-	-- EXPRESSION CRITERIA --
-	-------------------------
-	
-	
-	type Expression_Criteria_Type is new Logic_Criteria_Type with private;
-	-- Criteria of authorization associating others criterias.
-	-- Example: USERS={adele|OgRo}&GROUPS={!design&(dev|admin)} 
-
-
-	overriding
-	function Get_Name( Criteria: in Expression_Criteria_Type ) return String;
-	-- return EXPRESSION
-
-	overriding
-	function Describe( Criteria: in Expression_Criteria_Type ) return String;
-	
-  	overriding
-	procedure Require_Specific(
-					Criteria	: in out Expression_Criteria_Type;
-					Descriptor	: in     Criteria_Descriptor;
-					Is_Allowed	:    out Boolean
-				);
-	overriding
-	procedure Initialize(
-				Criteria	: in out Expression_Criteria_Type;
-				User		: in     Logged_User_Type
-			);
-	overriding
-	procedure Finalize(
-				Criteria	: in out Expression_Criteria_Type
-			);
 
 
 
 private
 
-	type Role_Criteria_Type is new Logic_Criteria_Type with record
-		Roles		: Role_Vectors.Vector;
-	end record;
-	function Create_Role_Criteria is new Generic_Logic_Criteria_Factory( Criteria_Type => Role_Criteria_Type );
 
+	type Expression_Criteria_Type is new Logic_Criteria_Type with record
+		User		: Logged_User_Type;
+	end record;
+	function Create_Expression_Criteria is new Generic_Logic_Criteria_Factory( Criteria_Type => Expression_Criteria_Type );
 
 	type Group_Criteria_Type is new Logic_Criteria_Type with record
 		Groups		: Group_Vectors.Vector;
 	end record;
 	function Create_Group_Criteria is new Generic_Logic_Criteria_Factory( Criteria_Type => Group_Criteria_Type );
+
+	type Role_Criteria_Type is new Logic_Criteria_Type with record
+		Roles		: Role_Vectors.Vector;
+	end record;
+	function Create_Role_Criteria is new Generic_Logic_Criteria_Factory( Criteria_Type => Role_Criteria_Type );
 
 	
 	type User_Criteria_Type is new Logic_Criteria_Type with record
@@ -207,9 +215,4 @@ private
 	function Create_User_Criteria is new Generic_Logic_Criteria_Factory( Criteria_Type => User_Criteria_Type );
 
 	
-	type Expression_Criteria_Type is new Logic_Criteria_Type with record
-		User		: Logged_User_Type;
-	end record;
-	function Create_Expression_Criteria is new Generic_Logic_Criteria_Factory( Criteria_Type => Expression_Criteria_Type );
-
 end KOW_Sec.Authorization_Criterias;
