@@ -47,31 +47,31 @@ package KOW_Sec.Authorization_Criterias is
 	pragma Elaborate_Body( KOW_Sec.Authorization_Criterias );
 
 
-	-------------------------------------
-	-- AUTHENTICATION MANAGER CRITERIA --
-	-------------------------------------
+	------------------------------
+	-- CURRENT MANAGER CRITERIA --
+	------------------------------
 
-	type Authentication_Manager_Criteria_Type is new Logic_Criteria_Type with private;
+	type Current_Manager_Criteria_Type is new Logic_Criteria_Type with private;
 
 	overriding
-	function Get_Name( Criteria : in Authentication_Manager_Criteria_Type ) return String;
-	-- return AUTHENTICATION_MANAGER
+	function Get_Name( Criteria : in Current_Manager_Criteria_Type ) return String;
+	-- return CURRENT_MANAGER 
 
 
   	overriding
 	procedure Require_Specific(
-					Criteria	: in out Authentication_Manager_Criteria_Type;
+					Criteria	: in out Current_Manager_Criteria_Type;
 					Descriptor	: in     Criteria_Descriptor;
 					Is_Allowed	:    out Boolean
 				);
 	overriding
 	procedure Initialize(
-				Criteria	: in out Authentication_Manager_Criteria_Type;
+				Criteria	: in out Current_Manager_Criteria_Type;
 				User		: in     Logged_User_Type
 			);
 	overriding
 	procedure Finalize(
-				Criteria	: in out Authentication_Manager_Criteria_Type
+				Criteria	: in out Current_Manager_Criteria_Type
 			);
 
 
@@ -219,10 +219,10 @@ package KOW_Sec.Authorization_Criterias is
 
 private
 
-	type Authentication_Manager_Criteria_Type is new Logic_Criteria_Type with record
+	type Current_Manager_Criteria_Type is new Logic_Criteria_Type with record
 		Current_Manager	: Authentication_Manager_Access;
 	end record;
-	function Create_Authentication_Manager_Criteria is new Generic_Logic_Criteria_Factory( Criteria_Type => Authentication_Manager_Criteria_Type );
+	function Create_Current_Manager_Criteria is new Generic_Logic_Criteria_Factory( Criteria_Type => Current_Manager_Criteria_Type );
 
 	type Expression_Criteria_Type is new Logic_Criteria_Type with record
 		User		: Logged_User_Type;

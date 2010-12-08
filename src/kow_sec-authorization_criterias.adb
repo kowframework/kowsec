@@ -56,15 +56,15 @@ package body KOW_Sec.Authorization_Criterias is
 	-------------------------------------
 
 	overriding
-	function Get_Name( Criteria : in Authentication_Manager_Criteria_Type ) return String is
+	function Get_Name( Criteria : in Current_Manager_Criteria_Type ) return String is
 	begin
-		return "AUTHENTICATION_MANAGER";
+		return "CURRENT_MANAGER";
 	end Get_Name;
 
 
   	overriding
 	procedure Require_Specific(
-					Criteria	: in out Authentication_Manager_Criteria_Type;
+					Criteria	: in out Current_Manager_Criteria_Type;
 					Descriptor	: in     Criteria_Descriptor;
 					Is_Allowed	:    out Boolean
 				) is
@@ -75,7 +75,7 @@ package body KOW_Sec.Authorization_Criterias is
 
 	overriding
 	procedure Initialize(
-				Criteria	: in out Authentication_Manager_Criteria_Type;
+				Criteria	: in out Current_Manager_Criteria_Type;
 				User		: in     Logged_User_Type
 			) is
 	begin
@@ -85,7 +85,7 @@ package body KOW_Sec.Authorization_Criterias is
 
 	overriding
 	procedure Finalize(
-				Criteria	: in out Authentication_Manager_Criteria_Type
+				Criteria	: in out Current_Manager_Criteria_Type
 			) is
 	begin
 		Criteria.Current_Manager := null;
@@ -347,7 +347,7 @@ package body KOW_Sec.Authorization_Criterias is
 
 
 begin
-	KOW_Sec.Criteria_Registry.Register( Create_Authentication_Manager_Criteria'Access );
+	KOW_Sec.Criteria_Registry.Register( Create_Current_Manager_Criteria'Access );
 	KOW_Sec.Criteria_Registry.Register( Create_Expression_Criteria'Access );
 	KOW_Sec.Criteria_Registry.Register( Create_Group_Criteria'Access );
 	KOW_Sec.Criteria_Registry.Register( Create_Role_Criteria'Access );
