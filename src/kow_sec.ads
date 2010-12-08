@@ -293,6 +293,8 @@ package KOW_Sec is
 	
 	function Get_Groups( User : in User_Type ) return Group_Vectors.Vector;
 	-- Get the groups for this user.
+	
+	function Get_Groups( User : in Logged_User_Type ) return Group_Vectors.Vector;
 
 	procedure Set_Groups( User : in User_Type; Groups : in Group_Vectors.Vector );
 
@@ -302,6 +304,11 @@ package KOW_Sec is
 			) return Role_Vectors.Vector;
 	-- get all roles by a given user
 	-- if combine group roles is true, does exactly that given that only one instance of each role is returned
+	function Get_Roles(
+				User			: in Logged_User_Type;
+				Combine_Group_Roles	: in Boolean := False
+			) return Role_Vectors.Vector;
+
 
 	function Is_Anonymous( User : in User_type ) return Boolean;
 	-- Return true if this user isn't logged in.
@@ -373,7 +380,7 @@ package KOW_Sec is
 
 	procedure Require(	
 				Criteria	:	 in out Criteria_Interface;
-				User		:	 in     User_Type
+				User		:	 in     Logged_User_Type 
 			) is abstract;
 	-- matches the user against some criteria.
 	-- raise ACCESS_DENIED if the user fails this criteria.
@@ -382,7 +389,7 @@ package KOW_Sec is
 	procedure Require(	
 				Name		: in     Criteria_Name;
 				Descriptor	: in     Criteria_Descriptor;
-				User		: in     User_Type
+				User		: in     Logged_User_Type
 			);
 	-- Create and matches against a criteria using the criteria registry
 	

@@ -368,6 +368,12 @@ package body KOW_Sec is
 		return User_Groups_Data.Get_All( User.Identity );
 	end Get_Groups;
 
+	function Get_Groups( User : in Logged_User_Type ) return Group_Vectors.Vector is
+		pragma Inline( Get_Groups );
+	begin
+		return Get_Groups( User.User );
+	end Get_Groups;
+
 	procedure Set_Groups( User : in User_Type; Groups : in Group_Vectors.Vector ) is
 	begin
 		User_Groups_Data.Store( User.Identity, Groups );
@@ -414,6 +420,17 @@ package body KOW_Sec is
 
 		return V;
 	end Get_Roles;
+
+
+	function Get_Roles(
+				User			: in Logged_User_Type;
+				Combine_Group_Roles	: in Boolean := False
+			) return Role_Vectors.Vector is
+		pragma Inline( Get_Roles );
+	begin
+		return Get_Roles( User.User, Combine_Group_Roles );
+	end Get_Roles;
+
 
 
 	procedure Set_Roles( User : in User_Type; Roles : in Role_Vectors.Vector ) is
@@ -509,7 +526,7 @@ package body KOW_Sec is
 	procedure Require(	
 				Name		: in     Criteria_Name;
 				Descriptor	: in     Criteria_Descriptor;
-				User		: in     User_Type
+				User		: in     Logged_User_Type
 			) is
 		-- Create and matches against a criteria using the criteria registry
 		Criteria : Criteria_Interface'Class := Criteria_Registry.Create_Criteria( Name, Descriptor );

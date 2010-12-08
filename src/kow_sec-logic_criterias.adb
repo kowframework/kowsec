@@ -72,7 +72,7 @@ package body KOW_Sec.Logic_Criterias is
 	overriding
 	procedure Require(
 				Criteria: in out Logic_Criteria_Type;
-				User	: in     User_Type
+				User	: in     Logged_User_Type
 			) is
 		Exp		: Expression_Access;
 		Is_Allowed	: Boolean := False;
