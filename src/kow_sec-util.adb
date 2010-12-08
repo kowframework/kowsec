@@ -4,7 +4,7 @@
 --                                                                          --
 --                              KOW Framework                               --
 --                                                                          --
---                                 S p e c                                  --
+--                                 B o d y                                  --
 --                                                                          --
 --             Copyright (C) 2007-2009, KOW Framework Project               --
 --                                                                          --
@@ -29,12 +29,6 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
--------------------------------------------------------------------------------
--- This is the helper package for KOWSec.                                    --
---                                                                           --
--- It implements some functions that the extension implementor might find    --
--- useful                                                                    --
--------------------------------------------------------------------------------
 
 with Ada.Numerics.Discrete_Random;
 
