@@ -96,6 +96,10 @@ package KOW_Sec is
 
 	type Authentication_Manager_Access is access all Authentication_Manager_Interface'Class;
 
+
+	function Get_Name( Manager : in Authentication_Manager_Interface ) return String is abstract;
+	-- return a string representing the given authentication manager
+
 	function Do_Login(
 				Manager	: in Authentication_Manager_Interface;
 				Username: in String;
@@ -114,20 +118,21 @@ package KOW_Sec is
 	-- check if a given user can be authenticated by the given manager
 
 
-	package Authentication_Manager_Vectors is new Ada.Containers.Vectors(
-					Index_Type	=> Natural,
+	package Authentication_Manager_Maps is new Ada.Containers.Ordered_Maps(
+					Key_Type	=> Unbounded_String,
 					Element_Type	=> Authentication_Manager_Access
 				);
 
 
-	type Authentication_Managers is new Authentication_Manager_Vectors.Vector with null record;
 
-	Managers_Registry: Authentication_Managers;
+	Managers_Registry: Authentication_Manager_Maps.Map;
 	-- a registry of the current managers.
 
-	procedure Register_Manager( Manager: in out Authentication_Manager_Access );
+	procedure Register_Manager( Manager : in out Authentication_Manager_Access );
 	-- Register a manager so it's usable by KOW_Sec.
 	
+	function Get_Manager( Manager_Name : in String ) return Authentication_Manager_Access;
+	function Get_Manager( Manager_Name : in Unbounded_String ) return Authentication_Manager_Access;
 
 	function Do_Login(
 				Username : in String;

@@ -47,6 +47,33 @@ package KOW_Sec.Authorization_Criterias is
 	pragma Elaborate_Body( KOW_Sec.Authorization_Criterias );
 
 
+	-------------------------------------
+	-- AUTHENTICATION MANAGER CRITERIA --
+	-------------------------------------
+
+	type Authentication_Manager_Criteria_Type is new Logic_Criteria_Type with private;
+
+	overriding
+	function Get_Name( Criteria : in Authentication_Manager_Criteria_Type ) return String;
+	-- return AUTHENTICATION_MANAGER
+
+
+  	overriding
+	procedure Require_Specific(
+					Criteria	: in out Authentication_Manager_Criteria_Type;
+					Descriptor	: in     Criteria_Descriptor;
+					Is_Allowed	:    out Boolean
+				);
+	overriding
+	procedure Initialize(
+				Criteria	: in out Authentication_Manager_Criteria_Type;
+				User		: in     Logged_User_Type
+			);
+	overriding
+	procedure Finalize(
+				Criteria	: in out Authentication_Manager_Criteria_Type
+			);
+
 
 	-------------------------
 	-- EXPRESSION CRITERIA --
@@ -192,6 +219,10 @@ package KOW_Sec.Authorization_Criterias is
 
 private
 
+	type Authentication_Manager_Criteria_Type is new Logic_Criteria_Type with record
+		Current_Manager	: Authentication_Manager_Access;
+	end record;
+	function Create_Authentication_Manager_Criteria is new Generic_Logic_Criteria_Factory( Criteria_Type => Authentication_Manager_Criteria_Type );
 
 	type Expression_Criteria_Type is new Logic_Criteria_Type with record
 		User		: Logged_User_Type;

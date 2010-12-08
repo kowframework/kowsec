@@ -96,6 +96,11 @@ package body KOW_Sec.Logic_Criterias is
 	end Require;
 
 
+	overriding
+	function Describe( Criteria : in Logic_Criteria_Type ) return String is
+	begin
+		return Get_Name( Logic_Criteria_type'Class( Criteria ) ) & " " & To_String( Criteria.Descriptor );
+	end Describe;
 
 
 	function Generic_Logic_Criteria_Factory( Descriptor : in Criteria_Descriptor ) return Criteria_interface'Class is

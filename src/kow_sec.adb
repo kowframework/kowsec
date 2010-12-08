@@ -151,9 +151,25 @@ package body KOW_Sec is
 	procedure Register_Manager( Manager: in out Authentication_Manager_Access ) is
 	-- Register a manager so it's usable by KOW_Sec.
 	begin
-		Append( Managers_Registry, Manager );
+		Authentication_Manager_Maps.Insert(
+						Container	=>Managers_Registry,
+						Key		=> To_Unbounded_String( Get_Name( Manager.all ) ),
+						New_Item	=> Manager
+					);
 	end Register_Manager;
 	
+	function Get_Manager( Manager_Name : in String ) return Authentication_Manager_Access is
+	begin
+		return Get_Manager( To_Unbounded_String( Manager_Name ) );
+	end Get_Manager;
+
+	function Get_Manager( Manager_Name : in Unbounded_String ) return Authentication_Manager_Access is
+	begin
+		return Authentication_Manager_Maps.Element( Managers_Registry, Manager_Name );
+	exception
+		when CONSTRAINT_ERROR =>
+			raise CONSTRAINT_ERROR with "no such authentication manager :: " & To_String( Manager_Name );
+	end Get_Manager;
 
 	function Do_Login(
 				Username : in String;
@@ -162,9 +178,9 @@ package body KOW_Sec is
 		-- tries to login the user using the registered managers.
 		-- the pair username vs password here is quite abstract.. the manager can implement
 		-- this function giving different meanings to the data received
-		use Authentication_Manager_Vectors;
+		use Authentication_Manager_Maps;
 
-		C: Authentication_Manager_Vectors.Cursor := First( Managers_Registry );
+		C: Authentication_Manager_Maps.Cursor := First( Managers_Registry );
 
 		User_Identity	: User_Identity_Type;
 		User		: User_Type;
@@ -477,9 +493,9 @@ package body KOW_Sec is
 				Password : in String
 			) return Logged_User_Type is
 		-- do login and initialize the logged_user_type variable
-		use Authentication_Manager_Vectors;
+		use Authentication_Manager_Maps;
 
-		C: Authentication_Manager_Vectors.Cursor := First( Managers_Registry );
+		C: Authentication_Manager_Maps.Cursor := First( Managers_Registry );
 	begin
 		while Has_Element( C )
 		loop

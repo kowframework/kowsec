@@ -75,6 +75,9 @@ package KOW_Sec.Logic_Criterias is
 				Criteria: in out Logic_Criteria_Type;
 				User	: in     Logged_User_Type
 			);
+	
+	overriding
+	function Describe( Criteria : in Logic_Criteria_Type ) return String;
 
 
 	procedure Require_Specific(

@@ -51,6 +51,47 @@ with KOW_Sec;			use KOW_Sec;
 
 package body KOW_Sec.Authorization_Criterias is
 
+	-------------------------------------
+	-- AUTHENTICATION MANAGER CRITERIA --
+	-------------------------------------
+
+	overriding
+	function Get_Name( Criteria : in Authentication_Manager_Criteria_Type ) return String is
+	begin
+		return "AUTHENTICATION_MANAGER";
+	end Get_Name;
+
+
+  	overriding
+	procedure Require_Specific(
+					Criteria	: in out Authentication_Manager_Criteria_Type;
+					Descriptor	: in     Criteria_Descriptor;
+					Is_Allowed	:    out Boolean
+				) is
+	begin
+		Is_Allowed := Get_Manager( Descriptor ) = Criteria.Current_Manager;
+	end Require_Specific;
+
+
+	overriding
+	procedure Initialize(
+				Criteria	: in out Authentication_Manager_Criteria_Type;
+				User		: in     Logged_User_Type
+			) is
+	begin
+		Criteria.Current_Manager := User.Current_Manager;
+	end Initialize;
+
+
+	overriding
+	procedure Finalize(
+				Criteria	: in out Authentication_Manager_Criteria_Type
+			) is
+	begin
+		Criteria.Current_Manager := null;
+	end Finalize;
+
+
 
 	--------------------------
 	-- EXPRESSIONS CRITERIA --
@@ -306,6 +347,7 @@ package body KOW_Sec.Authorization_Criterias is
 
 
 begin
+	KOW_Sec.Criteria_Registry.Register( Create_Authentication_Manager_Criteria'Access );
 	KOW_Sec.Criteria_Registry.Register( Create_Expression_Criteria'Access );
 	KOW_Sec.Criteria_Registry.Register( Create_Group_Criteria'Access );
 	KOW_Sec.Criteria_Registry.Register( Create_Role_Criteria'Access );
