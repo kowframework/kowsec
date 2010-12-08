@@ -52,6 +52,7 @@ package KOW_Sec.Authorization_Criterias is
 	------------------------------
 
 	type Current_Manager_Criteria_Type is new Logic_Criteria_Type with private;
+	-- checks if the user has been authenticated by the given manager
 
 	overriding
 	function Get_Name( Criteria : in Current_Manager_Criteria_Type ) return String;
@@ -72,6 +73,34 @@ package KOW_Sec.Authorization_Criterias is
 	overriding
 	procedure Finalize(
 				Criteria	: in out Current_Manager_Criteria_Type
+			);
+
+	-------------------------
+	-- IN MANAGER CRITERIA --
+	-------------------------
+
+	type In_Manager_Criteria_Type is new Logic_Criteria_Type with private;
+	-- checks if the user can be authenticated by the given manager
+
+	overriding
+	function Get_Name( Criteria : in In_Manager_Criteria_Type ) return String;
+	-- return In_Manager 
+
+
+  	overriding
+	procedure Require_Specific(
+					Criteria	: in out In_Manager_Criteria_Type;
+					Descriptor	: in     Criteria_Descriptor;
+					Is_Allowed	:    out Boolean
+				);
+	overriding
+	procedure Initialize(
+				Criteria	: in out In_Manager_Criteria_Type;
+				User		: in     Logged_User_Type
+			);
+	overriding
+	procedure Finalize(
+				Criteria	: in out In_Manager_Criteria_Type
 			);
 
 
@@ -223,6 +252,12 @@ private
 		Current_Manager	: Authentication_Manager_Access;
 	end record;
 	function Create_Current_Manager_Criteria is new Generic_Logic_Criteria_Factory( Criteria_Type => Current_Manager_Criteria_Type );
+
+	type In_Manager_Criteria_Type is new Logic_Criteria_Type with record
+		User_Identity	: User_Identity_Type;
+	end record;
+	function Create_In_Manager_Criteria is new Generic_Logic_Criteria_Factory( Criteria_Type => In_Manager_Criteria_Type );
+
 
 	type Expression_Criteria_Type is new Logic_Criteria_Type with record
 		User		: Logged_User_Type;

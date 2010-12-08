@@ -51,9 +51,9 @@ with KOW_Sec;			use KOW_Sec;
 
 package body KOW_Sec.Authorization_Criterias is
 
-	-------------------------------------
-	-- AUTHENTICATION MANAGER CRITERIA --
-	-------------------------------------
+	------------------------------
+	-- CURRENT MANAGER CRITERIA --
+	------------------------------
 
 	overriding
 	function Get_Name( Criteria : in Current_Manager_Criteria_Type ) return String is
@@ -89,6 +89,48 @@ package body KOW_Sec.Authorization_Criterias is
 			) is
 	begin
 		Criteria.Current_Manager := null;
+	end Finalize;
+
+
+
+
+	-------------------------
+	-- IN MANAGER CRITERIA --
+	-------------------------
+
+	overriding
+	function Get_Name( Criteria : in In_Manager_Criteria_Type ) return String is
+	begin
+		return "IN_MANAGER";
+	end Get_Name;
+
+
+  	overriding
+	procedure Require_Specific(
+					Criteria	: in out In_Manager_Criteria_Type;
+					Descriptor	: in     Criteria_Descriptor;
+					Is_Allowed	:    out Boolean
+				) is
+	begin
+		Is_Allowed := Has_User( Get_Manager( Descriptor ).all, Criteria.User_Identity );
+	end Require_Specific;
+
+
+	overriding
+	procedure Initialize(
+				Criteria	: in out In_Manager_Criteria_Type;
+				User		: in     Logged_User_Type
+			) is
+	begin
+		Criteria.User_Identity := User.User.Identity;
+	end Initialize;
+
+	overriding
+	procedure Finalize(
+				Criteria	: in out In_Manager_Criteria_Type
+			) is
+	begin
+		Criteria.User_Identity := Anonymous_User_Identity;
 	end Finalize;
 
 
@@ -348,6 +390,7 @@ package body KOW_Sec.Authorization_Criterias is
 
 begin
 	KOW_Sec.Criteria_Registry.Register( Create_Current_Manager_Criteria'Access );
+	KOW_Sec.Criteria_Registry.Register( Create_In_Manager_Criteria'Access );
 	KOW_Sec.Criteria_Registry.Register( Create_Expression_Criteria'Access );
 	KOW_Sec.Criteria_Registry.Register( Create_Group_Criteria'Access );
 	KOW_Sec.Criteria_Registry.Register( Create_Role_Criteria'Access );
