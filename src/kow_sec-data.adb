@@ -42,27 +42,10 @@ with Ada.Directories;
 
 package body KOW_Sec.Data is
 
-
-	function Storage_Path( Key : in Key_Type ) return String is
-	begin
-		return Storage_Root / To_String( Key );
-	end Storage_Path;
-
-	package Element_IO is new Ada.Sequential_IO( Element_Type );
-
-
-	procedure Delete( Key : in Key_Type ) is
-		use Ada.Directories;
-		Path : constant String := Storage_Path( Key );
-		Semaphor : Semaphor_Type;
-	begin
-		Lock( Semaphor, key );
-		if Exists( Path ) then
-			Delete_File( Path );
-		end if;
-		Unlock( Semaphor );
-	end Delete;
-
+	--------------------
+	-- Helper Methods --
+	--------------------
+	
 
 	procedure Do_Open(
 				File	: in out Element_IO.File_Type;
@@ -79,189 +62,171 @@ package body KOW_Sec.Data is
 	end Do_Open;
 
 
-	procedure Append(
-				Key	: in Key_Type;
-				Element	: in Element_Type
-			) is
-		use Element_IO;
-		File 		: File_Type;
-		Item 		: Element_Type;
-		Semaphor	: Semaphor_Type;
+
+	------------------
+	-- Storage Path --
+	------------------
+
+
+	function Storage_Path( Key : in Key_Type ) return String is
 	begin
-		
-		Lock( Semaphor, key );
-		Do_Open( File, In_File, Key );
+		return Storage_Root / To_String( Key );
+	end Storage_Path;
 
-		while not End_Of_File( File ) loop
-			Read( File, Item );
-			if Item = Element then
-				Close( File );
-				return;
-			end if;
-		end loop;
-
-		Close( File );
-		Do_Open( File, Append_File, Key );
-		Write( File, Element );
-		Close( File );
-		Unlock( Semaphor );
-	end Append;
+	---------------------
+	-- In-memory cache --
+	---------------------
 
 
-	procedure Store(
-				Key	: in Key_Type;
-				Elements: in Element_Vectors.Vector 
-			) is
-		use Element_IO;
-		File : File_Type;
-		procedure Iterator( C : Element_Vectors.Cursor ) is
+
+
+
+	protected body Cache is
+		-- it's a infinite cache for every element loaded so far...
+		-- to avoid colisions we are using ordered maps.. the ideal is to use an
+		-- ordered map with a hash function with no colisions at all tough
+
+		procedure Read(
+					Key		: in     Key_Type;
+					Item		:    out Element_Vectors.Vector;
+					From_Disk	: in     Boolean := False
+				) is
 		begin
-			Write( File, Element_Vectors.Element( C ) );
-		end Iterator;
+			if From_Disk or else not Cache_Maps.Contains( Cache_Map, Key ) then
+				declare
+					use Element_IO;
+					File	: File_Type;
+					Elements: Element_Vectors.Vector;
+					Tmp	: Element_Type;
+				begin
 
-		Semaphor	: Semaphor_Type;
-	begin
-		Delete( Key );
-		
-		Lock( Semaphor, Key );
-		Do_Open( File, Out_File, Key );
-		Element_Vectors.Iterate( Elements, Iterator'Access );
-		Close( File );
-		Unlock( Semaphor );
-	end Store;
+					Do_Open( File, In_File, Key );
 
 
-	procedure Store(
-				Key	: in Key_Type;
-				Element	: in Element_Type
-			) is
-		V : Element_Vectors.Vector;
-	begin
-		Element_Vectors.Append( V, Element );
-		Store( Key, V );
-	end Store;
+					while not End_Of_File( File ) loop
+						Read( File, Tmp );
+						Element_Vectors.Append( Elements, Tmp );
+					end loop;
+					Close( File );
 
+					Cache_Maps.Include( Cache_Map, Key, Elements );
+
+					Item := Elements;
+				end;
+
+			else
+				Item := Cache_Maps.Element( Cache_Map, Key );
+			end if;
+		end Read;
+
+
+		procedure Write(
+					Key	: in     Key_Type;
+					Item	: in     Element_Vectors.Vector
+				) is
+			use Element_IO;
+			File : File_type;
+
+			procedure Appender( C : in Element_Vectors.Cursor ) is
+			begin
+				Write( File, Element_Vectors.Element( C ) );
+			end Appender;
+		begin
+			Cache_Maps.Include( Cache_Map, Key, Item );
+
+			Do_Open( File, Out_File, Key );
+			Element_Vectors.Iterate( Item, Appender'Access );
+			Close( File );
+		end Write;
+
+
+		procedure Append(
+					Key	: in     Key_Type;
+					Item	: in     Element_Type
+				) is
+			use Element_IO;
+			File 		: File_Type;
+			Elements	: Element_Vectors.Vector;
+		begin
+			Read( Key, Elements );
+			Element_Vectors.Append( Elements, Item );
+			Cache_Maps.Include( Cache_Map, Key, Elements );
+
+			Do_Open( File, Append_File, Key );
+			Write( File, Item );
+			Close( File );
+		end Append;
+
+
+		procedure Delete(
+					Key		: in     Key_Type;
+					From_Disk	: in     Boolean := False
+				) is
+		-- delete from map and, if required, from disk also
+		begin
+			if Cache_Maps.Contains( Cache_Map, Key ) then
+				Cache_Maps.Delete( Cache_Map, Key );
+			end if;
+
+			if From_Disk then
+				declare
+					Path : constant String := Storage_Path( Key );
+				begin
+					if Ada.Directories.Exists( Path ) then
+						Ada.Directories.Delete_File( Path );
+					end if;
+				end;
+			end if;
+		end Delete;
+	end Cache;
+
+
+
+	---------------------
+	-- Other functions --
+	---------------------
 
 	function Get_First(
 				Key	: in Key_Type;
 				Unique	: in Boolean := False
 			) return Element_Type is
-		use Element_IO;
-		Item		: Element_Type;
-		File		: File_Type;
-		Semaphor	: Semaphor_type;
+		-- get only the first element..
+		-- if unique and it's not the only element then raise constraint_error
+		-- if there is no element raise constraint_error also
+		use Ada.Containers;
+		Elements : Element_Vectors.Vector;
 	begin
+		Cache.Read( Key, Elements );
 
-		Lock( Semaphor, key );
-		Do_Open( File, In_File, Key );
-		Read( File, item );
-		
-		if Unique and then not End_Of_File( File ) then
-			Close( File );
-			raise CONSTRAINT_ERROR with "more than one item at [" & Storage_Name & "::" & To_String( Key ) & "]";
-		else
-			Close( File );
+		if Unique and then Element_Vectors.Length( Elements ) /= 1 then
+			raise CONSTRAINT_ERROR with "not unique element";
 		end if;
 
-		Unlock( Semaphor );
-		return Item;
+		return Element_Vectors.First_Element( Elements );
 	end Get_First;
 
-	
 	function Get_All( Key : in Key_Type ) return Element_Vectors.Vector is
-		use Element_IO;
-		V	: Element_Vectors.Vector;
-		File	: File_Type;
-		Item	: Element_Type;
-		Semaphor: Semaphor_type;
+		-- get all elements
+		Elements : Element_Vectors.Vector;
 	begin
-
-		Lock( Semaphor, Key );
-		Do_Open( File, In_File, Key );
-
-
-		while not End_Of_File( File ) loop
-			Read( File, Item );
-			Element_Vectors.Append( V, Item );
-		end loop;
-		Close( File );
-		Unlock( Semaphor );
-
-
-		return V;
+		Cache.Read( Key, Elements );
+		return Elements;
 	end Get_All;
 
-
-
--- private
-
-	overriding
-	procedure Finalize( Semaphor : in out Semaphor_Type ) is
-		-- make sure the semaphor is not locked
-	begin
-		if Semaphor.Is_Locked then
-			Semaphor_Controller.Unlock( Semaphor );
-		end if;
-	end Finalize;
-
-	procedure Lock(
-				Semaphor: in out Semaphor_Type;
-				Key	: in     Key_Type
+	procedure Store(
+				Key	: in Key_Type;
+				Element	: in Element_Type
 			) is
+		-- store the element making it the only one in the file
+		V : Element_Vectors.Vector;
 	begin
-		loop
-			begin
-				Semaphor_Controller.Lock( Semaphor, Key );
-				exit;
-			exception
-				when IN_USE =>
-					null;
-			end;
-		end loop;
-	end Lock;
-	
+		Element_Vectors.Append( V, Element );
 
+		Cache.Delete( Key, True );
+		-- make sure the file is empty
 
-	protected body Semaphor_Controller is
-		procedure Lock(
-					Semaphor: in out Semaphor_Type;
-					Key	: in     Key_Type
-				) is
-			Is_Locked : Boolean;
-		begin
-			pragma Assert( Semaphor.Is_Locked = False, "Can't lock twice a resource" );
-
-			begin
-				Is_Locked := Key_Maps.Element( My_Map, Key );
-			exception
-				when CONSTRAINT_ERROR => null;
-			end;
-
-			if Is_locked then
-				raise IN_USE;
-			end if;
-
-			Key_Maps.Include( My_Map, Key, True );
-			Semaphor.Key := Key;
-			Semaphor.Is_Locked := True;
-		end Lock;
-
-		procedure Unlock(
-					Semaphor: in out Semaphor_Type
-				) is
-		begin
-			pragma Assert( Semaphor.Is_Locked = True, "Can't unlock a not-locked semaphor" );
-
-			Key_Maps.Include( My_Map, Semaphor.Key, False );
-			Semaphor.Is_Locked := False;
-		end Unlock;
-	end Semaphor_Controller;
-
-
-
-
-
-
+		Cache.Write( Key, V );
+	end Store;
 
 begin
 	if not Ada.Directories.Exists( Storage_Root ) then
