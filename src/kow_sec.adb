@@ -286,10 +286,26 @@ package body KOW_Sec is
 		return Ada.Strings.Fixed.Trim( String( Group ), Ada.Strings.Both );
 	end To_String;
 
+
+	function "<"( L, R : in String ) return Boolean is
+	begin
+		for i in L'Range loop
+			if L( i ) > R( i ) then
+				return false;
+			elsif L( i ) < R( i ) then
+				return true;
+			end if;
+		end loop;
+		return false;
+	end "<";
+
+
+
 	package Group_Roles_Data is new KOW_Sec.Data(
 				Storage_Name	=> "group_roles",
 				Key_Type	=> Group_type,
 				To_String	=> To_String,
+				"<"		=> "<",
 				Element_Type	=> Role_Type,
 				Element_Vectors	=> Role_Vectors
 			);
@@ -310,15 +326,18 @@ package body KOW_Sec is
 	-- User Management --
 	---------------------
 
-	function To_String( Identity : in User_IDentity_Type ) return String is
+	function To_String( Identity : in User_Identity_Type ) return String is
 	begin
 		return String( Identity );
 	end to_String;
+
+		
 
 	package User_Groups_Data is new KOW_Sec.Data(
 				Storage_Name	=> "user_groups",
 				Key_Type	=> User_Identity_Type,
 				To_String	=> To_String,
+				"<"		=> "<",
 				Element_Type	=> Group_Type,
 				Element_Vectors	=> Group_Vectors
 			);
@@ -327,6 +346,7 @@ package body KOW_Sec is
 				Storage_Name	=> "user_roles",
 				Key_Type	=> User_Identity_Type,
 				To_String	=> To_String,
+				"<"		=> "<",
 				Element_Type	=> Role_Type,
 				Element_Vectors	=> Role_Vectors
 			);
@@ -334,6 +354,7 @@ package body KOW_Sec is
 				Storage_Name	=> "users",
 				Key_Type	=> User_Identity_type,
 				To_String	=> To_String,
+				"<"		=> "<",
 				Element_Type	=> User_Data_Type,
 				Element_Vectors	=> User_Vectors
 			);

@@ -54,10 +54,13 @@ package body KOW_Sec.Data is
 	procedure Delete( Key : in Key_Type ) is
 		use Ada.Directories;
 		Path : constant String := Storage_Path( Key );
+		Semaphor : Semaphor_Type;
 	begin
+		Lock( Semaphor, key );
 		if Exists( Path ) then
 			Delete_File( Path );
 		end if;
+		Unlock( Semaphor );
 	end Delete;
 
 
@@ -81,10 +84,12 @@ package body KOW_Sec.Data is
 				Element	: in Element_Type
 			) is
 		use Element_IO;
-		File : File_Type;
-
-		Item : Element_Type;
+		File 		: File_Type;
+		Item 		: Element_Type;
+		Semaphor	: Semaphor_Type;
 	begin
+		
+		Lock( Semaphor, key );
 		Do_Open( File, In_File, Key );
 
 		while not End_Of_File( File ) loop
@@ -99,6 +104,7 @@ package body KOW_Sec.Data is
 		Do_Open( File, Append_File, Key );
 		Write( File, Element );
 		Close( File );
+		Unlock( Semaphor );
 	end Append;
 
 
@@ -112,11 +118,16 @@ package body KOW_Sec.Data is
 		begin
 			Write( File, Element_Vectors.Element( C ) );
 		end Iterator;
+
+		Semaphor	: Semaphor_Type;
 	begin
 		Delete( Key );
+		
+		Lock( Semaphor, Key );
 		Do_Open( File, Out_File, Key );
 		Element_Vectors.Iterate( Elements, Iterator'Access );
 		Close( File );
+		Unlock( Semaphor );
 	end Store;
 
 
@@ -136,10 +147,12 @@ package body KOW_Sec.Data is
 				Unique	: in Boolean := False
 			) return Element_Type is
 		use Element_IO;
-		Item : Element_Type;
-		File : File_Type;
+		Item		: Element_Type;
+		File		: File_Type;
+		Semaphor	: Semaphor_type;
 	begin
 
+		Lock( Semaphor, key );
 		Do_Open( File, In_File, Key );
 		Read( File, item );
 		
@@ -150,26 +163,105 @@ package body KOW_Sec.Data is
 			Close( File );
 		end if;
 
+		Unlock( Semaphor );
 		return Item;
 	end Get_First;
 
 	
 	function Get_All( Key : in Key_Type ) return Element_Vectors.Vector is
 		use Element_IO;
-		V : Element_Vectors.Vector;
-		File : File_Type;
-		Item : Element_Type;
+		V	: Element_Vectors.Vector;
+		File	: File_Type;
+		Item	: Element_Type;
+		Semaphor: Semaphor_type;
 	begin
+
+		Lock( Semaphor, Key );
 		Do_Open( File, In_File, Key );
+
 
 		while not End_Of_File( File ) loop
 			Read( File, Item );
+			Element_Vectors.Append( V, Item );
 		end loop;
+		Close( File );
+		Unlock( Semaphor );
 
-		Element_Vectors.Append( V, Item );
 
 		return V;
 	end Get_All;
+
+
+
+-- private
+
+	overriding
+	procedure Finalize( Semaphor : in out Semaphor_Type ) is
+		-- make sure the semaphor is not locked
+	begin
+		if Semaphor.Is_Locked then
+			Semaphor_Controller.Unlock( Semaphor );
+		end if;
+	end Finalize;
+
+	procedure Lock(
+				Semaphor: in out Semaphor_Type;
+				Key	: in     Key_Type
+			) is
+	begin
+		loop
+			begin
+				Semaphor_Controller.Lock( Semaphor, Key );
+				exit;
+			exception
+				when IN_USE =>
+					null;
+			end;
+		end loop;
+	end Lock;
+	
+
+
+	protected body Semaphor_Controller is
+		procedure Lock(
+					Semaphor: in out Semaphor_Type;
+					Key	: in     Key_Type
+				) is
+			Is_Locked : Boolean;
+		begin
+			pragma Assert( Semaphor.Is_Locked = False, "Can't lock twice a resource" );
+
+			begin
+				Is_Locked := Key_Maps.Element( My_Map, Key );
+			exception
+				when CONSTRAINT_ERROR => null;
+			end;
+
+			if Is_locked then
+				raise IN_USE;
+			end if;
+
+			Key_Maps.Include( My_Map, Key, True );
+			Semaphor.Key := Key;
+			Semaphor.Is_Locked := True;
+		end Lock;
+
+		procedure Unlock(
+					Semaphor: in out Semaphor_Type
+				) is
+		begin
+			pragma Assert( Semaphor.Is_Locked = True, "Can't unlock a not-locked semaphor" );
+
+			Key_Maps.Include( My_Map, Semaphor.Key, False );
+			Semaphor.Is_Locked := False;
+		end Unlock;
+	end Semaphor_Controller;
+
+
+
+
+
+
 
 begin
 	if not Ada.Directories.Exists( Storage_Root ) then

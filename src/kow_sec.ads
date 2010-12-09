@@ -161,7 +161,6 @@ package KOW_Sec is
 		Role		: String( 1 .. 50 );
 	end record;
 
-
 	function Identity( Role : in Role_type ) return Role_Identity_Type;
 	-- returns Application::Role
 	
