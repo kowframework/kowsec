@@ -30,8 +30,15 @@
 ------------------------------------------------------------------------------
 
 ------------------------------------------------------------------------------
--- This is the KOW_Sec.Criteria_Util package                                 --
+-- This is the KOW_Sec.Logic_Criterias package                              --
 ------------------------------------------------------------------------------
+
+--------------
+-- Ada 2005 --
+--------------
+with Ada.Finalization;
+with Ada.Unchecked_Deallocation;
+
 
 
 package KOW_Sec.Logic_Criterias is
@@ -111,7 +118,7 @@ private
 	-- The Expression Type --
 	-------------------------
 
-	type Expression_Type is abstract tagged null record;
+	type Expression_Type is abstract new Ada.Finalization.Controlled with null record;
 	procedure Evaluate(
 			Exp		: in     Expression_Type;
 			Criteria	: in out Logic_Criteria_Type'Class;
@@ -120,7 +127,27 @@ private
 
 	type Expression_Access is access all Expression_Type'Class;
 
+	procedure Free( Exp_Access : in out Expression_Access );
+	-- this is used for cleaning the memory all over the place :)
+	-- the memory_pools package will register it's instance in a internal registry
+	-- that's used to select the proper free procedure. :)
+
+	generic
+		type Element_Type is new Expression_Type with private;
+	package Memory_Pools is
 	
+		type Access_Type is access all Element_Type;
+	
+		function New_Object( Element : in Element_Type ) return Expression_Access;
+		-- allocate initializing with the values in element
+	
+		procedure Free_Object( Element : in out Expression_Access );
+		-- deallocate using
+
+	end Memory_Pools;
+
+	
+
 	----------------------------------
 	-- The Criteria Expression Type --
 	----------------------------------
@@ -160,7 +187,8 @@ private
 			);
 	-- Is_Allowed indicates if a condition !Exp is true or false.
 
-	
+	overriding
+	procedure Finalize( Exp : in out Not_Expression_Type );
 
 	------------------------
 	-- OR Expression Type --
@@ -181,6 +209,9 @@ private
 				Criteria	: in out Logic_Criteria_Type'Class;
 				Is_Allowed	:        out Boolean
 			);
+	overriding
+	procedure Finalize( Exp : in out Or_Expression_Type );
+	
 	
 	------------------------
 	-- AND Expresion Type --
@@ -203,7 +234,12 @@ private
 			);
 	-- Is_Allowed indicates if a condition Exp1&Exp2 is true or false.
  
+	overriding
+	procedure Finalize( Exp : in out And_Expression_Type );
 
+	-------------------------
+	-- The parsers Package --
+	-------------------------
 
  	package Parsers is
 

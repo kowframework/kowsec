@@ -290,7 +290,7 @@ package body KOW_Sec is
 	function "<"( L, R : in String ) return Boolean is
 	begin
 		for i in L'Range loop
-			if L( i ) > R( i ) then
+			if i not in R'range or else  L( i ) > R( i ) then
 				return false;
 			elsif L( i ) < R( i ) then
 				return true;

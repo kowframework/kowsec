@@ -30,8 +30,13 @@
 ------------------------------------------------------------------------------
 
 
-with Ada.Text_IO;		use Ada.Text_IO;	
-with Ada.Characters.Handling; 	use Ada.Characters.Handling;
+--------------
+-- Ada 2005 --
+--------------
+with Ada.Characters.Handling; 		use Ada.Characters.Handling;
+with Ada.Containers.Ordered_Maps;
+with Ada.Tags;
+with Ada.Text_IO;			use Ada.Text_IO;	
 
 package body KOW_Sec.Logic_Criterias is
 
@@ -79,6 +84,9 @@ package body KOW_Sec.Logic_Criterias is
 		Initialize( Logic_Criteria_type'Class( Criteria ), User );
 		Evaluate( Exp.all, Logic_Criteria_type'Class( Criteria ), Is_Allowed );
 
+		Free( Exp );
+		-- this will call free in chain for every child inside exp..
+
 		if not Is_Allowed then
 			declare
 				Description : constant String := Describe( Logic_Criteria_type'Class( Criteria ) );
@@ -112,13 +120,64 @@ package body KOW_Sec.Logic_Criterias is
 
 -- private
 
+	type Free_Access is access procedure( Acc : in out Expression_Access );
 
+	function "<"( L, R : in Ada.Tags.Tag ) return Boolean is
+		A : constant String := Ada.Tags.Expanded_Name( L );
+		B : constant String := Ada.Tags.Expanded_Name( R );
+	begin
+		return A < B;
+	end "<";
+
+
+	package Free_Maps is new Ada.Containers.Ordered_Maps(
+				Key_Type	=> Ada.Tags.Tag,
+				Element_Type	=> Free_Access
+			);
+	
+	My_Frees : Free_Maps.Map;
+
+	procedure Free( Exp_Access : in out Expression_Access ) is
+		-- this is used for cleaning the memory all over the place :)
+		-- the memory_pools package will register it's instance in a internal registry
+		-- that's used to select the proper free procedure. :)
+	begin
+		Free_Maps.Element( My_Frees, Exp_Access'Tag ).all( Exp_Access );
+	end Free;
+
+	package body Memory_Pools is
+		function New_Object( Element : in Element_Type ) return Expression_Access is
+			-- allocate initializing with the values in element
+			Acc : Access_Type := new Element_type'( Element );
+		begin
+			return Expression_Access( Acc );
+		end New_Object;
+
+
+		procedure Free_Object( Element : in out Expression_Access ) is
+			procedure My_Free is new Ada.Unchecked_Deallocation(
+						Object	=> Element_Type,
+						Name	=> Access_Type
+					);
+		begin
+			My_Free( Access_Type( Element ) );
+		end Free_Object;
+	begin
+		Free_Maps.Include(
+				My_Frees,
+				Element_Type'Tag,
+				Free_Object'Unrestricted_Access
+			);
+
+	end Memory_Pools;
 
 
 
 	----------------------------------
 	-- The Criteria Expression Type --
 	----------------------------------
+
+	package Criteria_Expression_Pools is new Memory_Pools( Element_Type => Criteria_Expression_Type );
 
 	overriding
 	procedure Evaluate(
@@ -136,6 +195,8 @@ package body KOW_Sec.Logic_Criterias is
 	-- Not Expression Type --
 	-------------------------
 	
+	package Not_Expression_Pools is new Memory_Pools( Element_Type => Not_Expression_Type );
+
 	overriding
 	procedure Evaluate(
 				Exp	 	: in     Not_Expression_Type;
@@ -149,11 +210,18 @@ package body KOW_Sec.Logic_Criterias is
 		Is_Allowed := not Tmp;
 	end Evaluate;
 	
+	overriding
+	procedure Finalize( Exp : in out Not_Expression_Type ) is
+	begin
+		Free( Exp.Exp );
+	end Finalize;
 
 	------------------------
 	-- OR Expression Type --
 	------------------------
 	
+	package Or_Expression_Pools is new Memory_Pools( Element_Type => Or_Expression_Type );
+
 	overriding
 	procedure Evaluate(
 				Exp		: in     Or_Expression_Type;
@@ -170,11 +238,21 @@ package body KOW_Sec.Logic_Criterias is
 
 		Is_Allowed := Tmp;
 	end Evaluate;
+
+	overriding
+	procedure Finalize( Exp : in out Or_Expression_Type ) is
+	begin
+		Free( Exp.Exp1 );
+		Free( Exp.Exp2 );
+	end Finalize;
+
 	
 	------------------------
 	-- AND Expresion Type --
 	------------------------
 	
+	package And_Expression_Pools is new Memory_Pools( Element_Type => And_Expression_Type );
+
 	overriding
 	procedure Evaluate(	
 				Exp		: in     And_Expression_Type;
@@ -191,10 +269,19 @@ package body KOW_Sec.Logic_Criterias is
 		Is_Allowed := Tmp;
 	end Evaluate;
 
+	overriding
+	procedure Finalize( Exp : in out And_Expression_Type ) is
+	begin
+		Free( Exp.Exp1 );
+		Free( Exp.Exp2 );
+	end Finalize;
 
 
 
 
+	-------------------------
+	-- The parsers Package --
+	-------------------------
 	package body Parsers is
 
 
@@ -213,7 +300,7 @@ package body KOW_Sec.Logic_Criterias is
 				-- Matches a Not_Operator.	
 				Parser.Index := Parser.Index + 1;
 				Match_Block_Or_Criteria(Parser, Exp);
-				Exp := new Not_Expression_Type'(Expression_Type with Exp => Exp); 
+				Exp := Not_Expression_Pools.New_Object( (Expression_Type with Exp => Exp) ); 
 			else
 				-- Searches for a Block or Terminal.
 				Match_Block_Or_Criteria(Parser, Exp);
@@ -276,7 +363,7 @@ package body KOW_Sec.Logic_Criterias is
 					end if;
 				end loop;
 
-				Exp := new Criteria_Expression_Type'( Specific_Descriptor => Op_Buffer );
+				Exp := Criteria_Expression_Pools.New_Object( ( Expression_Type with Specific_Descriptor => Op_Buffer ) );
 			else
 				Exp := null;
 			end if;
@@ -361,7 +448,7 @@ package body KOW_Sec.Logic_Criterias is
 					-- the right expression of the Or_Operator.
 					Match_Not_Or_Block_Or_Criteria( Parser, Exp2 );
 					
-					Exp1 := new Or_Expression_Type'( Exp1 => Exp1, Exp2 => Exp2 );
+					Exp1 := Or_Expression_Pools.New_Object( ( Expression_Type with Exp1 => Exp1, Exp2 => Exp2 ) );
 
 				elsif Next_Char = '&' then
 					-- The parse found a '|', so it will initialize
@@ -373,7 +460,7 @@ package body KOW_Sec.Logic_Criterias is
 					-- the right expression of the Or_Operator.
 					Match_Not_Or_Block_Or_Criteria( Parser, Exp2 );
 					
-					Exp1 := new And_Expression_Type'( Exp1 => Exp1, Exp2 => Exp2 );
+					Exp1 := And_Expression_Pools.New_object( ( Expression_Type with Exp1 => Exp1, Exp2 => Exp2 ) );
 				else
 					raise INVALID_CRITERIA_DESCRIPTOR with To_String( Parser.Descriptor );  
 				end if;
@@ -383,6 +470,7 @@ package body KOW_Sec.Logic_Criterias is
 		end Parse;
 
 	end Parsers;
+
 
 end KOW_Sec.Logic_Criterias;
 
