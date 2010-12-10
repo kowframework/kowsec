@@ -51,8 +51,10 @@ package KOW_Sec.Authorization_Criterias is
 	-- CURRENT MANAGER CRITERIA --
 	------------------------------
 
-	type Current_Manager_Criteria_Type is new Logic_Criteria_Type with private;
-	-- checks if the user has been authenticated by the given manager
+	type Current_Manager_Criteria_Type is new Logic_Criteria_Type with record
+		-- check if the user has been authenticated by the given criteria
+		Current_Manager	: Authentication_Manager_Access;
+	end record;
 
 	overriding
 	function Get_Name( Criteria : in Current_Manager_Criteria_Type ) return String;
@@ -75,12 +77,16 @@ package KOW_Sec.Authorization_Criterias is
 				Criteria	: in out Current_Manager_Criteria_Type
 			);
 
+	function Create_Current_Manager_Criteria is new Generic_Logic_Criteria_Factory( Criteria_Type => Current_Manager_Criteria_Type );
+
 	-------------------------
 	-- IN MANAGER CRITERIA --
 	-------------------------
 
-	type In_Manager_Criteria_Type is new Logic_Criteria_Type with private;
-	-- checks if the user can be authenticated by the given manager
+	type In_Manager_Criteria_Type is new Logic_Criteria_Type with record
+		-- check if the user can be authenticated by the given criteria
+		User_Identity	: User_Identity_Type;
+	end record;
 
 	overriding
 	function Get_Name( Criteria : in In_Manager_Criteria_Type ) return String;
@@ -102,16 +108,20 @@ package KOW_Sec.Authorization_Criterias is
 	procedure Finalize(
 				Criteria	: in out In_Manager_Criteria_Type
 			);
+	function Create_In_Manager_Criteria is new Generic_Logic_Criteria_Factory( Criteria_Type => In_Manager_Criteria_Type );
 
 
 	-------------------------
 	-- EXPRESSION CRITERIA --
 	-------------------------
 	
+
+	type Expression_Criteria_Type is new Logic_Criteria_Type with record
+		-- Criteria of authorization associating others criterias.
+		-- Example: USERS={adele|OgRo}&GROUPS={!design&(dev|admin)} 
+		User		: User_Type;
+	end record;
 	
-	type Expression_Criteria_Type is new Logic_Criteria_Type with private;
-	-- Criteria of authorization associating others criterias.
-	-- Example: USERS={adele|OgRo}&GROUPS={!design&(dev|admin)} 
 
 
 	overriding
@@ -137,15 +147,18 @@ package KOW_Sec.Authorization_Criterias is
 				Criteria	: in out Expression_Criteria_Type
 			);
 
+	function Create_Expression_Criteria is new Generic_Logic_Criteria_Factory( Criteria_Type => Expression_Criteria_Type );
+
 
 
 	--------------------
 	-- GROUP CRITERIA --
 	--------------------
 
-	type Group_Criteria_Type is new Logic_Criteria_Type with private;
-	-- matches group names
-
+	type Group_Criteria_Type is new Logic_Criteria_Type with record
+		-- matches group names
+		Groups		: Group_Vectors.Vector;
+	end record;
 
 	overriding
 	function Get_Name( Criteria: in Group_Criteria_Type ) return String;
@@ -169,15 +182,18 @@ package KOW_Sec.Authorization_Criterias is
 				Criteria	: in out Group_Criteria_Type
 			);
 
+	function Create_Group_Criteria is new Generic_Logic_Criteria_Factory( Criteria_Type => Group_Criteria_Type );
+
 
 
 
 	-------------------
 	-- ROLE CRITERIA --
 	-------------------
-
-	type Role_Criteria_Type is new Logic_Criteria_Type with private;
-	-- matches user Role (including the group Role)
+	type Role_Criteria_Type is new Logic_Criteria_Type with record
+		-- matches user Role (including the group Role)
+		Roles		: Role_Vectors.Vector;
+	end record;
 
 	overriding
 	function Get_Name( Criteria : Role_Criteria_Type ) return String;
@@ -205,6 +221,7 @@ package KOW_Sec.Authorization_Criterias is
 				Criteria	: in out Role_Criteria_Type
 			);
 
+	function Create_Role_Criteria is new Generic_Logic_Criteria_Factory( Criteria_Type => Role_Criteria_Type );
 
 
 
@@ -212,8 +229,10 @@ package KOW_Sec.Authorization_Criterias is
 	-- USER CRITERIA --
 	-------------------
 
-	type User_Criteria_Type is new Logic_Criteria_Type with private;
-	-- matches the user identity
+	type User_Criteria_Type is new Logic_Criteria_Type with record
+		-- matches the user identity
+		User_Identity	: User_Identity_Type;
+	end record;
 
 
 	overriding
@@ -239,46 +258,9 @@ package KOW_Sec.Authorization_Criterias is
 				Criteria	: in out User_Criteria_Type
 			);
 
-
-
-
-
-
-
-
-private
-
-	type Current_Manager_Criteria_Type is new Logic_Criteria_Type with record
-		Current_Manager	: Authentication_Manager_Access;
-	end record;
-	function Create_Current_Manager_Criteria is new Generic_Logic_Criteria_Factory( Criteria_Type => Current_Manager_Criteria_Type );
-
-	type In_Manager_Criteria_Type is new Logic_Criteria_Type with record
-		User_Identity	: User_Identity_Type;
-	end record;
-	function Create_In_Manager_Criteria is new Generic_Logic_Criteria_Factory( Criteria_Type => In_Manager_Criteria_Type );
-
-
-	type Expression_Criteria_Type is new Logic_Criteria_Type with record
-		User		: User_Type;
-	end record;
-	function Create_Expression_Criteria is new Generic_Logic_Criteria_Factory( Criteria_Type => Expression_Criteria_Type );
-
-	type Group_Criteria_Type is new Logic_Criteria_Type with record
-		Groups		: Group_Vectors.Vector;
-	end record;
-	function Create_Group_Criteria is new Generic_Logic_Criteria_Factory( Criteria_Type => Group_Criteria_Type );
-
-	type Role_Criteria_Type is new Logic_Criteria_Type with record
-		Roles		: Role_Vectors.Vector;
-	end record;
-	function Create_Role_Criteria is new Generic_Logic_Criteria_Factory( Criteria_Type => Role_Criteria_Type );
-
-	
-	type User_Criteria_Type is new Logic_Criteria_Type with record
-		User_Identity	: User_Identity_Type;
-	end record;
 	function Create_User_Criteria is new Generic_Logic_Criteria_Factory( Criteria_Type => User_Criteria_Type );
 
+
+	
 	
 end KOW_Sec.Authorization_Criterias;

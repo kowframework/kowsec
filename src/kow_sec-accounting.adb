@@ -354,7 +354,7 @@ package body KOW_Sec.Accounting is
 	procedure Require(
 				Criteria	: in out Criteria_Interface'Class; 
 				User		: in     User_Type;
-				Root_Accountant	: in out Accountant_Access
+				Root_Accountant	: in     Accountant_Access
 			) is
 		-- matches the user against some criteria.
 		-- raise ACCESS_DENIED if the user fails this criteria.
@@ -392,7 +392,8 @@ package body KOW_Sec.Accounting is
 				Name		: in     Criteria_Name;
 				Descriptor	: in     Criteria_Descriptor;
 				User		: in     User_Type;
-				Root_Accountant	: in out Accountant_Access) is
+				Root_Accountant	: in     Accountant_Access
+			) is
 		-- matches the user against some criteria that's created at run time.
 		-- raises 
 		-- 	ACCESS_DENIED if the user fails this criteria.
