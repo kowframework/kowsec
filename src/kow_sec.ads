@@ -56,6 +56,7 @@ with KOW_Lib.UString_Ordered_Maps;
 
 
 package KOW_Sec is
+pragma Elaborate_Body( KOW_Sec );
 
 	--------------------------
 	-- Constant Deffinition --
