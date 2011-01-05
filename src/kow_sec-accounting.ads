@@ -83,7 +83,7 @@ package KOW_Sec.Accounting is
 	function New_Action(
 				Name		: in String;
 				Root_Accountant	: in Accountant_Access;
-				User	: in User_Data_Type
+				User		: in User_Data_Type := KOW_Sec.Anonymous_User
 			) return Base_Action_Type'Class is abstract;
 	-- This method should be used by the constructor and never be overrided.
 	-- It will initialize the common attributes to all action types.
@@ -132,7 +132,7 @@ package KOW_Sec.Accounting is
 	function New_Action(
 				Name		: in String;
 				Root_Accountant : in Accountant_Access;
-				User		: in User_Data_Type
+				User		: in User_Data_Type := KOW_Sec.Anonymous_User
 			) return Action_Type;
 	-- Used to create a new action which's root is Root_Accountant
 	-- Should be used as a constructor.

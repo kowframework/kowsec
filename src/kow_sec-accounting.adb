@@ -83,7 +83,7 @@ package body KOW_Sec.Accounting is
 	function New_Action(
 				Name		: in String;
 				Root_Accountant	: in Accountant_Access;
-				User		: in User_Data_Type 
+				User		: in User_Data_Type := KOW_Sec.Anonymous_User
 			) return Action_Type is
 	begin
 		return ( Ada.Finalization.Limited_Controlled with
