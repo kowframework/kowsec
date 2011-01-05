@@ -38,6 +38,7 @@ with Ada.Containers.Vectors;
 with Ada.Containers.Hashed_Maps;
 with Ada.Containers.Ordered_Maps;
 with Ada.Directories;
+with Ada.Exceptions;
 with Ada.Finalization;
 with Ada.Strings;
 with Ada.Strings.Fixed;
@@ -768,6 +769,13 @@ package body KOW_Sec is
 		Criteria : Criteria_Interface'Class := Criteria_Registry.Create_Criteria( Name, Descriptor );
 	begin
 		Require( Criteria, User );
+	exception
+		when e: ACCESS_DENIED =>
+			if Is_Anonymous( User ) then
+				raise LOGIN_REQUIRED with "was ACCESS_DENIED with " & Ada.Exceptions.Exception_Message( e );
+			else
+				Ada.Exceptions.Reraise_Occurrence( e );
+			end if;
 	end Require;
 
 	-----------------------

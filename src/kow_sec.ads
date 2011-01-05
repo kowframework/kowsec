@@ -588,5 +588,10 @@ pragma Elaborate_Body( KOW_Sec );
 	ACCESS_DENIED: Exception;
 	-- I think the name is clear enough...
 
+	LOGIN_REQUIRED: EXCEPTION;
+	-- it's raised by the procedure required when ACCESS_DENIED is raised AND the user is anonymouys
+	-- AND the user is not logged in...
+	--
+	-- can be also used by your own criterias
 
 end KOW_Sec;
