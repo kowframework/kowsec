@@ -49,6 +49,7 @@ with Ada.Strings.Unbounded.Hash;
 -------------------
 -- KOW Framework --
 -------------------
+with KOW_Lib.Json;
 with KOW_Lib.Locales;
 with KOW_Lib.File_System;		use KOW_Lib.File_System;
 with KOW_Lib.UString_Ordered_Maps;
@@ -467,6 +468,9 @@ pragma Elaborate_Body( KOW_Sec );
 			) return User_Type;
 	-- do login and initialize the User_Type variable
 
+
+	function To_Json( User : in User_Data_Type ) return KOW_Lib.Json.Object_Type;
+	-- return a JSON object representing the user
 
 	----------------------------------------
 	-- USER AND AUTHENTICATION EXCEPTIONS --

@@ -55,6 +55,7 @@ with GNAT.MD5;
 -------------------
 -- KOW Framework --
 -------------------
+with KOW_Lib.Json;
 with KOW_Lib.Locales;
 with KOW_Lib.UString_Ordered_Maps;
 
@@ -410,6 +411,28 @@ package body KOW_Sec is
 
 
 
+	function To_Json( User : in User_Data_Type ) return KOW_Lib.Json.Object_Type is
+		-- return a JSON object representing the user
+		use KOW_Lib.Json;
+		Response : KOW_Lib.Json.Object_Type;
+
+		procedure Set( Key, Value : in String ) is
+			pragma Inline( Set );
+		begin
+			Set( Response, Key, Ada.Strings.Fixed.Trim( Value, Ada.Strings.Both ) );
+		end Set;
+	begin
+		
+		Set( "identity",		String( User.Identity ) );
+		Set( "account_status",		Account_Status_type'Image( User.Account_Status ) );
+		Set( "account_status_message",	User.Account_Status_Message );
+		Set( "first_name",		User.First_Name );
+		Set( "last_name",		User.Last_Name );
+		Set( "nickname",		User.Nickname );
+		Set( "primary_email",		User.Primary_Email );
+
+		return Response;
+	end To_Json;
 
 	----------------------
 	-- Roles Management --
