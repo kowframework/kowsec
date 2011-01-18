@@ -110,6 +110,9 @@ pragma Elaborate_Body( KOW_Sec );
 			-- to avoid colisions we are using ordered maps.. the ideal is to use an
 			-- ordered map with a hash function with no colisions at all tough
 
+			function Exists( Key : in Key_type ) return Boolean;
+			-- checks if the file exists - both in cache and in disk
+
 			procedure Read(
 						Key		: in     Key_Type;
 						Item		:    out Element_Vectors.Vector;
@@ -165,6 +168,8 @@ pragma Elaborate_Body( KOW_Sec );
 		---------------------
 		-- Other functions --
 		---------------------
+
+		function Exists( Key : in Key_Type ) return Boolean renames Cache.Exists;
 
 		function Get_First(
 					Key	: in Key_Type;

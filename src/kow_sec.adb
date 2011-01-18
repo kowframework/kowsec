@@ -121,6 +121,12 @@ package body KOW_Sec is
 			-- to avoid colisions we are using ordered maps.. the ideal is to use an
 			-- ordered map with a hash function with no colisions at all tough
 
+
+			function Exists( Key : in Key_Type ) return Boolean is
+			begin
+				return Cache_Maps.Contains( Cache_Map, Key ) or else Ada.Directories.Exists( Storage_Path( Key ) );
+			end Exists;
+
 			procedure Read(
 						Key		: in     Key_Type;
 						Item		:    out Element_Vectors.Vector;
@@ -220,6 +226,7 @@ package body KOW_Sec is
 		---------------------
 		-- Other functions --
 		---------------------
+
 
 		function Get_First(
 					Key	: in Key_Type;
@@ -717,6 +724,9 @@ package body KOW_Sec is
 	function Get_User( User_Identity: in User_Identity_Type ) return User_Data_Type is
 		Data : User_Data_Type;
 	begin
+		if not User_Data.Exists( User_Identity ) then
+			raise CONSTRAINT_ERROR with "no such user: " & String( User_Identity );
+		end if;
 		Data := User_Data.Get_First( User_Identity, True );
 		pragma Assert( Data.Identity = User_Identity, "Stored user identity doesnt match" );
 		return Data;
