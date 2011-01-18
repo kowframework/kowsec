@@ -372,6 +372,8 @@ pragma Elaborate_Body( KOW_Sec );
 		Value	: String( 1 .. 150 );
 	end record;
 
+	No_Info : constant Contact_Info_Type := ( Kind => Email_Contact, Value => ( others => ' ' ) );
+
 
 	type Contact_Info_Array is array ( Positive range <> ) of Contact_Info_Type;
 
@@ -379,20 +381,20 @@ pragma Elaborate_Body( KOW_Sec );
 		Identity	: User_Identity_Type := Anonymous_User_Identity;
 
 		Account_Status	: Account_Status_Type := Account_Pending;
-		Account_Status_Message : String ( 1 .. 200 );
+		Account_Status_Message : String ( 1 .. 200 ) := ( others => ' ' );
 		-- an aditional message to the user status; usefull when suspended, disabled or pending
 
 		-- formal first and last names:
-		First_Name	: String( 1 .. 50 );
-		Last_Name	: String( 1 .. 150 );
+		First_Name	: String( 1 .. 50 ) := ( others => ' ' );
+		Last_Name	: String( 1 .. 150 ) := ( others => ' ' );
 
 
-		Nickname	: String( 1 .. 50 );
+		Nickname	: String( 1 .. 50 ) := ( others => ' ' );
 		-- how the user would like to be called
 
-		Primary_Email	: String( 1 .. 100 );
+		Primary_Email	: String( 1 .. 100 ) := ( others => ' ' );
 
-		Contact_Info	: Contact_Info_Array( 1 .. 10 );
+		Contact_Info	: Contact_Info_Array( 1 .. 10 ) := ( others => No_Info );
 	end record;
 
 	type User_Type is record
