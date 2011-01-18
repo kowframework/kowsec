@@ -209,6 +209,7 @@ pragma Elaborate_Body( KOW_Sec );
 	function To_Identity( Str : in String ) return User_Identity_Type;
 	-- calculates the hash of this identity
 
+	function To_String( Identity : in User_Identity_Type ) return String;
 
 	function New_User_Identity return User_Identity_Type;
 	-- this will generate a brand new user identity

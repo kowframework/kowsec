@@ -279,6 +279,44 @@ package body KOW_Sec is
 
 
 
+
+	package Group_Roles_Data is new KOW_Sec.Data(
+				Storage_Name	=> "group_roles",
+				Key_Type	=> Group_type,
+				To_String	=> To_String,
+				"<"		=> "<",
+				Element_Type	=> Role_Type,
+				Element_Vectors	=> Role_Vectors
+			);
+
+	package User_Groups_Data is new KOW_Sec.Data(
+				Storage_Name	=> "user_groups",
+				Key_Type	=> User_Identity_Type,
+				To_String	=> To_String,
+				"<"		=> "<",
+				Element_Type	=> Group_Type,
+				Element_Vectors	=> Group_Vectors
+			);
+
+	package User_Roles_Data is new KOW_Sec.Data(
+				Storage_Name	=> "user_roles",
+				Key_Type	=> User_Identity_Type,
+				To_String	=> To_String,
+				"<"		=> "<",
+				Element_Type	=> Role_Type,
+				Element_Vectors	=> Role_Vectors
+			);
+	package User_Data is new KOW_Sec.Data(
+				Storage_Name	=> "users",
+				Key_Type	=> User_Identity_type,
+				To_String	=> To_String,
+				"<"		=> "<",
+				Element_Type	=> User_Data_Type,
+				Element_Vectors	=> User_Vectors
+			);
+
+
+
 	
 	----------------------------
 	-- The User Identity Type --
@@ -303,6 +341,14 @@ package body KOW_Sec is
 	begin
 		return User_Identity_Type( MD5_Sign( Str ) );
 	end To_Identity;
+
+	function To_String( Identity : in User_Identity_Type ) return String is
+	begin
+		return String( Identity );
+	end to_String;
+
+		
+
 
 	function New_User_Identity return User_Identity_Type is
 		-- this will generate a brand new user identity
@@ -343,8 +389,13 @@ package body KOW_Sec is
 			return The_Timestamp & The_Random_Part;
 		end The_Key;
 
+		Identity : User_Identity_Type;
 	begin
-		return To_Identity( The_Key );
+		loop
+			Identity := To_Identity( The_Key );
+			exit when not User_Data.Exists( Identity );
+		end loop;
+		return Identity;
 	end New_User_Identity;
 
 
@@ -532,14 +583,6 @@ package body KOW_Sec is
 
 
 
-	package Group_Roles_Data is new KOW_Sec.Data(
-				Storage_Name	=> "group_roles",
-				Key_Type	=> Group_type,
-				To_String	=> To_String,
-				"<"		=> "<",
-				Element_Type	=> Role_Type,
-				Element_Vectors	=> Role_Vectors
-			);
 
 
 	function Get_Roles( Group : in Group_Type ) return Role_Vectors.Vector is
@@ -557,38 +600,7 @@ package body KOW_Sec is
 	-- User Management --
 	---------------------
 
-	function To_String( Identity : in User_Identity_Type ) return String is
-	begin
-		return String( Identity );
-	end to_String;
-
-		
-
-	package User_Groups_Data is new KOW_Sec.Data(
-				Storage_Name	=> "user_groups",
-				Key_Type	=> User_Identity_Type,
-				To_String	=> To_String,
-				"<"		=> "<",
-				Element_Type	=> Group_Type,
-				Element_Vectors	=> Group_Vectors
-			);
-
-	package User_Roles_Data is new KOW_Sec.Data(
-				Storage_Name	=> "user_roles",
-				Key_Type	=> User_Identity_Type,
-				To_String	=> To_String,
-				"<"		=> "<",
-				Element_Type	=> Role_Type,
-				Element_Vectors	=> Role_Vectors
-			);
-	package User_Data is new KOW_Sec.Data(
-				Storage_Name	=> "users",
-				Key_Type	=> User_Identity_type,
-				To_String	=> To_String,
-				"<"		=> "<",
-				Element_Type	=> User_Data_Type,
-				Element_Vectors	=> User_Vectors
-			);
+	
 
 	function Identity( User : in User_Data_Type ) return String is
 		-- Return a string identifying the current user. Usually it's the username
