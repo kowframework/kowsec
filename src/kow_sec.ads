@@ -339,6 +339,7 @@ pragma Elaborate_Body( KOW_Sec );
 	function To_String( Group : Group_Type ) return String;
 	-- get the trimmed version of group_type
 
+	function To_Group( Str : in String ) return Group_Type;
 
 	function Get_Roles( Group : in Group_Type ) return Role_Vectors.Vector;
 	-- return the roles assigned to a given group

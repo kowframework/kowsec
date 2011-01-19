@@ -582,7 +582,16 @@ package body KOW_Sec is
 	end "<";
 
 
+	function To_Group( Str : in String ) return Group_Type is
+		Group : Group_Type := ( others => ' ' );
+	begin
+		if Str'Length > Group_Type'Length then
+			raise CONSTRAINT_ERROR with Str & " don't fit in a group type";
+		end if;
 
+		Group( Group_type'First .. Group_type'First + Str'Length - 1 ) := Group_Type( Str );
+		return Group;
+	end To_Group;
 
 
 	function Get_Roles( Group : in Group_Type ) return Role_Vectors.Vector is
