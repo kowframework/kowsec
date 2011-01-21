@@ -610,4 +610,6 @@ pragma Elaborate_Body( KOW_Sec );
 	--
 	-- can be also used by your own criterias
 
+	ACCOUNT_DISABLED_ERROR : Exception;
+	-- used whenever the account can't be used in the login process
 end KOW_Sec;

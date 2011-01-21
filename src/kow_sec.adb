@@ -808,7 +808,7 @@ package body KOW_Sec is
 
 
 					if User.Data.Account_Status /= Account_Enabled then
-						raise ACCESS_DENIED with "The user is not enabled right now. The current status is: " & Account_Status_Type'Image( User.Data.Account_Status );
+						raise ACCOUNT_DISABLED_ERROR with "The user is not enabled right now. The current status is: " & Account_Status_Type'Image( User.Data.Account_Status );
 					end if;
 					return User;
 				end;
