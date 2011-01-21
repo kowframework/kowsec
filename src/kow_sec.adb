@@ -541,7 +541,8 @@ package body KOW_Sec is
 		Role.Application( 1 .. Index - 1 ) := Id_Str( 1 .. Index - 1 );
 		Role.Application( Index .. Role.Application'Last ) := ( others => ' ' );
 
-		Role_Len := Id_Str'Last - Index - 2;
+		Role_Len := Id_Str'Last - Index - 1;
+
 
 		Role.Role( 1 .. Role_Len ) := Id_Str( Index + 2 .. Id_Str'Last );
 		Role.Role( Role_Len + 1 .. Role.Role'Last ) := ( others => ' ' );
