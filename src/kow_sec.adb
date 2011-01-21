@@ -554,7 +554,7 @@ package body KOW_Sec is
 	protected body Roles_Registry is
 		procedure Register( Application, Role : in String ) is
 		begin
-			Register( Role_Type'( Application => Application, Role => Role ) );
+			Register( To_Role( To_Identity( Application & "::" & Role ) ) );
 		end Register;
 
 		procedure Register( Role : in Role_Type ) is
