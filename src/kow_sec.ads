@@ -206,8 +206,11 @@ pragma Elaborate_Body( KOW_Sec );
 	type User_Identity_Type is new String( 1 .. 32 );
 	-- the user identity is a MD5 hash
 
+	function MD5_Sign( Str : in String ) return User_Identity_Type;
+	-- calculates the has for a string returning it as user_identity_type
+
 	function To_Identity( Str : in String ) return User_Identity_Type;
-	-- calculates the hash of this identity
+	-- converts the string into the user_identity_type (cast)
 
 	function To_String( Identity : in User_Identity_Type ) return String;
 

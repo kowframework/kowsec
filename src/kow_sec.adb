@@ -337,9 +337,19 @@ package body KOW_Sec is
 		return Digest( C );
 	end MD5_Sign;
 
+	
+	function MD5_Sign( Str : in String ) return User_Identity_Type is
+		S : constant String := MD5_Sign( Str );
+	begin
+		return User_Identity_Type( S );
+	end MD5_Sign;
+
 	function To_Identity( Str : in String ) return User_Identity_Type is
 	begin
-		return User_Identity_Type( MD5_Sign( Str ) );
+		if Str'Length /= User_Identity_Type'Length then
+			raise CONSTRAINT_ERROR with Str & " is not a valid identity";
+		end if;
+		return User_Identity_Type( Str );
 	end To_Identity;
 
 	function To_String( Identity : in User_Identity_Type ) return String is
@@ -392,7 +402,7 @@ package body KOW_Sec is
 		Identity : User_Identity_Type;
 	begin
 		loop
-			Identity := To_Identity( The_Key );
+			Identity := MD5_Sign( The_Key );
 			exit when not User_Data.Exists( Identity );
 		end loop;
 		return Identity;
@@ -584,12 +594,16 @@ package body KOW_Sec is
 
 	function To_Group( Str : in String ) return Group_Type is
 		Group : Group_Type := ( others => ' ' );
+		j	: integer := Group'First;
 	begin
 		if Str'Length > Group_Type'Length then
 			raise CONSTRAINT_ERROR with Str & " don't fit in a group type";
 		end if;
 
-		Group( Group_type'First .. Group_type'First + Str'Length - 1 ) := Group_Type( Str );
+		for i in Str'Range loop
+			Group( j ) := Str( i );
+			j := j + 1;
+		end loop;
 		return Group;
 	end To_Group;
 
@@ -903,5 +917,5 @@ package body KOW_Sec is
 
 begin
 
-	Anonymous_User_Identity := To_Identity( "anonymous" );
+	Anonymous_User_Identity := MD5_Sign( "anonymous" );
 end KOW_Sec;
