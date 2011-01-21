@@ -507,10 +507,14 @@ package body KOW_Sec is
 	----------------------
 
 	function To_Identity( Str : in String ) return Role_Identity_Type is
-		Id : Role_Identity_Type;
+		Id	: Role_Identity_Type := ( others => ' ' );
+		j	: integer := Id'First;
 	begin
-		Id( 1 .. Str'Length ) :=  Role_Identity_Type( Str );
-		Id( Str'Length + 1 .. Id'Last ) := ( others => ' ' );
+		for i in str'range loop
+			Id( j ) := Str( i );
+			j := j + 1;
+		end loop;
+
 		return Id;
 	end To_Identity;
 
