@@ -369,10 +369,18 @@ pragma Elaborate_Body( KOW_Sec );
 					Account_Suspended
 				);
 
-	type Info_Kind_Type is ( Email_Contact, Phone_Contact, Address_Contact );
+	type Gender_Type is(
+			Male_Gender,
+			Female_Gender,
+			Unknown_Gender
+		);
+
+
+
+	type Contact_Info_Kind_Type is ( Email_Contact, Phone_Contact, Address_Contact );
 
 	type Contact_Info_Type is record
-		Kind	: Info_Kind_Type;
+		Kind	: Contact_Info_Kind_Type;
 		Value	: String( 1 .. 150 );
 	end record;
 
@@ -391,6 +399,8 @@ pragma Elaborate_Body( KOW_Sec );
 		-- formal first and last names:
 		First_Name	: String( 1 .. 50 ) := ( others => ' ' );
 		Last_Name	: String( 1 .. 150 ) := ( others => ' ' );
+
+		Gender		: Gender_Type	:= Unknown_Gender;
 
 
 		Nickname	: String( 1 .. 50 ) := ( others => ' ' );
