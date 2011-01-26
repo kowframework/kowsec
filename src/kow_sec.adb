@@ -72,6 +72,32 @@ package body KOW_Sec is
 
 
 
+	--------------------
+	-- Helper Methods --
+	--------------------
+
+	procedure Copy(
+			From	: in     String;
+			To	: in out String
+		) is
+		-- copy the contents in From to To ocuping only the first spaces
+		-- the remaining in "to" is filled with spaces..
+		--
+		-- if From'Length > To'Length then raise constraint error
+		
+		First_Remaining	: Integer := To'First + From'Length;
+	begin
+		if From'Length > To'Length then
+			raise CONSTRAINT_ERROR with "trying to copy way too big string...";
+		end if;
+
+		for i in From'Range loop
+			To( To'First - 1 + i ) := From( i );
+		end loop;
+
+		To( First_Remaining .. To'Last ) := ( others => ' ' );
+	end Copy;
+
 	------------------
 	-- Data Storage --
 	------------------
@@ -283,7 +309,7 @@ package body KOW_Sec is
 	package Group_Roles_Data is new KOW_Sec.Data(
 				Storage_Name	=> "group_roles",
 				Key_Type	=> Group_type,
-				To_String	=> To_String,
+				To_String	=> Get_Name,
 				"<"		=> "<",
 				Element_Type	=> Role_Type,
 				Element_Vectors	=> Role_Vectors
@@ -507,15 +533,13 @@ package body KOW_Sec is
 	----------------------
 
 	function To_Identity( Str : in String ) return Role_Identity_Type is
-		Id	: Role_Identity_Type := ( others => ' ' );
-		j	: integer := Id'First;
+		Id	: Role_Identity_Type;
 	begin
-		for i in str'range loop
-			Id( j ) := Str( i );
-			j := j + 1;
-		end loop;
-
+		Copy( From => Str, To => String( id ) );
 		return Id;
+	exception
+		when CONSTRAINT_ERROR =>
+			raise CONSTRAINT_ERROR with Str & " is not a valid role identity";
 	end To_Identity;
 
 	function Identity( Role : in Role_type ) return Role_Identity_Type is
@@ -530,26 +554,19 @@ package body KOW_Sec is
 		-- parse the role identity into a role
 
 		Id_Str	: String := Ada.Strings.Fixed.Trim( String( Identity ), Ada.Strings.Both );
+		-- make sure the identity we receive is trimmed
+
 		Index	: Natural := Ada.Strings.Fixed.Index( Id_Str, "::" );
 		Role	: Role_Type;
-		Role_Len: Positive;
 	begin
 		if Index <= 1 OR ELSE Index >= 101 then
 			raise CONSTRAINT_ERROR with "Not a valid role identity: " & Id_Str;
 		end if;
 
-		Role.Application( 1 .. Index - 1 ) := Id_Str( 1 .. Index - 1 );
-		Role.Application( Index .. Role.Application'Last ) := ( others => ' ' );
-
-		Role_Len := Id_Str'Last - Index - 1;
-
-
-		Role.Role( 1 .. Role_Len ) := Id_Str( Index + 2 .. Id_Str'Last );
-		Role.Role( Role_Len + 1 .. Role.Role'Last ) := ( others => ' ' );
-
+		Copy( From => Id_Str( 1 .. Index -1 ), To => Role.Application );
+		Copy( From => Id_Str( Index + 2 .. Id_str'Last ), To => Role.Role );
 
 		return Role;
-
 	end To_Role;
 
 	protected body Roles_Registry is
@@ -576,12 +593,32 @@ package body KOW_Sec is
 	-- Groups Management --
 	-----------------------
 
+	function Get_Name( Group : in Group_Type ) return String is
+		-- get the trimmed version of the group name
+	begin
+		return Ada.Strings.Fixed.Trim( Group.Name, Ada.Strings.Both );
+	end Get_Name;
+
+	function Get_Context( Group : in Group_Type ) return String is
+		-- get the trimmed version of the group context
+	begin
+		return Ada.Strings.Fixed.Trim( Group.Context, Ada.Strings.Both );
+	end Get_Context;
 
 	function To_String( Group : Group_Type ) return String is
-		-- get the trimmed version of group_type
+		-- Return Get_Name & "::" & Get_Context
 	begin
-		return Ada.Strings.Fixed.Trim( String( Group ), Ada.Strings.Both );
+		return Get_Name( Group ) & "::" & Get_Context( Group );
 	end To_String;
+
+	function To_Group( Name : in String; Context : in String := "" ) return Group_Type is
+		Group : Group_Type;
+	begin
+		Copy( From => Name, To => Group.Name );
+		Copy( From => Context, To => Group.Context );
+
+		return Group;
+	end To_Group;
 
 
 	function "<"( L, R : in String ) return Boolean is
@@ -596,22 +633,10 @@ package body KOW_Sec is
 		return false;
 	end "<";
 
-
-	function To_Group( Str : in String ) return Group_Type is
-		Group : Group_Type := ( others => ' ' );
-		j	: integer := Group'First;
+	function "<"( L, R : in Group_Type ) return Boolean is
 	begin
-		if Str'Length > Group_Type'Length then
-			raise CONSTRAINT_ERROR with Str & " don't fit in a group type";
-		end if;
-
-		for i in Str'Range loop
-			Group( j ) := Str( i );
-			j := j + 1;
-		end loop;
-		return Group;
-	end To_Group;
-
+		return Get_Name( L ) < Get_Name( R );
+	end "<";
 
 	function Get_Roles( Group : in Group_Type ) return Role_Vectors.Vector is
 	begin

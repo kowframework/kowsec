@@ -337,15 +337,35 @@ pragma Elaborate_Body( KOW_Sec );
 	-----------------------
 	
 
-	type Group_Type is new String( 1 .. 50 );
+	type Group_Type is record
+		Name	: String( 1 .. 50 );
+		Context	: String( 1 .. 150 );
+
+		-- a user can be in a group in a given context (say it's the admin in a project and a regular user in other).
+		-- when context is empty (all spaces)
+	end record;
+
+
+	function Get_Name( Group : in Group_Type ) return String;
+	-- get the trimmed version of the group name
+	
+	function Get_Context( Group : in Group_Type ) return String;
+	-- get the trimmed version of the group context
+	
 
 	function To_String( Group : Group_Type ) return String;
-	-- get the trimmed version of group_type
+	-- Return Get_Name & "::" & Get_Context
 
-	function To_Group( Str : in String ) return Group_Type;
+	function To_Group( Name : in String; Context : in String := "" ) return Group_Type;
 
 	function Get_Roles( Group : in Group_Type ) return Role_Vectors.Vector;
 	-- return the roles assigned to a given group
+
+	procedure Set_Roles( Group : in Group_Type; Roles : in Role_Vectors.Vector );
+	-- set the roles for the given group
+
+	function "<"( L, R : in Group_Type ) return Boolean;
+	-- compares both group names
 
 	package Group_Vectors is new Ada.Containers.Vectors (
 				Index_Type	=> Positive,

@@ -171,7 +171,8 @@ package body KOW_Sec.Accounting is
 	procedure Log( Child: in Base_Action_Type'Class; Path: in String ) is
 	begin
 		if Child.Status = EXIT_SUCCESS OR Child.Status = EXIT_NULL then
-			Log( Child => Child, Path => Path, Output => Standard_Output );
+			null;
+			--Log( Child => Child, Path => Path, Output => Standard_Output );
 		else
 			Log( Child => Child, Path => Path, Output => Standard_Error );
 		end if;

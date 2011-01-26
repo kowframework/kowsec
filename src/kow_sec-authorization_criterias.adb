@@ -268,7 +268,7 @@ package body KOW_Sec.Authorization_Criterias is
 					Is_Allowed	:    out Boolean
 				) is
 	begin
-		Is_Allowed := Group_Vectors.Contains( Criteria.Groups, Group_Type( To_String( Descriptor ) ) );
+		Is_Allowed := Group_Vectors.Contains( Criteria.Groups, To_Group( To_String( Descriptor ) ) );
 	end Require_Specific;
 
 	overriding
