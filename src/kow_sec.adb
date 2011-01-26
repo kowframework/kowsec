@@ -692,16 +692,50 @@ package body KOW_Sec is
 		return "http://www.gravatar.com/avatar/" & MD5_Sign( Ada.Strings.Fixed.Trim( User.Primary_Email, Ada.Strings.Both ) ) & ".jpg?s=" & S;
 	end Gravatar_URL;
 
-	function Get_Groups( User : in User_Data_Type ) return Group_Vectors.Vector is
+
+	function Get_All_Groups( User : in User_Data_Type ) return Group_Vectors.Vector is
 	begin
 		return User_Groups_Data.Get_All( User.Identity );
+	end Get_All_Groups;
+
+	function Get_Groups(
+				User	: in User_Data_Type;
+				Context	: in String
+			) return Group_Vectors.Vector is
+		-- Get contextualized groups for this user.
+		Group_Context	: String( 1 .. 150 );
+		Global_Context	: String( 1 .. 150 ) := ( others => ' ' );
+		Groups : Group_Vectors.Vector;
+
+
+		procedure Iterator( C : in Group_Vectors.Cursor ) is
+			Group : Group_Type := Group_Vectors.Element( C );
+		begin
+			if Group.Context = Group_Context OR ELSE Group.Context = Global_Context then
+				Group_Vectors.Append( Groups, Group );
+			end if;
+		end Iterator;
+	begin
+		Copy( From => Context, To => Group_Context );
+
+		Group_Vectors.Iterate( Get_All_Groups( User ), Iterator'Access );
+
+		return Groups;
 	end Get_Groups;
 
-	function Get_Groups( User : in User_Type ) return Group_Vectors.Vector is
-		pragma Inline( Get_Groups );
+	function Get_All_Groups( User : in User_Type ) return Group_Vectors.Vector is
 	begin
-		return Get_Groups( User.Data );
+		return Get_All_Groups( User.Data );
+	end Get_All_Groups;
+
+	function Get_Groups(
+				User 	: in User_Type;
+				Context	: in String
+			) return Group_Vectors.Vector is
+	begin
+		return Get_Groups( User.Data, Context );
 	end Get_Groups;
+
 
 	procedure Set_Groups( User : in User_Data_Type; Groups : in Group_Vectors.Vector ) is
 	begin

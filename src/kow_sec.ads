@@ -469,10 +469,22 @@ pragma Elaborate_Body( KOW_Sec );
 	function Gravatar_URL( User : in User_Data_Type; Size : Positive := 69 ) return String;
 	-- return the gravatar URL for the given user
 	
-	function Get_Groups( User : in User_Data_Type ) return Group_Vectors.Vector;
-	-- Get the groups for this user.
+	function Get_All_Groups( User : in User_Data_Type ) return Group_Vectors.Vector;
+	-- Get all the groups for this user.
 	
-	function Get_Groups( User : in User_Type ) return Group_Vectors.Vector;
+	function Get_Groups(
+				User	: in User_Data_Type;
+				Context	: in String
+			) return Group_Vectors.Vector;
+	-- Get contextualized groups for this user.
+
+
+	function Get_All_Groups( User : in User_Type ) return Group_Vectors.Vector;
+
+	function Get_Groups(
+				User 	: in User_Type;
+				Context	: in String
+			) return Group_Vectors.Vector;
 
 	procedure Set_Groups( User : in User_Data_Type; Groups : in Group_Vectors.Vector );
 

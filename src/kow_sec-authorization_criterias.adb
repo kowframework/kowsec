@@ -36,6 +36,8 @@
 --------------
 with Ada.Characters.Handling; 	use Ada.Characters.Handling;
 with Ada.Containers.Vectors;
+with Ada.Strings;
+with Ada.Strings.Fixed;
 with Ada.Text_IO;		use Ada.Text_IO;	
 
 
@@ -267,8 +269,37 @@ package body KOW_Sec.Authorization_Criterias is
 					Descriptor	: in     Criteria_Descriptor;
 					Is_Allowed	:    out Boolean
 				) is
+
+		Descr : constant String := To_String( Descriptor );
+
+		Idx : Integer := Ada.Strings.Fixed.Index( Descr, "::" );
+		function Get_Group_Name return String is
+		begin
+			if idx = -1 then
+				return Descr;
+			else
+				return Descr( Descr'First .. Idx - 1 );
+			end if;
+		end Get_Group_Name;
+
+		Group_Name : constant String := Get_Group_Name;
+
+		function Group_Context return String is
+		begin
+			if Idx = -1 then
+				return "";
+			else
+				return Descr( Idx + 2 .. Descr'Last );
+			end if;
+		end Group_Context;
 	begin
-		Is_Allowed := Group_Vectors.Contains( Criteria.Groups, To_Group( To_String( Descriptor ) ) );
+		if Group_Vectors.Contains( Criteria.Groups, To_Group( Group_name, "" ) ) then
+			Is_Allowed := True;
+		elsif Group_Vectors.Contains( Criteria.Groups, To_Group( Group_Name, Group_Context ) ) then
+			Is_Allowed := True;
+		else
+			Is_Allowed := False;
+		end if;
 	end Require_Specific;
 
 	overriding
@@ -277,7 +308,7 @@ package body KOW_Sec.Authorization_Criterias is
 				User		: in     User_Type
 			) is
 	begin
-		Criteria.Groups := KOW_Sec.Get_Groups( User );
+		Criteria.Groups := KOW_Sec.Get_All_Groups( User );
 	end Initialize;
 
 	overriding
