@@ -745,7 +745,8 @@ package body KOW_Sec is
 
 	function Get_Roles(
 				User			: in User_Data_Type;
-				Combine_Group_Roles	: in Boolean := False
+				Combine_Group_Roles	: in Boolean := False;
+				Context			: in String := ""
 			) return Role_Vectors.Vector is
 		-- if combine group roles is true, does exactly that given that only one instance of each role is returned
 
@@ -778,7 +779,7 @@ package body KOW_Sec is
 	begin
 		V := User_Roles_Data.Get_All( User.Identity );
 		if Combine_Group_Roles then
-			Group_Vectors.Iterate( User_Groups_Data.Get_all( User.Identity ), Groups_Iterator'Access );
+			Group_Vectors.Iterate( Get_Groups( User, Context), Groups_Iterator'Access );
 		end if;
 
 		return V;
@@ -787,11 +788,12 @@ package body KOW_Sec is
 
 	function Get_Roles(
 				User			: in User_Type;
-				Combine_Group_Roles	: in Boolean := False
+				Combine_Group_Roles	: in Boolean := False;
+				Context			: in String := ""
 			) return Role_Vectors.Vector is
 		pragma Inline( Get_Roles );
 	begin
-		return Get_Roles( User.Data, Combine_Group_Roles );
+		return Get_Roles( User.Data, Combine_Group_Roles, Context );
 	end Get_Roles;
 
 

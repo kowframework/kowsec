@@ -490,13 +490,17 @@ pragma Elaborate_Body( KOW_Sec );
 
 	function Get_Roles(
 				User			: in User_Data_Type;
-				Combine_Group_Roles	: in Boolean := False
+				Combine_Group_Roles	: in Boolean := False;
+				Context			: in String := ""
 			) return Role_Vectors.Vector;
 	-- get all roles by a given user
 	-- if combine group roles is true, does exactly that given that only one instance of each role is returned
+	-- context is only used when combine_group_roles is true
+
 	function Get_Roles(
 				User			: in User_Type;
-				Combine_Group_Roles	: in Boolean := False
+				Combine_Group_Roles	: in Boolean := False;
+				Context			: in String := ""
 			) return Role_Vectors.Vector;
 
 
