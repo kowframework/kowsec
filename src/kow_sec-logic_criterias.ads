@@ -75,7 +75,22 @@ package KOW_Sec.Logic_Criterias is
 		-- 	a_group&another_group
 		Descriptor : KOW_Sec.Criteria_Descriptor;
 		-- the descriptor has got to be intialized by the element
+		
+		Contexts : Context_Array( 1 .. 10 );
+		-- contain the contexts used to retrieve both groups and roles...
+		-- it will use all of the contexts at the same time
+		-- up to 10 contexts :)
+		
+		Context_Count : Natural := 0;
+		-- count how many contexts are in use
 	end record;
+
+
+	overriding
+	procedure Add_Context(
+				Criteria: in out Logic_Criteria_Type;
+				Context	: in     Context_Type
+			);
 
 	overriding
 	procedure Require(
@@ -86,6 +101,9 @@ package KOW_Sec.Logic_Criterias is
 	overriding
 	function Describe( Criteria : in Logic_Criteria_Type ) return String;
 
+
+	function Get_Contexts( Criteria : in Logic_Criteria_Type ) return Context_Array;
+	-- get the contexts
 
 	procedure Require_Specific(
 					Criteria	: in out Logic_Criteria_Type;

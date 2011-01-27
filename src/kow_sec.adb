@@ -596,13 +596,13 @@ package body KOW_Sec is
 	function Get_Name( Group : in Group_Type ) return String is
 		-- get the trimmed version of the group name
 	begin
-		return Ada.Strings.Fixed.Trim( Group.Name, Ada.Strings.Both );
+		return Ada.Strings.Fixed.Trim( String( Group.Name ), Ada.Strings.Both );
 	end Get_Name;
 
 	function Get_Context( Group : in Group_Type ) return String is
 		-- get the trimmed version of the group context
 	begin
-		return Ada.Strings.Fixed.Trim( Group.Context, Ada.Strings.Both );
+		return Ada.Strings.Fixed.Trim( String( Group.Context ), Ada.Strings.Both );
 	end Get_Context;
 
 	function To_String( Group : Group_Type ) return String is
@@ -614,8 +614,8 @@ package body KOW_Sec is
 	function To_Group( Name : in String; Context : in String := "" ) return Group_Type is
 		Group : Group_Type;
 	begin
-		Copy( From => Name, To => Group.Name );
-		Copy( From => Context, To => Group.Context );
+		Copy( From => Name, To => String( Group.Name ) );
+		Copy( From => Context, To => String( Group.Context ) );
 
 		return Group;
 	end To_Group;
@@ -700,24 +700,33 @@ package body KOW_Sec is
 
 	function Get_Groups(
 				User	: in User_Data_Type;
-				Context	: in String
+				Contexts: in Context_Array
 			) return Group_Vectors.Vector is
 		-- Get contextualized groups for this user.
-		Group_Context	: String( 1 .. 150 );
-		Global_Context	: String( 1 .. 150 ) := ( others => ' ' );
+		Global_Context	: Context_Type := ( others => ' ' );
 		Groups : Group_Vectors.Vector;
+
+
+		function Has_Context( C : in Context_Type ) return Boolean is
+		begin
+			for i in Contexts'Range loop
+				if C = Contexts( i ) then
+					return true;
+				end if;
+			end loop;
+
+			return false;
+		end Has_Context;
 
 
 		procedure Iterator( C : in Group_Vectors.Cursor ) is
 			Group : Group_Type := Group_Vectors.Element( C );
 		begin
-			if Group.Context = Group_Context OR ELSE Group.Context = Global_Context then
+			if Group.Context = Global_Context or else Has_Context( Group.Context ) then
 				Group_Vectors.Append( Groups, Group );
 			end if;
 		end Iterator;
 	begin
-		Copy( From => Context, To => Group_Context );
-
 		Group_Vectors.Iterate( Get_All_Groups( User ), Iterator'Access );
 
 		return Groups;
@@ -730,10 +739,10 @@ package body KOW_Sec is
 
 	function Get_Groups(
 				User 	: in User_Type;
-				Context	: in String
+				Contexts: in Context_Array
 			) return Group_Vectors.Vector is
 	begin
-		return Get_Groups( User.Data, Context );
+		return Get_Groups( User.Data, Contexts );
 	end Get_Groups;
 
 
@@ -746,7 +755,7 @@ package body KOW_Sec is
 	function Get_Roles(
 				User			: in User_Data_Type;
 				Combine_Group_Roles	: in Boolean := False;
-				Context			: in String := ""
+				Contexts		: in Context_Array := Empty_Context_Array
 			) return Role_Vectors.Vector is
 		-- if combine group roles is true, does exactly that given that only one instance of each role is returned
 
@@ -779,7 +788,7 @@ package body KOW_Sec is
 	begin
 		V := User_Roles_Data.Get_All( User.Identity );
 		if Combine_Group_Roles then
-			Group_Vectors.Iterate( Get_Groups( User, Context), Groups_Iterator'Access );
+			Group_Vectors.Iterate( Get_Groups( User, Contexts), Groups_Iterator'Access );
 		end if;
 
 		return V;
@@ -789,11 +798,11 @@ package body KOW_Sec is
 	function Get_Roles(
 				User			: in User_Type;
 				Combine_Group_Roles	: in Boolean := False;
-				Context			: in String := ""
+				Contexts		: in Context_Array := Empty_Context_Array
 			) return Role_Vectors.Vector is
 		pragma Inline( Get_Roles );
 	begin
-		return Get_Roles( User.Data, Combine_Group_Roles, Context );
+		return Get_Roles( User.Data, Combine_Group_Roles, Contexts );
 	end Get_Roles;
 
 
@@ -893,15 +902,25 @@ package body KOW_Sec is
 	-- Authorization Management --
 	------------------------------
 	
+	function To_Context( Context_Str : in String ) return Context_Type is
+		Context : Context_type;
+	begin
+		Copy( From => Context_Str, To => String( Context ) );
+		return Context;
+	end To_Context;
 
 	procedure Require(	
 				Name		: in     Criteria_Name;
 				Descriptor	: in     Criteria_Descriptor;
-				User		: in     User_Type
+				User		: in     User_Type;
+				Contexts	: in     Context_Array
 			) is
 		-- Create and matches against a criteria using the criteria registry
 		Criteria : Criteria_Interface'Class := Criteria_Registry.Create_Criteria( Name, Descriptor );
 	begin
+		for i in Contexts'Range loop
+			Add_Context( Criteria, Contexts( i ) );
+		end loop;
 		Require( Criteria, User );
 	exception
 		when e: ACCESS_DENIED =>

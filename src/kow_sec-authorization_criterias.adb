@@ -214,6 +214,9 @@ package body KOW_Sec.Authorization_Criterias is
 		declare 
 			My_Criteria: Criteria_Interface'Class := Criteria_Registry.Create_Criteria( My_Name, My_Descriptor );
 		begin
+			for i in 1 .. Criteria.Context_Count loop
+				Add_Context( My_Criteria, Criteria.Contexts( i ) );
+			end loop;
 			-- call require using dynamic dispatching
 			Require( My_Criteria, Criteria.User);
 			Is_Allowed := True;
@@ -308,7 +311,7 @@ package body KOW_Sec.Authorization_Criterias is
 				User		: in     User_Type
 			) is
 	begin
-		Criteria.Groups := KOW_Sec.Get_All_Groups( User );
+		Criteria.Groups := KOW_Sec.Get_Groups( User, Get_Contexts( Criteria ) );
 	end Initialize;
 
 	overriding
@@ -354,7 +357,7 @@ package body KOW_Sec.Authorization_Criterias is
 				User		: in     User_Type
 			) is
 	begin
-		Criteria.Roles := KOW_Sec.Get_Roles( User, True );
+		Criteria.Roles := KOW_Sec.Get_Roles( User, True, Get_Contexts( Criteria ) );
 	end initialize;
 
 	overriding

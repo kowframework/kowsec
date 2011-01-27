@@ -336,10 +336,19 @@ pragma Elaborate_Body( KOW_Sec );
 	-- Groups Management --
 	-----------------------
 	
+	type Group_Name_Type is new String( 1 .. 50 );
+
+	type Context_Type is new String( 1 .. 150 );
+
+	function To_Context( Context_Str : in String ) return Context_Type;
+
+	type Context_Array is array( positive range <> ) of Context_Type;
+
+	Empty_Context_Array : Context_Array( 1 .. 0 );
 
 	type Group_Type is record
-		Name	: String( 1 .. 50 );
-		Context	: String( 1 .. 150 );
+		Name	: Group_Name_Type;
+		Context	: Context_Type;
 
 		-- a user can be in a group in a given context (say it's the admin in a project and a regular user in other).
 		-- when context is empty (all spaces)
@@ -348,7 +357,7 @@ pragma Elaborate_Body( KOW_Sec );
 
 	function Get_Name( Group : in Group_Type ) return String;
 	-- get the trimmed version of the group name
-	
+
 	function Get_Context( Group : in Group_Type ) return String;
 	-- get the trimmed version of the group context
 	
@@ -474,7 +483,7 @@ pragma Elaborate_Body( KOW_Sec );
 	
 	function Get_Groups(
 				User	: in User_Data_Type;
-				Context	: in String
+				Contexts: in Context_Array
 			) return Group_Vectors.Vector;
 	-- Get contextualized groups for this user.
 
@@ -483,7 +492,7 @@ pragma Elaborate_Body( KOW_Sec );
 
 	function Get_Groups(
 				User 	: in User_Type;
-				Context	: in String
+				Contexts: in Context_Array
 			) return Group_Vectors.Vector;
 
 	procedure Set_Groups( User : in User_Data_Type; Groups : in Group_Vectors.Vector );
@@ -491,7 +500,7 @@ pragma Elaborate_Body( KOW_Sec );
 	function Get_Roles(
 				User			: in User_Data_Type;
 				Combine_Group_Roles	: in Boolean := False;
-				Context			: in String := ""
+				Contexts		: in Context_Array := Empty_Context_Array
 			) return Role_Vectors.Vector;
 	-- get all roles by a given user
 	-- if combine group roles is true, does exactly that given that only one instance of each role is returned
@@ -500,7 +509,7 @@ pragma Elaborate_Body( KOW_Sec );
 	function Get_Roles(
 				User			: in User_Type;
 				Combine_Group_Roles	: in Boolean := False;
-				Context			: in String := ""
+				Contexts		: in Context_Array := Empty_Context_Array
 			) return Role_Vectors.Vector;
 
 
@@ -574,10 +583,14 @@ pragma Elaborate_Body( KOW_Sec );
 	function Describe( Criteria: in Criteria_Interface ) return String is abstract;
 	-- return a string describing the current criteria
 
+	procedure Add_Context(
+				Criteria	: in out Criteria_Interface;
+				Context		: in     Context_Type
+			) is abstract;
 
 	procedure Require(	
-				Criteria	:	 in out Criteria_Interface;
-				User		:	 in     User_Type 
+				Criteria	: in out Criteria_Interface;
+				User		: in     User_Type 
 			) is abstract;
 	-- matches the user against some criteria.
 	-- raise ACCESS_DENIED if the user fails this criteria.
@@ -586,7 +599,8 @@ pragma Elaborate_Body( KOW_Sec );
 	procedure Require(	
 				Name		: in     Criteria_Name;
 				Descriptor	: in     Criteria_Descriptor;
-				User		: in     User_Type
+				User		: in     User_Type;
+				Contexts	: in     Context_Array
 			);
 	-- Create and matches against a criteria using the criteria registry
 	

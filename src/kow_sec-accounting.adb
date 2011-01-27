@@ -393,7 +393,8 @@ package body KOW_Sec.Accounting is
 				Name		: in     Criteria_Name;
 				Descriptor	: in     Criteria_Descriptor;
 				User		: in     User_Type;
-				Root_Accountant	: in     Accountant_Access
+				Root_Accountant	: in     Accountant_Access;
+				Contexts	: in     Context_Array := Empty_Context_Array
 			) is
 		-- matches the user against some criteria that's created at run time.
 		-- raises 
@@ -412,7 +413,8 @@ package body KOW_Sec.Accounting is
 		Require(
 				Name		=> Name,
 				Descriptor	=> Descriptor,
-				User		=> User
+				User		=> User,
+				Contexts	=> Contexts
 			);
 
 		Set_Exit_Status(

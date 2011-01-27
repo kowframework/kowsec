@@ -69,6 +69,17 @@ package body KOW_Sec.Logic_Criterias is
 	-- The Logic Criteria Type --
 	-----------------------------
 
+	overriding
+	procedure Add_Context(
+				Criteria: in out Logic_Criteria_Type;
+				Context	: in     Context_Type
+			) is
+	begin
+		Criteria.Context_Count := Criteria.Context_Count + 1;
+		Criteria.Contexts( Criteria.Context_Count ) := Context;
+	end Add_Context;
+
+
 
 
 	overriding
@@ -115,6 +126,11 @@ package body KOW_Sec.Logic_Criterias is
 		return Criteria_interface'Class( C );
 	end Generic_Logic_Criteria_Factory;
 
+
+	function Get_Contexts( Criteria : in Logic_Criteria_Type ) return Context_Array is
+	begin
+		return Criteria.Contexts( 1 .. Criteria.Context_Count );
+	end Get_Contexts;
 
 
 
