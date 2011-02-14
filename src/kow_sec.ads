@@ -464,10 +464,6 @@ pragma Elaborate_Body( KOW_Sec );
 					Current_Manager	=> null
 				);
 
-	function Identity( User : in User_Data_Type ) return String;
-	-- Return a string identifying the current user. Usually it's the username
-	-- but one could implement other methods, such as a numeric id for this user
-
 
 	function Full_Name(
 				User	: in User_Data_Type;
@@ -538,6 +534,9 @@ pragma Elaborate_Body( KOW_Sec );
 
 	function To_Json( User : in User_Data_Type ) return KOW_Lib.Json.Object_Type;
 	-- return a JSON object representing the user
+
+	function To_Json_Array( Users : in User_Vectors.Vector ) return KOW_Lib.Json.Array_Type;
+	-- return a JSON array representing the users
 
 	----------------------------------------
 	-- USER AND AUTHENTICATION EXCEPTIONS --

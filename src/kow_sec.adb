@@ -528,6 +528,20 @@ package body KOW_Sec is
 		return Response;
 	end To_Json;
 
+
+	function To_Json_Array( Users : in User_Vectors.Vector ) return KOW_Lib.Json.Array_Type is
+		-- return a JSON array representing the users
+		use KOW_Lib.Json;
+		Arr : Array_Type;
+		procedure Iterator( C : in User_Vectors.Cursor ) is
+		begin
+			Append( Arr, To_Json( User_Vectors.Element( C ) ) );
+		end Iterator;
+	begin
+		User_Vectors.Iterate( Users, Iterator'Access );
+		return Arr;
+	end To_Json_Array;
+
 	----------------------
 	-- Roles Management --
 	----------------------
@@ -654,13 +668,6 @@ package body KOW_Sec is
 	---------------------
 
 	
-
-	function Identity( User : in User_Data_Type ) return String is
-		-- Return a string identifying the current user. Usually it's the username
-		-- but one could implement other methods, such as a numeric id for this user
-	begin
-		return To_String( User.Identity );
-	end Identity;
 
 	function Full_Name(
 				User	: in User_Data_Type;
