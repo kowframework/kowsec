@@ -221,6 +221,7 @@ pragma Elaborate_Body( KOW_Sec );
 	Anonymous_User_Identity : User_Identity_Type := ( others => ' ' );
 	-- it is initialized in the elaboration
 
+	type User_Identity_Array is array( Positive range <> ) of User_Identity_Type;
 
 	-------------------------------
 	-- AUTHENTICATION MANAGEMENT --
