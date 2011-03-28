@@ -451,7 +451,7 @@ package body KOW_Sec.Logic_Criterias is
 				if Exp1 = Null then
 					-- Initialize the Exp with a Not_Operator and/or
 					-- the left expression of the Or_Operator
-					-- or And_Opertator.
+					-- or And_Operator.
 					Match_Not_Or_Block_Or_Criteria( Parser, Exp1 );
 
 				elsif Next_Char = '|' then
