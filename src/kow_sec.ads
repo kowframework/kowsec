@@ -309,6 +309,12 @@ pragma Elaborate_Body( KOW_Sec );
 	function To_Role( Identity : in Role_Identity_Type ) return Role_Type;
 	-- parse the role identity into a role
 
+	
+	function New_Role(
+				Application	: in String;
+				Role		: in String
+			) return Role_Type;
+	-- builds up a new role object
 
 	package Role_Maps is new Ada.Containers.Ordered_Maps(
 				Key_Type	=> Role_Identity_Type,
@@ -322,7 +328,6 @@ pragma Elaborate_Body( KOW_Sec );
 			);
 
 	protected Roles_Registry is
-		procedure Register( Application, Role : in String );
 		procedure Register( Role : in Role_Type );
 		
 

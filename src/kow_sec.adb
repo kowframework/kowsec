@@ -583,12 +583,22 @@ package body KOW_Sec is
 		return Role;
 	end To_Role;
 
-	protected body Roles_Registry is
-		procedure Register( Application, Role : in String ) is
-		begin
-			Register( To_Role( To_Identity( Application & "::" & Role ) ) );
-		end Register;
 
+	function New_Role(
+				Application	: in String;
+				Role		: in String
+			) return Role_Type is
+		-- builds up a new role object
+		Role_Obj : Role_Type;
+	begin
+		Copy( From => Application, To => Role_Obj.Application );
+		Copy( From => Role, To => Role_Obj.Role );
+
+		return Role_Obj;
+	end New_Role;
+
+
+	protected body Roles_Registry is
 		procedure Register( Role : in Role_Type ) is
 		begin
 			Role_Maps.Include( My_Roles, Identity( Role ), Role );
