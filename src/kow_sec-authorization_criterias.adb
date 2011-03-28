@@ -287,17 +287,16 @@ package body KOW_Sec.Authorization_Criterias is
 
 		Group_Name : constant String := Get_Group_Name;
 
-		function Group_Context return String is
+		function Group_Context return Context_Type is
 		begin
 			if Idx = -1 then
-				return "";
+				return (others => ' ' ); 
 			else
-				return Descr( Idx + 2 .. Descr'Last );
+				return To_Context( Descr( Idx + 2 .. Descr'Last ) );
 			end if;
 		end Group_Context;
-		Empty_String : constant String := "";
 	begin
-		if Group_Vectors.Contains( Criteria.Groups, To_Group( Group_name, Empty_String  ) ) then
+		if Group_Vectors.Contains( Criteria.Groups, To_Group( Group_name )  ) then
 			Is_Allowed := True;
 		elsif Group_Vectors.Contains( Criteria.Groups, To_Group( Group_Name, Group_Context ) ) then
 			Is_Allowed := True;

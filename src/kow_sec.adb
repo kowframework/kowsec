@@ -634,20 +634,16 @@ package body KOW_Sec is
 		return Get_Name( Group ) & "::" & Get_Context( Group );
 	end To_String;
 
-	function To_Group( Name : in String; Context : in String := "" ) return Group_Type is
+	function To_Group( Name : in String; Context : in Context_Type := ( others => ' ' ) ) return Group_Type is
 		Group : Group_Type;
 	begin
 		Copy( From => Name, To => String( Group.Name ) );
-		Copy( From => Context, To => String( Group.Context ) );
+		Group.Context := Context;
 
 		return Group;
 	end To_Group;
 
 
-	function To_Group( Name : in String; Context : in Context_Type := ( others => ' ' ) ) return Group_Type is
-	begin
-		return To_Group( Name, String( Context ) );
-	end To_Group;
 		
 
 
