@@ -481,7 +481,7 @@ pragma Elaborate_Body( KOW_Sec );
 	-- return the gravatar URL for the given user
 	
 	function Get_All_Groups( User : in User_Data_Type ) return Group_Vectors.Vector;
-	-- Get all the groups for this user.
+	-- Get all the groups for this user, in every context
 	
 	function Get_Groups(
 				User	: in User_Data_Type;
@@ -513,6 +513,20 @@ pragma Elaborate_Body( KOW_Sec );
 				Combine_Group_Roles	: in Boolean := False;
 				Contexts		: in Context_Array := Empty_Context_Array
 			) return Role_Vectors.Vector;
+	
+
+	function Get_All_Roles(
+				User			: in User_Data_Type;
+				Combine_Group_Roles	: in Boolean := False
+			) return Role_Vectors.Vector;
+	-- get every single role of this user, no mather in what context
+
+
+	function Get_All_Roles(
+				User			: in User_Type;
+				Combine_Group_Roles	: in Boolean := False
+			) return Role_Vectors.Vector;
+	-- get every single role of this user, no mather in what context
 
 
 	function Is_Anonymous( User : in User_Data_Type ) return Boolean;

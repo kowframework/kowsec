@@ -822,6 +822,54 @@ package body KOW_Sec is
 		return Get_Roles( User.Data, Combine_Group_Roles, Contexts );
 	end Get_Roles;
 
+	function Get_All_Roles(
+				User			: in User_Data_Type;
+				Combine_Group_Roles	: in Boolean := False
+			) return Role_Vectors.Vector is
+		-- get every single role of this user, no mather in what context
+		use Role_Vectors;
+
+		V : Vector;
+
+		procedure Append_Once( Role : Role_Type ) is
+		begin
+			if not Contains( V, Role ) then
+				Append( V, Role );
+			end if;
+		end Append_Once;
+
+		procedure Append( From_Vector : in Vector ) is
+			procedure Iterator( C : CUrsor ) is
+			begin
+				Append_Once( Element( C ) );
+			end Iterator;
+		begin
+			Iterate( From_Vector, Iterator'Access );
+		end Append;
+
+		procedure Groups_Iterator( C : Group_Vectors.Cursor ) is
+		begin
+			Append( Group_Roles_Data.Get_all( Group_Vectors.Element( C ) ) );
+		end Groups_Iterator;
+	begin
+
+		V := User_Roles_Data.Get_All( User.Identity );
+		if Combine_Group_Roles then
+			Group_Vectors.Iterate( Get_All_Groups( User ), Groups_iterator'Access );
+		end if;
+
+		return V;
+	end Get_All_Roles;
+
+	function Get_All_Roles(
+				User			: in User_Type;
+				Combine_Group_Roles	: in Boolean := False
+			) return Role_Vectors.Vector is
+		-- get every single role of this user, no mather in what context
+	begin
+		return Get_All_Roles( User.Data, Combine_Group_Roles );
+	end Get_All_Roles;
+
 
 
 	procedure Set_Roles( User : in User_Data_Type; Roles : in Role_Vectors.Vector ) is

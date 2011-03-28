@@ -368,6 +368,25 @@ package body KOW_Sec.Authorization_Criterias is
 		Role_Vectors.Clear( Criteria.Roles );
 	end Finalize;
 
+	-----------------------
+	-- ANY ROLE CRITERIA --
+	-----------------------
+
+	overriding
+	function Get_Name( Criteira : Any_Role_Criteria_Type ) return String is
+	begin
+		return "ANY_ROLE";
+	end Get_Name;
+
+	overriding
+	procedure Initialize(
+				Criteria	: in out Any_Role_Criteria_Type;
+				User		: in     User_Type
+			) is
+	begin
+		Criteria.Roles := KOW_Sec.Get_All_Roles( User, True );
+	end Initialize;
+
 
 
 	--------------------
@@ -424,6 +443,7 @@ begin
 	KOW_Sec.Criteria_Registry.Register( Create_Expression_Criteria'Access );
 	KOW_Sec.Criteria_Registry.Register( Create_Group_Criteria'Access );
 	KOW_Sec.Criteria_Registry.Register( Create_Role_Criteria'Access );
+	KOW_Sec.Criteria_Registry.Register( Create_Any_Role_Criteria'Access );
 	KOW_Sec.Criteria_Registry.Register( Create_User_Criteria'Access );
 
 end KOW_Sec.Authorization_Criterias;

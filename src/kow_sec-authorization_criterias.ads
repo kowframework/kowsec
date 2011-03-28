@@ -224,6 +224,24 @@ pragma Elaborate_Body( KOW_Sec.Authorization_Criterias );
 	function Create_Role_Criteria is new Generic_Logic_Criteria_Factory( Criteria_Type => Role_Criteria_Type );
 
 
+	-----------------------
+	-- ANY ROLE CRITERIA --
+	-----------------------
+
+	type Any_Role_Criteria_Type is new Role_Criteria_Type with null record;
+	-- same as role criteria, but get all the roles in every single context of this user...
+
+
+	overriding
+	function Get_Name( Criteira : Any_Role_Criteria_Type ) return String;
+
+	overriding
+	procedure Initialize(
+				Criteria	: in out Any_Role_Criteria_Type;
+				User		: in     User_Type
+			);
+
+	function Create_Any_Role_Criteria is new Generic_Logic_Criteria_Factory( Criteria_Type => Any_Role_Criteria_Type );
 
 	-------------------
 	-- USER CRITERIA --
