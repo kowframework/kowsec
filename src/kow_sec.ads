@@ -372,6 +372,7 @@ pragma Elaborate_Body( KOW_Sec );
 	-- Return Get_Name & "::" & Get_Context
 
 	function To_Group( Name : in String; Context : in String := "" ) return Group_Type;
+	function To_Group( Name : in String; Context : in Context_Type := ( others => ' ' ) ) return Group_Type;
 
 	function Get_Roles( Group : in Group_Type ) return Role_Vectors.Vector;
 	-- return the roles assigned to a given group

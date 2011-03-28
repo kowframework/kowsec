@@ -295,8 +295,9 @@ package body KOW_Sec.Authorization_Criterias is
 				return Descr( Idx + 2 .. Descr'Last );
 			end if;
 		end Group_Context;
+		Empty_String : constant String := "";
 	begin
-		if Group_Vectors.Contains( Criteria.Groups, To_Group( Group_name, "" ) ) then
+		if Group_Vectors.Contains( Criteria.Groups, To_Group( Group_name, Empty_String  ) ) then
 			Is_Allowed := True;
 		elsif Group_Vectors.Contains( Criteria.Groups, To_Group( Group_Name, Group_Context ) ) then
 			Is_Allowed := True;

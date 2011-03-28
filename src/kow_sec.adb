@@ -644,6 +644,13 @@ package body KOW_Sec is
 	end To_Group;
 
 
+	function To_Group( Name : in String; Context : in Context_Type := ( others => ' ' ) ) return Group_Type is
+	begin
+		return To_Group( Name, String( Context ) );
+	end To_Group;
+		
+
+
 	function "<"( L, R : in String ) return Boolean is
 	begin
 		for i in L'Range loop
