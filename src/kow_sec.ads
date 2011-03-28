@@ -379,6 +379,9 @@ pragma Elaborate_Body( KOW_Sec );
 	procedure Set_Roles( Group : in Group_Type; Roles : in Role_Vectors.Vector );
 	-- set the roles for the given group
 
+
+	procedure Add_Role( Group : in Group_Type; Role : in Role_Type );
+
 	function "<"( L, R : in Group_Type ) return Boolean;
 	-- compares both group names
 
@@ -528,6 +531,10 @@ pragma Elaborate_Body( KOW_Sec );
 			) return Role_Vectors.Vector;
 	-- get every single role of this user, no mather in what context
 
+
+	procedure Set_Roles( User : in User_Data_Type; Roles : in Role_Vectors.Vector );
+
+	procedure Add_Global_Role( User : in User_Data_Type; Role : in Role_Type );
 
 	function Is_Anonymous( User : in User_Data_Type ) return Boolean;
 	-- Return true if this user isn't logged in.

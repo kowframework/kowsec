@@ -29,7 +29,6 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-
 --------------
 -- Ada 2005 --
 --------------
@@ -92,7 +91,7 @@ package body KOW_Sec is
 		end if;
 
 		for i in From'Range loop
-			To( To'First - 1 + i ) := From( i );
+			To( To'First - From'First + i ) := From( i );
 		end loop;
 
 		To( First_Remaining .. To'Last ) := ( others => ' ' );
@@ -570,15 +569,15 @@ package body KOW_Sec is
 		Id_Str	: String := Ada.Strings.Fixed.Trim( String( Identity ), Ada.Strings.Both );
 		-- make sure the identity we receive is trimmed
 
-		Index	: Natural := Ada.Strings.Fixed.Index( Id_Str, "::" );
+		Idx	: Integer := Ada.Strings.Fixed.Index( Id_Str, "::" );
 		Role	: Role_Type;
 	begin
-		if Index <= 1 OR ELSE Index >= 101 then
+		if Idx <= 1 OR ELSE Idx >= 101 then
 			raise CONSTRAINT_ERROR with "Not a valid role identity: " & Id_Str;
 		end if;
 
-		Copy( From => Id_Str( 1 .. Index -1 ), To => Role.Application );
-		Copy( From => Id_Str( Index + 2 .. Id_str'Last ), To => Role.Role );
+		Copy( From => Id_Str( Id_Str'First .. Idx - 1 ), To => Role.Application );
+		Copy( From => Id_Str( Idx + 2 .. Id_Str'Last ), To => Role.Role );
 
 		return Role;
 	end To_Role;
@@ -671,6 +670,16 @@ package body KOW_Sec is
 	begin
 		Group_Roles_Data.Store( Group, Roles );
 	end Set_Roles;
+
+
+	procedure Add_Role( Group : in Group_Type; Role : in Role_Type ) is
+		Roles : Role_Vectors.Vector := Get_Roles( Group );
+	begin
+		if not Role_Vectors.Contains( Roles, Role ) then
+			Role_Vectors.Append( Roles, Role );
+			Set_Roles( Group, Roles );
+		end if;
+	end Add_Role;
 
 
 	---------------------
@@ -876,6 +885,15 @@ package body KOW_Sec is
 	begin
 		User_Roles_Data.Store( User.Identity, Roles );
 	end Set_Roles;
+
+	procedure Add_Global_Role( User : in User_Data_Type; Role : in Role_Type ) is
+		Roles : Role_Vectors.Vector := Get_Roles( User, False );
+	begin
+		if not Role_Vectors.Contains( Roles, Role ) then
+			Role_Vectors.Append( Roles, Role );
+			Set_Roles( User, Roles );
+		end if;
+	end Add_Global_Role;
 
 	function Is_Anonymous( User : in User_Data_Type ) return Boolean is
 		-- Return true if this user isn't logged in.
