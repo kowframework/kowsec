@@ -58,7 +58,7 @@ package KOW_Sec.Logic_Criterias is
 	-- The Logic Criteria Type --
 	-----------------------------
 
-	type Logic_Criteria_Type is abstract new kOW_Sec.Criteria_Interface with record
+	type Logic_Criteria_Type is abstract new KOW_Sec.Criteria_Interface with record
 		-- A logic criteria is a criteria that allow the user to write Logic expressions using
 		-- the operators:
 		-- 	&	=> and
