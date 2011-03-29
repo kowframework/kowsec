@@ -278,7 +278,7 @@ package body KOW_Sec.Authorization_Criterias is
 		Idx : Integer := Ada.Strings.Fixed.Index( Descr, "::" );
 		function Get_Group_Name return String is
 		begin
-			if idx = -1 then
+			if idx < Descr'First then
 				return Descr;
 			else
 				return Descr( Descr'First .. Idx - 1 );
@@ -287,22 +287,17 @@ package body KOW_Sec.Authorization_Criterias is
 
 		Group_Name : constant String := Get_Group_Name;
 
-		function Group_Context return Context_Type is
+		procedure Check_Names( C : in Group_Vectors.Cursor ) is
 		begin
-			if Idx = -1 then
-				return (others => ' ' ); 
-			else
-				return To_Context( Descr( Idx + 2 .. Descr'Last ) );
+			if Group_Name = Get_Name( Group_Vectors.Element( C ) ) then
+				Is_Allowed := True;
 			end if;
-		end Group_Context;
+		end Check_Names;
 	begin
-		if Group_Vectors.Contains( Criteria.Groups, To_Group( Group_name )  ) then
-			Is_Allowed := True;
-		elsif Group_Vectors.Contains( Criteria.Groups, To_Group( Group_Name, Group_Context ) ) then
-			Is_Allowed := True;
-		else
-			Is_Allowed := False;
-		end if;
+		Is_Allowed := False;
+
+		Group_Vectors.Iterate( Criteria.Groups, Check_Names'Access );
+
 	end Require_Specific;
 
 	overriding
