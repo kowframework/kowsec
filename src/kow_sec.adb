@@ -792,6 +792,31 @@ package body KOW_Sec is
 	end Add_Group;
 
 
+
+	procedure Remove_Group( User : in User_Data_Type; Group : in Group_Type ) is
+
+		Found	: Boolean := False;
+		Groups	: Group_Vectors.Vector;
+
+		procedure Iterator( C : Group_Vectors.Cursor ) is
+			G : Group_Type := Group_Vectors.Element( C );
+		begin
+			if G.Name = Group.Name and then G.Context = Group.Context then
+				Found := true;
+			else
+				Group_Vectors.Append( Groups, G );
+			end if;
+		end Iterator;
+	begin
+		Group_Vectors.Iterate( Get_All_Groups( User ), Iterator'Access );
+		if Found then
+			Set_Groups( User, Groups );
+		else
+			raise CONSTRAINT_ERROR with "cant find group with this context for this user";
+		end if;
+	end Remove_Group;
+
+
 	function Get_Roles(
 				User			: in User_Data_Type;
 				Combine_Group_Roles	: in Boolean := False;

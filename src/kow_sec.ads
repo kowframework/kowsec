@@ -508,6 +508,11 @@ pragma Elaborate_Body( KOW_Sec );
 	-- this procedure doesn't perform any kind of check!
 	-- and it uses get_all_groups + set_groups;
 
+
+	procedure Remove_Group( User : in User_Data_Type; Group : in Group_Type );
+	-- remove the given group, taking into account the context.
+	-- raises constraint_error if no group is found
+
 	function Get_Roles(
 				User			: in User_Data_Type;
 				Combine_Group_Roles	: in Boolean := False;
