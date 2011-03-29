@@ -781,6 +781,17 @@ package body KOW_Sec is
 	end Set_Groups;
 
 
+	procedure Add_Group( User : in User_Data_Type; Group : in Group_Type ) is
+		-- add a group to the user;
+		-- this procedure doesn't perform any kind of check!
+		-- and it uses get_all_groups + set_groups;
+		Groups : Group_Vectors.Vector := Get_All_Groups( User );
+	begin
+		Group_Vectors.Append( Groups, Group );
+		Set_Groups( User, Groups );
+	end Add_Group;
+
+
 	function Get_Roles(
 				User			: in User_Data_Type;
 				Combine_Group_Roles	: in Boolean := False;

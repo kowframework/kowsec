@@ -502,6 +502,12 @@ pragma Elaborate_Body( KOW_Sec );
 
 	procedure Set_Groups( User : in User_Data_Type; Groups : in Group_Vectors.Vector );
 
+
+	procedure Add_Group( User : in User_Data_Type; Group : in Group_Type );
+	-- add a group to the user;
+	-- this procedure doesn't perform any kind of check!
+	-- and it uses get_all_groups + set_groups;
+
 	function Get_Roles(
 				User			: in User_Data_Type;
 				Combine_Group_Roles	: in Boolean := False;
