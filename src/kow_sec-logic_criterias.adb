@@ -83,9 +83,10 @@ package body KOW_Sec.Logic_Criterias is
 
 
 	overriding
-	procedure Require(
+	procedure Is_Allowed(
 				Criteria: in out Logic_Criteria_Type;
-				User	: in     User_Type
+				User	: in     User_Type;
+				Response:    out Boolean
 			) is
 		Exp		: Expression_Access;
 		Is_Allowed	: Boolean := False;
@@ -98,18 +99,10 @@ package body KOW_Sec.Logic_Criterias is
 		Free( Exp );
 		-- this will call free in chain for every child inside exp..
 
-		if not Is_Allowed then
-			declare
-				Description : constant String := Describe( Logic_Criteria_type'Class( Criteria ) );
-			begin
-				Finalize( Logic_Criteria_type'Class( Criteria ) );
-				raise ACCESS_DENIED with Description;
-			end;
-		else
-			Finalize( Logic_Criteria_type'Class( Criteria ) );
-		end if;
+		Finalize( Logic_Criteria_type'Class( Criteria ) );
 
-	end Require;
+		Response := Is_Allowed;
+	end Is_Allowed;
 
 
 	overriding
@@ -119,11 +112,11 @@ package body KOW_Sec.Logic_Criterias is
 	end Describe;
 
 
-	function Generic_Logic_Criteria_Factory( Descriptor : in Criteria_Descriptor ) return Criteria_interface'Class is
-		C: Criteria_Type;
+	function Generic_Logic_Criteria_Factory( Descriptor : in Criteria_Descriptor ) return Criteria_Type'Class is
+		C: Specific_Criteria_Type;
 	begin
 		C.Descriptor := Descriptor;
-		return Criteria_interface'Class( C );
+		return Criteria_Type'Class( C );
 	end Generic_Logic_Criteria_Factory;
 
 

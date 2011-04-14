@@ -225,7 +225,7 @@ package KOW_Sec.Accounting is
 
 
 	procedure Require(
-				Criteria 	: in out Criteria_Interface'Class; 
+				Criteria 	: in out Criteria_Type'Class; 
 				User		: in     User_Type;
 				Root_Accountant : in     Accountant_Access
 			);

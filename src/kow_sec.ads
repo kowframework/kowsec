@@ -606,29 +606,35 @@ pragma Elaborate_Body( KOW_Sec );
 
 
 
-	type Criteria_Interface is interface;
+	type Criteria_Type is abstract tagged null record;
 	-- The criteria type should be implemented by different
 	-- authorization schemas.
 	-- This is the type that should be implemented by whoever wants to
 	-- extend the authorization type avaliable.
 
 
-	function Get_Name( Criteria: in Criteria_Interface ) return String is abstract;
+	function Get_Name( Criteria: in Criteria_Type ) return String is abstract;
 	-- return a String representing the criteria
 	-- it's the same string that will be used when creating it dynamically
 	
-	function Describe( Criteria: in Criteria_Interface ) return String is abstract;
+	function Describe( Criteria: in Criteria_Type ) return String is abstract;
 	-- return a string describing the current criteria
 
 	procedure Add_Context(
-				Criteria	: in out Criteria_Interface;
+				Criteria	: in out Criteria_Type;
 				Context		: in     Context_Type
 			) is abstract;
 
-	procedure Require(	
-				Criteria	: in out Criteria_Interface;
-				User		: in     User_Type 
+	procedure Is_Allowed(
+				Criteria	: in out Criteria_Type;
+				User		: in     User_Type;
+				Response	:    out Boolean
 			) is abstract;
+
+	procedure Require(	
+				Criteria	: in out Criteria_Type;
+				User		: in     User_Type 
+			);
 	-- matches the user against some criteria.
 	-- raise ACCESS_DENIED if the user fails this criteria.
 
@@ -646,7 +652,7 @@ pragma Elaborate_Body( KOW_Sec );
 	-- Criteria Registry --
 	-----------------------
 
-	type Criteria_Factory_Type is access function ( Descriptor: in Criteria_Descriptor ) return Criteria_Interface'Class;
+	type Criteria_Factory_Type is access function ( Descriptor: in Criteria_Descriptor ) return Criteria_Type'Class;
 	-- When the package containing the criteria is loaded,
 	-- it should register itself with the main
 	-- criteria registry (available in this package here)
@@ -679,7 +685,7 @@ pragma Elaborate_Body( KOW_Sec );
 		function Create_Criteria(
 					Name		: in Criteria_Name; 
 					Descriptor	: in Criteria_Descriptor
-			) return Criteria_Interface'Class;
+			) return Criteria_Type'Class;
 		-- create a new criteria object from an already registered criteria type
 		-- based on it's name and the given Descriptor.
 		-- if there is no such criteria, raises INVALID_CRITERIA

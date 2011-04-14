@@ -77,7 +77,7 @@ pragma Elaborate_Body( KOW_Sec.Authorization_Criterias );
 				Criteria	: in out Current_Manager_Criteria_Type
 			);
 
-	function Create_Current_Manager_Criteria is new Generic_Logic_Criteria_Factory( Criteria_Type => Current_Manager_Criteria_Type );
+	function Create_Current_Manager_Criteria is new Generic_Logic_Criteria_Factory( Specific_Criteria_Type => Current_Manager_Criteria_Type );
 
 	-------------------------
 	-- IN MANAGER CRITERIA --
@@ -108,7 +108,7 @@ pragma Elaborate_Body( KOW_Sec.Authorization_Criterias );
 	procedure Finalize(
 				Criteria	: in out In_Manager_Criteria_Type
 			);
-	function Create_In_Manager_Criteria is new Generic_Logic_Criteria_Factory( Criteria_Type => In_Manager_Criteria_Type );
+	function Create_In_Manager_Criteria is new Generic_Logic_Criteria_Factory( Specific_Criteria_Type => In_Manager_Criteria_Type );
 
 
 	-------------------------
@@ -147,7 +147,7 @@ pragma Elaborate_Body( KOW_Sec.Authorization_Criterias );
 				Criteria	: in out Expression_Criteria_Type
 			);
 
-	function Create_Expression_Criteria is new Generic_Logic_Criteria_Factory( Criteria_Type => Expression_Criteria_Type );
+	function Create_Expression_Criteria is new Generic_Logic_Criteria_Factory( Specific_Criteria_Type => Expression_Criteria_Type );
 
 
 
@@ -182,7 +182,7 @@ pragma Elaborate_Body( KOW_Sec.Authorization_Criterias );
 				Criteria	: in out Group_Criteria_Type
 			);
 
-	function Create_Group_Criteria is new Generic_Logic_Criteria_Factory( Criteria_Type => Group_Criteria_Type );
+	function Create_Group_Criteria is new Generic_Logic_Criteria_Factory( Specific_Criteria_Type => Group_Criteria_Type );
 
 
 
@@ -221,7 +221,7 @@ pragma Elaborate_Body( KOW_Sec.Authorization_Criterias );
 				Criteria	: in out Role_Criteria_Type
 			);
 
-	function Create_Role_Criteria is new Generic_Logic_Criteria_Factory( Criteria_Type => Role_Criteria_Type );
+	function Create_Role_Criteria is new Generic_Logic_Criteria_Factory( Specific_Criteria_Type => Role_Criteria_Type );
 
 
 	-----------------------
@@ -241,7 +241,7 @@ pragma Elaborate_Body( KOW_Sec.Authorization_Criterias );
 				User		: in     User_Type
 			);
 
-	function Create_Any_Role_Criteria is new Generic_Logic_Criteria_Factory( Criteria_Type => Any_Role_Criteria_Type );
+	function Create_Any_Role_Criteria is new Generic_Logic_Criteria_Factory( Specific_Criteria_Type => Any_Role_Criteria_Type );
 
 	-------------------
 	-- USER CRITERIA --
@@ -276,7 +276,7 @@ pragma Elaborate_Body( KOW_Sec.Authorization_Criterias );
 				Criteria	: in out User_Criteria_Type
 			);
 
-	function Create_User_Criteria is new Generic_Logic_Criteria_Factory( Criteria_Type => User_Criteria_Type );
+	function Create_User_Criteria is new Generic_Logic_Criteria_Factory( Specific_Criteria_Type => User_Criteria_Type );
 
 
 	

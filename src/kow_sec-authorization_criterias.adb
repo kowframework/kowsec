@@ -143,7 +143,7 @@ package body KOW_Sec.Authorization_Criterias is
 		-- return a String representing the criteria
 		-- it's the same string that will be used by the methods:
 		--      Register( Name, Factory )
-		--      Create_Criteria( Name, Patern ) return Criteria_Interface'Class;
+		--      Create_Criteria( Name, Patern ) return Criteria_Type'Class;
 	begin
 		return ("EXPRESSION"); 
 	end Get_Name;
@@ -212,7 +212,7 @@ package body KOW_Sec.Authorization_Criterias is
 		end if;
 
 		declare 
-			My_Criteria: Criteria_Interface'Class := Criteria_Registry.Create_Criteria( My_Name, My_Descriptor );
+			My_Criteria: Criteria_Type'Class := Criteria_Registry.Create_Criteria( My_Name, My_Descriptor );
 		begin
 			for i in 1 .. Criteria.Context_Count loop
 				Add_Context( My_Criteria, Criteria.Contexts( i ) );

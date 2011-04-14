@@ -1031,6 +1031,21 @@ package body KOW_Sec is
 		return Context;
 	end To_Context;
 
+
+	procedure Require(	
+				Criteria	: in out Criteria_Type;
+				User		: in     User_Type 
+			) is
+		-- matches the user against some criteria.
+		-- raise ACCESS_DENIED if the user fails this criteria.
+		Is_Allowed_Response : Boolean;
+	begin
+		Is_Allowed( Criteria_Type'Class( Criteria ), User, Is_Allowed_Response );
+		if not Is_Allowed_Response then
+			raise ACCESS_DENIED with Describe( Criteria_Type'Class( Criteria ) );
+		end if;
+	end Require;
+
 	procedure Require(	
 				Name		: in     Criteria_Name;
 				Descriptor	: in     Criteria_Descriptor;
@@ -1038,7 +1053,7 @@ package body KOW_Sec is
 				Contexts	: in     Context_Array
 			) is
 		-- Create and matches against a criteria using the criteria registry
-		Criteria : Criteria_Interface'Class := Criteria_Registry.Create_Criteria( Name, Descriptor );
+		Criteria : Criteria_Type'Class := Criteria_Registry.Create_Criteria( Name, Descriptor );
 	begin
 		for i in Contexts'Range loop
 			Add_Context( Criteria, Contexts( i ) );
@@ -1097,7 +1112,7 @@ package body KOW_Sec is
 		function Create_Criteria(
 					Name		: in Criteria_Name; 
 					Descriptor	: in Criteria_Descriptor
-			) return Criteria_Interface'Class is
+			) return Criteria_Type'Class is
 		-- create a new criteria object from an already registered criteria type
 		-- based on it's name and the given Descriptor.
 		-- if there is no such criteria, raises INVALID_CRITERIA
