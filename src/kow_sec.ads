@@ -364,6 +364,12 @@ pragma Elaborate_Body( KOW_Sec );
 	function Get_Name( Group : in Group_Type ) return String;
 	-- get the trimmed version of the group name
 
+	function Get_Label(
+				Group	: in Group_Type;
+				Locale	: in KOW_Lib.Locales.Locale := KOW_Lib.Locales.Default_Locale
+			) return String;
+	-- get the label in a given locale
+
 	function Get_Context( Group : in Group_Type ) return String;
 	-- get the trimmed version of the group context
 	
@@ -384,6 +390,10 @@ pragma Elaborate_Body( KOW_Sec );
 
 	function "<"( L, R : in Group_Type ) return Boolean;
 	-- compares both group names
+
+
+	procedure Load_Group_Labels;
+	-- load the labels from disk
 
 	package Group_Vectors is new Ada.Containers.Vectors (
 				Index_Type	=> Positive,

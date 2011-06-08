@@ -54,6 +54,7 @@ with GNAT.MD5;
 -------------------
 -- KOW Framework --
 -------------------
+with KOW_Config;
 with KOW_Lib.Json;
 with KOW_Lib.Locales;
 with KOW_Lib.UString_Ordered_Maps;
@@ -69,7 +70,10 @@ with KOW_Lib.UString_Ordered_Maps;
 
 package body KOW_Sec is
 
-
+	---------------
+	-- Variables --
+	---------------
+	Group_Labels : KOW_Config.Config_File;
 
 	--------------------
 	-- Helper Methods --
@@ -622,6 +626,23 @@ package body KOW_Sec is
 		return Ada.Strings.Fixed.Trim( String( Group.Name ), Ada.Strings.Both );
 	end Get_Name;
 
+
+	function Get_Label(
+				Group	: in Group_Type;
+				Locale	: in KOW_Lib.Locales.Locale := KOW_Lib.Locales.Default_Locale
+			) return String is
+		-- get the label in a given locale
+	begin
+		return To_String( 
+				KOW_Config.Element(
+						F		=> Group_Labels,
+						Key		=> To_Unbounded_String( Get_Name( Group ) ),
+						L_Code		=> Locale.Code,
+						Dump_On_Error	=> True
+					)
+				);
+	end Get_Label;
+
 	function Get_Context( Group : in Group_Type ) return String is
 		-- get the trimmed version of the group context
 	begin
@@ -683,6 +704,13 @@ package body KOW_Sec is
 			Set_Roles( Group, Roles );
 		end if;
 	end Add_Role;
+
+
+	procedure Load_Group_Labels is
+		-- load the labels from disk
+	begin
+		Group_Labels := KOW_Config.New_Config_File( "kowsec-group_labels" );
+	end Load_Group_Labels;
 
 
 	---------------------

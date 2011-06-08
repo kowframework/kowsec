@@ -8,6 +8,7 @@
 -- $Author: ogro $
 
 
+with "kowconfig";
 with "kowlib";
 with "apq";
 
