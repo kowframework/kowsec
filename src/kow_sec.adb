@@ -633,14 +633,13 @@ package body KOW_Sec is
 			) return String is
 		-- get the label in a given locale
 	begin
-		return To_String( 
-				KOW_Config.Element(
-						F		=> Group_Labels,
-						Key		=> To_Unbounded_String( Get_Name( Group ) ),
-						L_Code		=> Locale.Code,
-						Dump_On_Error	=> True
-					)
+		return KOW_Config.Element(
+					F		=> Group_Labels,
+					Key		=> Get_Name( Group ),
+					L_Code		=> Locale.Code
 				);
+	exception
+		when CONSTRAINT_ERROR => return Get_Name( Group );
 	end Get_Label;
 
 	function Get_Context( Group : in Group_Type ) return String is
