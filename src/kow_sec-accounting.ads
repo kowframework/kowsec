@@ -9,7 +9,7 @@ with Ada.Strings.Unbounded;		use Ada.Strings.Unbounded;
 -------------------
 -- KOW Framework --
 -------------------
-
+with KOW_Lib.Log;
 
 package KOW_Sec.Accounting is
 	-----------------
@@ -168,7 +168,7 @@ package KOW_Sec.Accounting is
 	function Service( Accountant : in Accountant_Type ) return String;
 	-- same as the Service() return unbounded_string
 
-	procedure Flush( Accountant : in out Accountant_Type );
+	procedure Flush( Accountant : in out Accountant_Type ) is null;
 	-- Flushes the current acountant.
 
 
@@ -247,6 +247,15 @@ package KOW_Sec.Accounting is
 	-- 	INVALID_CRITERIA if trying to create a criteria that isn't registered
 	-- 	INVALID_CRITERIA_DESCRIPTOR if the descriptor is invalid for this criteria
 	-- logs any erro that might occur using the root_accountant
+
+	protected Logging is
+		procedure Log(
+				Level	: in KOW_Lib.Log.Log_Level;
+				Message	: in String
+			);
+	private
+		My_Logger : KOW_Lib.Log.Logger_Type := KOW_Lib.Log.Get_Logger( "kow_sec.accounting" );
+	end Logging;
 
 
 private

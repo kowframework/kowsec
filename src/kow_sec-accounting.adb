@@ -136,46 +136,32 @@ package body KOW_Sec.Accounting is
 	end Service;
 
 
-	procedure Flush( Accountant: in out Accountant_Type ) is
-		-- Flushes the current acountant.
-	begin
-		Ada.Text_IO.Flush( Ada.Text_IO.Standard_Output );
-		Ada.Text_IO.Flush( Ada.Text_IO.Standard_Error );
-	end Flush;
-
-
-	procedure Log( Status, Path, Message: in String; Output: in File_Type ) is
-		Pragma Inline( Log );
-	begin
-		Put( Output, "[" & Status & " @ " & Path & "] " & Message );
-		New_Line( Output );
-	end Log;
-
-
-	procedure Log( Child : Base_Action_Type'Class; Path: in String; Output: in File_Type ) is
-		Pragma Inline( Log );
-		Status: Exit_Status := Child.Status;
-	begin
-		if Status = Exit_Null then
-			Status := Exit_Success;
-		end if;
-		Log(	
-				Status	=> Exit_Status'Image( Status ),
-				Message	=> To_String( Child.Message ),
-				Path	=> Path & Name( Child ),
-				Output	=> Output
-			);
-	end Log;
-
 
 	procedure Log( Child: in Base_Action_Type'Class; Path: in String ) is
+		function Level return KOW_Lib.Log.Log_Level is
+			use KOW_Lib.Log;
+		begin
+			case Child.Status is
+				when EXIT_SUCCESS | EXIT_NULL =>
+					return Level_Debug;
+				when EXIT_WARNING =>
+					return Level_Warning;
+				when EXIT_ERROR | EXIT_FATAL =>
+					return Level_Error;
+			end case;
+		end Level;
+
+		function Message return String is
+			Status	: constant String := Exit_Status'Image( Child.Status );
+			The_Path: constant String := Path & To_String( Child.Name );
+		begin
+			return '[' & Status & " @ " & The_Path & "] " & To_String( Child.Message );
+		end Message;
 	begin
-		if Child.Status = EXIT_SUCCESS OR Child.Status = EXIT_NULL then
-			null;
-			--Log( Child => Child, Path => Path, Output => Standard_Output );
-		else
-			Log( Child => Child, Path => Path, Output => Standard_Error );
-		end if;
+		Logging.Log(
+				Level	=> Level,
+				Message	=> Message
+			);
 	end Log;
 
 
@@ -446,6 +432,21 @@ package body KOW_Sec.Accounting is
 				);
 			Reraise_Occurrence( E );
 	end Require;
+	
+
+	protected body Logging is
+		procedure Log(
+				Level	: in KOW_Lib.Log.Log_Level;
+				Message	: in String
+			) is
+		begin
+			KOW_Lib.Log.Log(
+					Logger	=> My_Logger,
+					Level	=> Level,
+					Message	=> Message
+				);
+		end Log;
+	end Logging;
 
 
 	-- PRIVATE --
