@@ -4,19 +4,15 @@
 -- Ada 2005 --
 --------------
 with Ada.Finalization;
-with Ada.Strings.Unbounded;		use Ada.Strings.Unbounded;
 
 -------------------
 -- KOW Framework --
 -------------------
 with KOW_Lib.Log;
 
-
--- TODO :: Remove Unbounded_String dependency in here;
---
--- UStrings are quite slow and should be avoided at all cost, specially in a code like this
-
 package KOW_Sec.Accounting is
+
+
 	-----------------
 	-- EXIT STATUS --  
 	-----------------
@@ -48,12 +44,26 @@ package KOW_Sec.Accounting is
 	-- action in two other tasks.
 
 
+	---------------------
+	-- String Handling --
+	---------------------
+
+	subtype Name_Type is String( 1 .. 200 );
+	subtype Message_Type is String( 1 .. 500 );
+
+
+	function To_Name( Str : in String ) return Name_Type;
+	function To_Message( Str : in String ) return Message_Type;
+
+	function Trim( Str : in String ) return String;
+	-- trim any string to it's very end
+
 
 	----------------------
 	-- ACCOUNTANT TYPES --
 	----------------------
 
-	type Path_Array is Array( Natural range<> ) of Unbounded_String;
+	type Path_Array is Array( Natural range<> ) of Name_Type;
 	
 	--
 	-- the accountant type
@@ -166,12 +176,10 @@ package KOW_Sec.Accounting is
 	-- of simply instantiate the type.
 
 
-	function Service( Accountant : in Accountant_Type ) return Unbounded_String;
-	-- Gets the current service name
-	-- The service name is a string representing the accountant.
 	
 	function Service( Accountant : in Accountant_Type ) return String;
-	-- same as the Service() return unbounded_string
+	-- Gets the current service name
+	-- The service name is a string representing the accountant.
 
 	procedure Flush( Accountant : in out Accountant_Type ) is null;
 	-- Flushes the current acountant.
@@ -266,16 +274,16 @@ package KOW_Sec.Accounting is
 private
 	type Accountant_Type is new Ada.Finalization.Limited_Controlled with record
 		Creation_Time	: Time := Ada.Calendar.Clock;
-		Service		: Unbounded_String := To_Unbounded_String("/");
+		My_Service	: Name_Type := ( 1 => '/', others => ' ' );
 		Root		: Accountant_Access := Root_Acc;
 	end record;
 
 	type Base_Action_Type is new Ada.Finalization.Limited_Controlled with record
-		My_Name		: Unbounded_String;
+		My_Name		: Name_Type := ( others => ' ' );
 		Creation_Time	: Time;
 		User		: User_Data_Type;
 		Status		: Exit_Status;
-		Message		: Unbounded_String;
+		Message		: Message_Type := ( others => ' ' );
 		Root_Accountant	: Accountant_Access;
 	end record;
 

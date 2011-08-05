@@ -37,7 +37,15 @@
 --------------
 with Ada.Exceptions;
 with Ada.Text_IO;		use Ada.Text_IO;
+with Ada.Strings;
+with Ada.Strings.Fixed;
+with Ada.Strings.Unbounded;	-- thanks to criteria descriptor
 
+
+-------------------
+-- KOW Framework --
+-------------------
+with KOW_Lib.String_Util;
 
 package body KOW_Sec.Accounting is
 	-------------
@@ -68,13 +76,13 @@ package body KOW_Sec.Accounting is
 
 		-- if we got to here, all we've got to do is set the status and the message
 		Action.Status := Status;
-		Action.Message := To_Unbounded_String( Message );
+		Action.Message := To_Message( Message );
 	end Set_Exit_Status;
 
 	
 	function Name( Action : in Base_Action_Type ) return String is
 	begin
-		return Ada.Strings.Unbounded.To_String( Action.My_Name );
+		return Trim( Action.My_Name );
 	end Name;
 	
 	-- the basic action implementation provided:
@@ -87,17 +95,40 @@ package body KOW_Sec.Accounting is
 			) return Action_Type is
 	begin
 		return ( Ada.Finalization.Limited_Controlled with
-					My_Name		=> Ada.Strings.Unbounded.To_Unbounded_String( Name ),
+					My_Name		=> To_Name( Name ),
 					Creation_Time	=> Ada.Calendar.Clock,
 					User		=> User,
 					Status		=> EXIT_NULL,
 					Root_Accountant => Root_Accountant,
-					Message		=> Null_Unbounded_String
+					Message		=> ( others => ' ' )
 				);
 
 	end New_Action;
 
+	---------------------
+	-- String Handling --
+	---------------------
 
+
+	function To_Name( Str : in String ) return Name_Type is
+		Name : Name_Type;
+	begin
+		KOW_Lib.String_Util.Copy( To => Name, From => Str );
+		return Name;
+	end To_Name;
+
+	function To_Message( Str : in String ) return Message_Type is
+		Message : Message_Type;
+	begin
+		KOW_Lib.String_Util.Copy( To => Message, From => Str );
+		return message;
+	end To_Message;
+
+	function Trim( Str : in String ) return String is
+		-- trim any string to it's very end
+	begin
+		return Ada.Strings.Fixed.Trim( Str, Ada.Strings.Right );
+	end Trim;
 
 	---------------------------
 	-- Accounting Management --
@@ -113,32 +144,24 @@ package body KOW_Sec.Accounting is
 	begin
 		return ( Ada.Finalization.Limited_Controlled with 
 				Creation_Time	=> Ada.Calendar.Clock,
-				Service		=> To_Unbounded_String( Service ),
+				My_Service	=> To_Name( Service ),
 				Root		=> Root
 			);
 
 	end New_Accountant;
 
 
-	function Service( Accountant: in Accountant_Type ) return Unbounded_String is
-		-- Gets the current service name
-		-- The service name is a string representing the accountant.
-		Pragma Inline( Service );
-	begin
-		return Accountant.Service;
-	end Service;
-	
 	function Service( Accountant: in Accountant_Type ) return String is
-		-- same as the Service() return unbounded_string
+		-- same as the Service() return name_type
 		Pragma Inline( Service );
 	begin
-		return To_String( Service( Accountant ) );
+		return Trim( Accountant.My_Service );
 	end Service;
 
 
 
 	procedure Log( Child: in Base_Action_Type'Class; Path: in String ) is
-		function Level return KOW_Lib.Log.Log_Level is
+		function Get_Level return KOW_Lib.Log.Log_Level is
 			use KOW_Lib.Log;
 		begin
 			case Child.Status is
@@ -149,19 +172,32 @@ package body KOW_Sec.Accounting is
 				when EXIT_ERROR | EXIT_FATAL =>
 					return Level_Error;
 			end case;
-		end Level;
+		end Get_Level;
 
-		function Message return String is
+		function Get_Message return String is
 			Status	: constant String := Exit_Status'Image( Child.Status );
 			The_Path: constant String := Path & Name( Child );
 		begin
-			return '[' & Status & " @ " & The_Path & "] " & To_String( Child.Message );
-		end Message;
+			return '[' & Status & " @ " & The_Path & "] " & Trim( Child.Message );
+		end Get_Message;
+
+		Level : KOW_Lib.Log.Log_Level;
 	begin
+		Ada.Text_IO.Put_Line( "Called log" );
+
+		Level := Get_Level;
+		Ada.Text_IO.Put_Line( "Level ok" & KOW_Lib.Log.Log_Level'image(level));
+
+		declare
+		Message: string := Get_Message;
+		begin
+		Ada.Text_IO.Put_Line( "Message ok"  & message);
+
 		Logging.Log(
 				Level	=> Level,
 				Message	=> Message
 			);
+		end;
 	end Log;
 
 
@@ -171,7 +207,7 @@ package body KOW_Sec.Accounting is
 			) is
 		-- Called to log a child action
 
-		function p_array( Serv: in Unbounded_String ) return Path_Array is
+		function p_array( Serv: in Name_Type ) return Path_Array is
 			Pragma Inline( P_Array );
 			P: Path_Array( 1 .. 1 ) := (1 => Serv );
 		begin
@@ -179,6 +215,10 @@ package body KOW_Sec.Accounting is
 		end P_array;
 
 	begin
+		Ada.Text_IO.Put_Line( "NAME" );
+		Ada.Text_IO.Put_Line( "Delegated " & Child.My_Name );
+		Ada.Text_IO.Put_Line( "NAME PRINTED" );
+		New_Line( 2 );
 		if To_Accountant.Root = NULL then
 			Log(
 					Child	=> Child, 
@@ -187,7 +227,7 @@ package body KOW_Sec.Accounting is
 		else
 			Delegate(
 					To_Accountant	=> To_Accountant.Root.all,
-					Relative_Path	=> P_Array( Service( To_Accountant ) ),
+					Relative_Path	=> P_Array( To_Accountant.My_Service ),
 					Child		=> Child
 				);
 		end if;
@@ -210,7 +250,7 @@ package body KOW_Sec.Accounting is
 			if Arr'Length = 0 then
 				return "";
 			else
-				return	To_String( Arr(Arr'First) )	&
+				return	Trim( Arr(Arr'First) )	&
 					"/"				&
 					Build_Path_Arr( Arr(Arr'First + 1 .. Arr'Last ) );
 			end if;
@@ -224,21 +264,26 @@ package body KOW_Sec.Accounting is
 
 	begin
 		if To_Accountant.Root = NULL then
-			Log(	Child	=> Child,
-				Path	=> Build_Path( Relative_Path ) );
+			Ada.Text_IO.Put_Line( "NULL ROOT" );
+			Log(
+					Child	=> Child,
+					Path	=> Build_Path( Relative_Path )
+				);
 		else
 			declare
 				function Get_Path_Array return Path_Array is
 					P: Path_Array( 1 .. Relative_Path'Length + 1 );
 				begin
-					P(1) := Service( To_Accountant );
+					P(1) := To_Accountant.My_Service;
 					P(2 .. P'Last) := Relative_Path;
 					return P;
 				end Get_Path_Array;
 			begin
-				Delegate(	To_Accountant	=> To_Accountant.Root.all,
+				Delegate(
+						To_Accountant	=> To_Accountant.Root.all,
 						Relative_Path	=> Get_Path_Array,
-						Child		=> Child );
+						Child		=> Child
+					);
 			end;
 		end if;
 	end Delegate;
@@ -389,6 +434,7 @@ package body KOW_Sec.Accounting is
 		-- 	INVALID_CRITERIA_DESCRIPTOR if the descriptor is invalid for this criteria
 		-- logs any erro that might occur using the root_accountant
 		use Ada.Exceptions;
+		use Ada.Strings.Unbounded;
 
 		My_Action : Base_Action_Type'Class := New_Action(
 						Name		=> "Require",
@@ -440,6 +486,7 @@ package body KOW_Sec.Accounting is
 				Message	: in String
 			) is
 		begin
+			Ada.Text_IO.Put_Line( "NOW it's in KOW LIB" );
 			KOW_Lib.Log.Log(
 					Logger	=> My_Logger,
 					Level	=> Level,
