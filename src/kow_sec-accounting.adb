@@ -183,20 +183,14 @@ package body KOW_Sec.Accounting is
 
 		Level : KOW_Lib.Log.Log_Level;
 	begin
-		Ada.Text_IO.Put_Line( "Called log" );
-
 		Level := Get_Level;
-		Ada.Text_IO.Put_Line( "Level ok" & KOW_Lib.Log.Log_Level'image(level));
-
 		declare
-		Message: string := Get_Message;
+			Message: string := Get_Message;
 		begin
-		Ada.Text_IO.Put_Line( "Message ok"  & message);
-
-		Logging.Log(
-				Level	=> Level,
-				Message	=> Message
-			);
+			Logging.Log(
+					Level	=> Level,
+					Message	=> Message
+				);
 		end;
 	end Log;
 
@@ -215,10 +209,6 @@ package body KOW_Sec.Accounting is
 		end P_array;
 
 	begin
-		Ada.Text_IO.Put_Line( "NAME" );
-		Ada.Text_IO.Put_Line( "Delegated " & Child.My_Name );
-		Ada.Text_IO.Put_Line( "NAME PRINTED" );
-		New_Line( 2 );
 		if To_Accountant.Root = NULL then
 			Log(
 					Child	=> Child, 
@@ -264,7 +254,6 @@ package body KOW_Sec.Accounting is
 
 	begin
 		if To_Accountant.Root = NULL then
-			Ada.Text_IO.Put_Line( "NULL ROOT" );
 			Log(
 					Child	=> Child,
 					Path	=> Build_Path( Relative_Path )
@@ -486,7 +475,6 @@ package body KOW_Sec.Accounting is
 				Message	: in String
 			) is
 		begin
-			Ada.Text_IO.Put_Line( "NOW it's in KOW LIB" );
 			KOW_Lib.Log.Log(
 					Logger	=> My_Logger,
 					Level	=> Level,
@@ -502,13 +490,6 @@ package body KOW_Sec.Accounting is
 		-- used to flush the action.
 	begin
 		Delegate( A.Root_Accountant.all, A );
-	exception
-		when others =>
-			null;
-			-- for some reason I don't understand yet
-			-- GNAT GPL 2011 often calls Finalize twice on the same object.
-			--
-			-- This leads to obvious problems and that's why I have this in here.
 	end Finalize;
 
 begin
