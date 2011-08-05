@@ -74,7 +74,7 @@ package body KOW_Sec.Accounting is
 	
 	function Name( Action : in Base_Action_Type ) return String is
 	begin
-		return Ada.Strings.Unbounded.To_String( Action.Name );
+		return Ada.Strings.Unbounded.To_String( Action.My_Name );
 	end Name;
 	
 	-- the basic action implementation provided:
@@ -87,7 +87,7 @@ package body KOW_Sec.Accounting is
 			) return Action_Type is
 	begin
 		return ( Ada.Finalization.Limited_Controlled with
-					Name		=> Ada.Strings.Unbounded.To_Unbounded_String( Name ),
+					My_Name		=> Ada.Strings.Unbounded.To_Unbounded_String( Name ),
 					Creation_Time	=> Ada.Calendar.Clock,
 					User		=> User,
 					Status		=> EXIT_NULL,
@@ -153,7 +153,7 @@ package body KOW_Sec.Accounting is
 
 		function Message return String is
 			Status	: constant String := Exit_Status'Image( Child.Status );
-			The_Path: constant String := Path & To_String( Child.Name );
+			The_Path: constant String := Path & Name( Child );
 		begin
 			return '[' & Status & " @ " & The_Path & "] " & To_String( Child.Message );
 		end Message;
@@ -455,6 +455,13 @@ package body KOW_Sec.Accounting is
 		-- used to flush the action.
 	begin
 		Delegate( A.Root_Accountant.all, A );
+	exception
+		when others =>
+			null;
+			-- for some reason I don't understand yet
+			-- GNAT GPL 2011 often calls Finalize twice on the same object.
+			--
+			-- This leads to obvious problems and that's why I have this in here.
 	end Finalize;
 
 begin

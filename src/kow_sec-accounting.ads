@@ -11,6 +11,11 @@ with Ada.Strings.Unbounded;		use Ada.Strings.Unbounded;
 -------------------
 with KOW_Lib.Log;
 
+
+-- TODO :: Remove Unbounded_String dependency in here;
+--
+-- UStrings are quite slow and should be avoided at all cost, specially in a code like this
+
 package KOW_Sec.Accounting is
 	-----------------
 	-- EXIT STATUS --  
@@ -266,7 +271,7 @@ private
 	end record;
 
 	type Base_Action_Type is new Ada.Finalization.Limited_Controlled with record
-		Name		: Unbounded_String;
+		My_Name		: Unbounded_String;
 		Creation_Time	: Time;
 		User		: User_Data_Type;
 		Status		: Exit_Status;
