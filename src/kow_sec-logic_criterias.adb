@@ -54,7 +54,8 @@ package body KOW_Sec.Logic_Criterias is
 			or else  Char = '_'
 			or else	Char = '.'
 			or else Char = '-'
-			or else Char = ':' then
+			or else Char = ':' 
+			or else Char = ' ' then
 			
 			return True;
 		else
@@ -471,7 +472,7 @@ package body KOW_Sec.Logic_Criterias is
 					
 					Exp1 := And_Expression_Pools.New_object( ( Expression_Type with Exp1 => Exp1, Exp2 => Exp2 ) );
 				else
-					raise INVALID_CRITERIA_DESCRIPTOR with "Unknown error at: " & To_String( Parser.Descriptor );  
+					raise INVALID_CRITERIA_DESCRIPTOR with "Unknown error at " & Integer'Image( Parser.Index ) & ": " & To_String( Parser.Descriptor );  
 				end if;
 			end loop;
 
