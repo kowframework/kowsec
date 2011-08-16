@@ -471,7 +471,7 @@ package body KOW_Sec.Logic_Criterias is
 					
 					Exp1 := And_Expression_Pools.New_object( ( Expression_Type with Exp1 => Exp1, Exp2 => Exp2 ) );
 				else
-					raise INVALID_CRITERIA_DESCRIPTOR with To_String( Parser.Descriptor );  
+					raise INVALID_CRITERIA_DESCRIPTOR with "Unknown error at: " & To_String( Parser.Descriptor );  
 				end if;
 			end loop;
 
