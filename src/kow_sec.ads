@@ -556,6 +556,8 @@ pragma Elaborate_Body( KOW_Sec );
 	procedure Set_Roles( User : in User_Data_Type; Roles : in Role_Vectors.Vector );
 
 	procedure Add_Global_Role( User : in User_Data_Type; Role : in Role_Type );
+	-- like group's add_role, but for user
+	-- add the role globaly, of course
 
 	function Is_Anonymous( User : in User_Data_Type ) return Boolean;
 	-- Return true if this user isn't logged in.
