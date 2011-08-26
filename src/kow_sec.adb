@@ -844,6 +844,18 @@ package body KOW_Sec is
 	end Remove_Group;
 
 
+	function Has_Role(
+				User			: in User_Data_Type;
+				Role			: in Role_Type;
+				Contexts		: in Context_Array := Empty_Context_Array
+			) return Boolean is
+		-- check if the user has the given role in the given context
+		
+		Roles : Role_Vectors.Vector := Get_Roles( User, True, Contexts );
+	begin
+		return Role_Vectors.Contains( Roles, Role );
+	end Has_Role;
+
 	function Get_Roles(
 				User			: in User_Data_Type;
 				Combine_Group_Roles	: in Boolean := False;

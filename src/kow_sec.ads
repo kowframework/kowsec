@@ -523,6 +523,14 @@ pragma Elaborate_Body( KOW_Sec );
 	-- remove the given group, taking into account the context.
 	-- raises constraint_error if no group is found
 
+
+	function Has_Role(
+				User			: in User_Data_Type;
+				Role			: in Role_Type;
+				Contexts		: in Context_Array := Empty_Context_Array
+			) return Boolean;
+	-- check if the user has the given role in the given context
+
 	function Get_Roles(
 				User			: in User_Data_Type;
 				Combine_Group_Roles	: in Boolean := False;
