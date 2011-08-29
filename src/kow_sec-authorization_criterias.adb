@@ -365,7 +365,7 @@ package body KOW_Sec.Authorization_Criterias is
 
 	function Get_Role_Criteria(
 				Role : in Role_Type
-			) return Role_Criteria_Type is
+			) return Criteria_Type'Class is
 		-- get the role criteria initialized for the given role
 		Criteria : Role_Criteria_Type;
 	begin
