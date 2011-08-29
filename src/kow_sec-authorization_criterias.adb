@@ -363,6 +363,17 @@ package body KOW_Sec.Authorization_Criterias is
 		Role_Vectors.Clear( Criteria.Roles );
 	end Finalize;
 
+	function Get_Role_Criteria(
+				Role : in Role_Type
+			) return Role_Criteria_Type is
+		-- get the role criteria initialized for the given role
+		Criteria : Role_Criteria_Type;
+	begin
+		Criteria.Descriptor := To_Unbounded_String( '{' & String( Identity( Role ) ) & '}' );
+
+		return Criteria;
+	end Get_Role_Criteria;
+
 	-----------------------
 	-- ANY ROLE CRITERIA --
 	-----------------------

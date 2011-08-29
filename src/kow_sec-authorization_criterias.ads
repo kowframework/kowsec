@@ -221,7 +221,14 @@ pragma Elaborate_Body( KOW_Sec.Authorization_Criterias );
 				Criteria	: in out Role_Criteria_Type
 			);
 
+	function Get_Role_Criteria(
+				Role : in Role_Type
+			) return Role_Criteria_Type;
+	-- get the role criteria initialized for the given role
+
 	function Create_Role_Criteria is new Generic_Logic_Criteria_Factory( Specific_Criteria_Type => Role_Criteria_Type );
+
+
 
 
 	-----------------------
