@@ -651,6 +651,18 @@ pragma Elaborate_Body( KOW_Sec );
 				Response	:    out Boolean
 			) is abstract;
 
+
+
+	procedure Require(	
+				Name		: in     Criteria_Name;
+				Descriptor	: in     Criteria_Descriptor;
+				User		: in     User_Type;
+				Contexts	: in     Context_Array;
+				Response	:    out Boolean
+			);
+	-- Create and matches against a criteria using the criteria registry
+
+
 	procedure Require(	
 				Criteria	: in out Criteria_Type;
 				User		: in     User_Type 

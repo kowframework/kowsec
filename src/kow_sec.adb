@@ -1071,6 +1071,43 @@ package body KOW_Sec is
 	end To_Context;
 
 
+	function Prepare_Criteria(
+				Name		: in Criteria_Name;
+				Descriptor	: in Criteria_Descriptor;
+				Contexts	: in Context_Array
+			) return Criteria_Type'Class is
+		Criteria : Criteria_Type'Class := Criteria_Registry.Create_Criteria( Name, Descriptor );
+	begin
+		for i in Contexts'Range loop
+			Add_Context( Criteria, Contexts( i ) );
+		end loop;
+	
+		return Criteria;
+	end Prepare_Criteria;
+
+
+	procedure Require(	
+				Name		: in     Criteria_Name;
+				Descriptor	: in     Criteria_Descriptor;
+				User		: in     User_Type;
+				Contexts	: in     Context_Array;
+				Response	:    out Boolean
+			) is
+	-- Create and matches against a criteria using the criteria registry
+
+		Criteria : Criteria_Type'Class := Criteria_Registry.Create_Criteria( Name, Descriptor );
+		Is_A : Boolean := False;
+	begin
+		Is_Allowed( Criteria, User, Is_A );
+
+		if Is_A then
+			Response := True;
+		else
+			Response := False;
+		end if;
+	end Require;
+			
+
 	procedure Require(	
 				Criteria	: in out Criteria_Type;
 				User		: in     User_Type 
@@ -1092,19 +1129,22 @@ package body KOW_Sec is
 				Contexts	: in     Context_Array
 			) is
 		-- Create and matches against a criteria using the criteria registry
-		Criteria : Criteria_Type'Class := Criteria_Registry.Create_Criteria( Name, Descriptor );
+		Criteria : Criteria_Type'Class := Prepare_Criteria( Name, Descriptor, Contexts );
+		Is_A     : Boolean;
 	begin
-		for i in Contexts'Range loop
-			Add_Context( Criteria, Contexts( i ) );
-		end loop;
-		Require( Criteria, User );
-	exception
-		when e: ACCESS_DENIED =>
+		Is_Allowed(
+				Criteria	=> Criteria,
+				User		=> User,
+				Response	=> Is_A
+			);
+
+		if not Is_A then
 			if Is_Anonymous( User ) then
-				raise LOGIN_REQUIRED with "was ACCESS_DENIED with " & Ada.Exceptions.Exception_Message( e );
+				raise LOGIN_REQUIRED with "ACCESS_DENIED";
 			else
-				Ada.Exceptions.Reraise_Occurrence( e );
+				raise ACCESS_DENIED with Describe( Criteria );
 			end if;
+		end if;
 	end Require;
 
 	-----------------------
