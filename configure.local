@@ -7,4 +7,9 @@
 project="kowsec"
 
 
+check_project kowlib
+check_project kowconfig
+check_project apq
+
+
 set_configuration KOWSEC_EXTERNALLY_BUILT "false"
