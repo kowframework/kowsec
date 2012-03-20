@@ -365,8 +365,8 @@ pragma Elaborate_Body( KOW_Sec );
 	-- get the trimmed version of the group name
 
 	function Get_Label(
-				Group	: in Group_Type;
-				Locale	: in KOW_Lib.Locales.Locale := KOW_Lib.Locales.Default_Locale
+				Group		: in Group_Type;
+				Locale_Code	: in KOW_Lib.Locales.Locale_Code_Type:= KOW_Lib.Locales.Get_Default_Locale_Code
 			) return String;
 	-- get the label in a given locale
 
@@ -485,8 +485,8 @@ pragma Elaborate_Body( KOW_Sec );
 
 
 	function Full_Name(
-				User	: in User_Data_Type;
-				Locale	: in KOW_Lib.Locales.Locale := KOW_Lib.Locales.Default_Locale
+				User		: in User_Data_Type;
+				Locale_Code	: in KOW_Lib.Locales.Locale_Code_Type:= KOW_Lib.Locales.Get_Default_Locale_Code
 		) return String;
 	-- return the full name for this user, respecting the locale's conventions
 

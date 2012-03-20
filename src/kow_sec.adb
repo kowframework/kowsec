@@ -57,6 +57,7 @@ with GNAT.MD5;
 with KOW_Config;
 with KOW_Lib.Json;
 with KOW_Lib.Locales;
+with KOW_Lib.Locales.Formatting;
 with KOW_Lib.UString_Ordered_Maps;
 
 
@@ -73,7 +74,7 @@ package body KOW_Sec is
 	---------------
 	-- Variables --
 	---------------
-	Group_Labels : KOW_Config.Config_File;
+	Group_Labels : KOW_Config.Config_File_Type;
 
 	--------------------
 	-- Helper Methods --
@@ -628,15 +629,15 @@ package body KOW_Sec is
 
 
 	function Get_Label(
-				Group	: in Group_Type;
-				Locale	: in KOW_Lib.Locales.Locale := KOW_Lib.Locales.Default_Locale
+				Group		: in Group_Type;
+				Locale_Code	: in KOW_Lib.Locales.Locale_Code_Type:= KOW_Lib.Locales.Get_Default_Locale_Code
 			) return String is
 		-- get the label in a given locale
 	begin
 		return KOW_Config.Element(
-					F		=> Group_Labels,
+					Config		=> Group_Labels,
 					Key		=> Get_Name( Group ),
-					L_Code		=> Locale.Code
+					Locale_Code	=> Locale_Code
 				);
 	exception
 		when CONSTRAINT_ERROR => return Get_Name( Group );
@@ -719,21 +720,21 @@ package body KOW_Sec is
 	
 
 	function Full_Name(
-				User	: in User_Data_Type;
-				Locale	: in KOW_Lib.Locales.Locale := KOW_Lib.Locales.Default_Locale
+				User		: in User_Data_Type;
+				Locale_Code	: in KOW_Lib.Locales.Locale_Code_Type:= KOW_Lib.Locales.Get_Default_Locale_Code
 		) return String is
 	-- return the full name for this user, respecting the locale's conventions
-
+		use KOW_Lib.Locales;
 	begin
 		if Is_Anonymous( User ) then
-			return KOW_Lib.Locales.Get_Formated_Full_Name(
-					L		=> Locale,
+			return Formatting.Full_Name(
+					L		=> Get_Locale( Locale_Code ),
 					First_Name	=> "Anonymous",
 					Last_Name	=> "User"
 				);
 		else
-			return KOW_Lib.Locales.Get_Formated_Full_Name(
-					L		=> Locale,
+			return Formatting.Full_Name(
+					L		=> Get_Locale( Locale_Code ),
 					First_Name	=> Ada.Strings.Fixed.Trim( User.First_Name, Ada.Strings.Both ),
 					Last_Name	=> Ada.Strings.Fixed.Trim( User.Last_Name, Ada.Strings.Both )
 				);
