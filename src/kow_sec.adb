@@ -634,7 +634,7 @@ package body KOW_Sec is
 			) return String is
 		-- get the label in a given locale
 	begin
-		return KOW_Config.Element(
+		return KOW_Config.Value(
 					Config		=> Group_Labels,
 					Key		=> Get_Name( Group ),
 					Locale_Code	=> Locale_Code
