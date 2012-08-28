@@ -632,6 +632,8 @@ pragma Elaborate_Body( KOW_Sec );
 	-- This is the type that should be implemented by whoever wants to
 	-- extend the authorization type avaliable.
 
+	type Criteria_Ptr is access all Criteria_Type'Class;
+
 
 	function Get_Name( Criteria: in Criteria_Type ) return String is abstract;
 	-- return a String representing the criteria
